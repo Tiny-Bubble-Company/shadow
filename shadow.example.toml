@@ -1,0 +1,92 @@
+# Shadow configuration. Copy to <data dir>/shadow.toml (`shadow init` writes a minimal one).
+# Default data dir: $SHADOW_HOME, else
+#   macOS   ~/Library/Application Support/shadow
+#   Linux   ~/.local/share/shadow
+#   Windows %APPDATA%\shadow
+# Every key is optional.
+
+# Where persona.json, vault.bin, vault.key (0600), terms.json and ca/ live.
+# Relative paths are resolved against this file's directory.
+# data_dir = "/var/lib/shadow"
+
+# Legal names of your organisation(s). The first maps to the persona's company; the
+# bare name without its legal suffix ("Acme") is protected as well.
+organization = ["Acme GmbH"]
+
+# Dictionary terms: product codenames, customers, projects, people.
+# Optional kind prefix: person:, org:, term:, hostname:, email:, username:
+terms = [
+  "Project Falcon",
+  "Nightjar",
+  "org:Globex",
+  "person:Jane Doe",
+]
+
+# Domains that are always treated as internal (masked in URLs, hostnames, emails).
+internal_domains = ["acme.com", "acme.internal"]
+
+# Public domains that must never be masked (added to the built-in allow list).
+allow_domains = ["mycompany-public-docs.io"]
+
+# Values never masked even when detected (case-insensitive).
+allow_terms = []
+
+[persona]
+# ISO code of the fake region: CN, JP, KR, BR, US, DE, IN, AU, MX, ZA, CA.
+# "auto" (default) picks a region far away from this machine's timezone.
+region = "auto"
+# company = "Zhilan Technology Co., Ltd."
+# domain  = "zhilan.cn"
+
+[detectors]
+email = true
+phone = true
+person = true
+address = true
+iban = true
+credit_card = true
+national_id = true
+ip = true
+mac = true
+hostname = true
+secret = true
+path = true          # usernames inside /Users/<u>, /home/<u>, C:\Users\<u>
+local_facts = true   # OS user, hostname, git user.name/email, local domain
+
+[model_detector]
+# Optional local NER sidecar, see ml/README.md. Loopback only; fails open.
+enabled = false
+url = "http://127.0.0.1:8878/detect"
+timeout_ms = 300
+min_score = 0.6
+
+[proxy]
+listen = "127.0.0.1:8877"
+# Extra hosts to intercept (glob * allowed), e.g. a self-hosted LLM gateway.
+extra_hosts = []
+# Hosts never intercepted (blind tunnel) even if built in.
+bypass_hosts = []
+# Route intercepted AI traffic through a relay in the persona's region so the source IP
+# matches the persona. http://, socks5:// or socks5h://
+# upstream_proxy = "socks5h://relay.example.net:1080"
+
+# Request headers removed before forwarding. Remove "openai-organization" from this list
+# if you rely on a non-default OpenAI organisation.
+strip_headers = [
+  "openai-organization", "x-forwarded-for", "x-real-ip", "forwarded", "via", "x-client-ip",
+  "x-stainless-os", "x-stainless-arch", "x-stainless-runtime-version",
+]
+
+# Request headers whose value is replaced with persona values when present.
+# Placeholders: {user_id} {hostname} {company} {domain} {username}
+[proxy.persona_headers]
+"x-request-origin" = "{hostname}"
+"x-user-id" = "{user_id}"
+"x-client-hostname" = "{hostname}"
+
+# Gateway routes: http://127.0.0.1:8877/gw/<name>/<path> -> <base>/<path>.
+# Built in: openai anthropic openrouter gemini google mistral groq together deepseek xai
+#           cohere perplexity fireworks cerebras
+[proxy.routes]
+# azure = "https://my-resource.openai.azure.com"
+# bedrock = "https://bedrock-runtime.eu-central-1.amazonaws.com"

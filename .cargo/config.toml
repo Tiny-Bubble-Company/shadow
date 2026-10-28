@@ -1,0 +1,3 @@
+# Pick dependency versions compatible with the workspace `rust-version` (1.88).
+[resolver]
+incompatible-rust-versions = "fallback"

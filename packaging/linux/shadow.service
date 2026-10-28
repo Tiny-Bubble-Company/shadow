@@ -1,0 +1,23 @@
+# Shadow systemd *user* unit. `shadow install` fills in {{EXE}}, {{DATA_DIR}} and {{LISTEN}}.
+# Install: ~/.config/systemd/user/shadow.service, then `systemctl --user enable --now shadow`.
+# For a system-wide server install, copy to /etc/systemd/system/, add User=, and
+# point SHADOW_HOME at a directory owned by that user.
+[Unit]
+Description=Shadow - endpoint privacy layer for AI clouds
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Environment=SHADOW_HOME={{DATA_DIR}}
+Environment=RUST_LOG=info
+ExecStart={{EXE}} run --listen {{LISTEN}}
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths={{DATA_DIR}}
+
+[Install]
+WantedBy=default.target

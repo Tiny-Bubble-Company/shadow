@@ -1,0 +1,17 @@
+[workspace]
+members = ["crates/shadow-core", "crates/shadow-proxy", "crates/shadow-cli"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.88"
+license = "Apache-2.0"
+repository = "https://github.com/Tiny-Bubble-Company/shadow"
+homepage = "https://github.com/Tiny-Bubble-Company/shadow"
+authors = ["Shadow contributors"]
+
+[profile.release]
+lto = "thin"
+codegen-units = 4
+strip = true

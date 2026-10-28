@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Shadow LaunchAgent. `shadow install` fills in {{EXE}}, {{DATA_DIR}} and {{LISTEN}}. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>dev.shadow.proxy</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>{{EXE}}</string>
+    <string>run</string>
+    <string>--listen</string>
+    <string>{{LISTEN}}</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>SHADOW_HOME</key>
+    <string>{{DATA_DIR}}</string>
+    <key>RUST_LOG</key>
+    <string>info</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>StandardOutPath</key>
+  <string>{{DATA_DIR}}/shadow.log</string>
+  <key>StandardErrorPath</key>
+  <string>{{DATA_DIR}}/shadow.log</string>
+</dict>
+</plist>

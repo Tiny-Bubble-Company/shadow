@@ -1,0 +1,8 @@
+/target
+**/*.rs.bk
+*.pt
+__pycache__/
+.venv/
+.shadow/
+vault.key
+vault.bin

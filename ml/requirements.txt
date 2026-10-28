@@ -1,0 +1,8 @@
+# Shadow optional ML sidecar. Only PyTorch is required.
+# The Rust build of Shadow never needs Python.
+torch>=2.1
+
+# Optional (not used by serve.py, which is stdlib-only):
+# fastapi>=0.110
+# uvicorn>=0.29
+# pytest>=8.0

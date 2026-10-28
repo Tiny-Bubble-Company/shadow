@@ -1,0 +1,29 @@
+# Self-contained manifest (no workspace inheritance) so other workspaces can
+# depend on it with a plain path dependency.
+[package]
+name = "shadow-core"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.88"
+license = "Apache-2.0"
+description = "Shadow core: PII detection, persistent personas, encrypted vault and reversible translation for AI traffic."
+repository = "https://github.com/Tiny-Bubble-Company/shadow"
+
+[dependencies]
+aho-corasick = "1.1"
+anyhow = "1"
+chacha20poly1305 = "0.10"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+dirs = "5"
+hex = "0.4"
+iana-time-zone = "0.1"
+rand = "0.8"
+regex = "1.10"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+toml = "0.8"
+tracing = "0.1"
+whoami = "1.5"
+
+[dev-dependencies]
+tempfile = "3"
