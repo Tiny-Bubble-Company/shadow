@@ -58,7 +58,7 @@ Lakera Guard is strongest at attack detection (prompt injection, jailbreaks) and
 
 ### Flagging versus masking
 
-When Lakera flags PII, your application has to decide what to do, usually block or ask the user to edit. Shadow transforms the request instead: names, emails, IDs and secrets become consistent fakes from a persistent [persona](/shadow/concepts/personas/), the request goes through, and the response comes back with the real values. The user gets an answer and the provider never sees the data.
+When Lakera flags PII, your application has to decide what to do, usually block or ask the user to edit. Shadow transforms the request instead: names, emails, IDs and secrets become consistent fakes from a persistent [persona](/shadow/concepts/personas/), the request goes through, and the response comes back with the real values. The user gets an answer and the provider never sees the values Shadow detected.
 
 ### Where does the prompt go?
 
@@ -70,7 +70,7 @@ Shadow restores fakes in [SSE and NDJSON streams](/shadow/concepts/how-it-works/
 
 ### Coverage without code
 
-Lakera is called from your code. Shadow can run as an [HTTPS proxy](/shadow/integrate/proxy-mode/) that covers every tool on a machine, including ones you didn't write, and masks [uploaded Office files](/shadow/concepts/file-masking/).
+Lakera is called from your code. Shadow can run as an [HTTPS proxy](/shadow/integrate/proxy-mode/) that covers every tool on a machine that calls a [supported AI API](/shadow/reference/providers/), including ones you didn't write, and masks [uploaded Office files](/shadow/concepts/file-masking/).
 
 ## When should you choose Lakera Guard?
 
@@ -86,7 +86,7 @@ Lakera is called from your code. Shadow can run as an [HTTPS proxy](/shadow/inte
 
 ## Can you use Lakera Guard with Shadow?
 
-Yes. A layered setup works well: Shadow masks the request first, then your application (or gateway) calls Lakera Guard on the masked text for prompt-injection and content checks. Lakera then never receives the original personal data, and Shadow restores values only after Lakera has screened the response. Expect Lakera's PII detector to fire less often on masked text, though realistic fakes may still look like PII to it; you may want to rely on Shadow for PII and on Lakera for attacks.
+Yes. A layered setup works well: Shadow masks the request first, then your application (or gateway) calls Lakera Guard on the masked text for prompt-injection and content checks. Lakera then never receives the personal data Shadow detected, and Shadow restores values only after Lakera has screened the response. Expect Lakera's PII detector to fire less often on masked text, though realistic fakes may still look like PII to it; you may want to rely on Shadow for PII and on Lakera for attacks.
 
 ## How do they compare on accuracy?
 

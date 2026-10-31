@@ -1,0 +1,72 @@
+---
+// A product screenshot inside a window/device frame, with an optional caption.
+// Images live in src/assets/product/ (see index.ts there for swapping in real PNGs).
+//
+//   <ProductShot src={product.dashboardLight} srcDark={product.dashboardDark}
+//                frame="browser" title="localhost:8877/dashboard" alt="…" caption="…" />
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+	/** Image for the light theme (or both themes when srcDark is not given). */
+	src: ImageMetadata;
+	/** Optional image shown in the dark theme. */
+	srcDark?: ImageMetadata;
+	alt: string;
+	caption?: string;
+	/** browser: address bar · window: desktop app · terminal: dark terminal · popover: menu-bar app */
+	frame?: 'browser' | 'window' | 'terminal' | 'popover';
+	/** Address bar text or window title. */
+	title?: string;
+	/** Rendered width hint for responsive images, e.g. '(min-width: 72rem) 1000px, 100vw'. */
+	sizes?: string;
+	class?: string;
+	loading?: 'lazy' | 'eager';
+}
+
+const {
+	src,
+	srcDark,
+	alt,
+	caption,
+	frame = 'browser',
+	title,
+	sizes = '(min-width: 72rem) 1040px, 100vw',
+	class: className,
+	loading = 'lazy',
+} = Astro.props;
+
+const imgProps = { alt, sizes, loading, decoding: 'async' as const, widths: [480, 800, 1200, 1600] };
+---
+
+<figure class:list={['product-shot', `product-shot--${frame}`, 'not-content', className]}>
+	<div class="product-shot__frame">
+		{
+			frame === 'popover' ? (
+				<div class="product-shot__menubar" aria-hidden="true">
+					<span class="product-shot__menubar-icon" />
+					<span class="product-shot__menubar-dots">
+						<i />
+						<i />
+						<i />
+					</span>
+				</div>
+			) : (
+				<div class="product-shot__bar" aria-hidden="true">
+					<span class="product-shot__lights">
+						<i />
+						<i />
+						<i />
+					</span>
+					{title && <span class="product-shot__title">{title}</span>}
+					<span class="product-shot__spacer" />
+				</div>
+			)
+		}
+		<div class="product-shot__screen">
+			<Image src={src} {...imgProps} class:list={{ 'light:sl-hidden': false, 'dark:sl-hidden': Boolean(srcDark) }} />
+			{srcDark && <Image src={srcDark} {...imgProps} alt={alt} class="light:sl-hidden" />}
+		</div>
+	</div>
+	{caption && <figcaption>{caption}</figcaption>}
+</figure>

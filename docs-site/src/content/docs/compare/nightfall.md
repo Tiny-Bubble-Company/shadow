@@ -64,7 +64,7 @@ Redaction replaces `Jane Doe` with a placeholder or removes it. The model can no
 
 ### API, agent and developer traffic
 
-A browser extension does not see API calls from IDE assistants, CLIs, agents, CI jobs or back-end services. Shadow intercepts those through [proxy mode](/shadow/integrate/proxy-mode/) or [gateway mode](/shadow/integrate/gateway-mode/) and restores [SSE streams](/shadow/concepts/how-it-works/#streaming-hold-back) and [tool-call arguments](/shadow/concepts/tool-calls/).
+A browser extension does not see API calls from IDE assistants, CLIs, agents, CI jobs or back-end services. Shadow intercepts those calls to [supported AI APIs](/shadow/reference/providers/) through [proxy mode](/shadow/integrate/proxy-mode/) or [gateway mode](/shadow/integrate/gateway-mode/) and restores [SSE streams](/shadow/concepts/how-it-works/#streaming-hold-back) and [tool-call arguments](/shadow/concepts/tool-calls/).
 
 ### Intent-aware policy
 

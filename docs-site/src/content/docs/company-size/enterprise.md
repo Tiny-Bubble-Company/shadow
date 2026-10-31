@@ -23,7 +23,7 @@ sidebar:
   order: 5
 ---
 
-Enterprises already have DLP, a secure web gateway or SSE platform, and often an AI gateway. Shadow fills a specific gap between them: API traffic to AI providers from developer machines, internal applications, agents and pipelines, where blocking breaks the work and placeholders break the answers. It replaces sensitive values with consistent, reversible fakes on the endpoint or next to the workload, so the data never reaches the provider and the tools keep working.
+Enterprises already have DLP, a secure web gateway or SSE platform, and often an AI gateway. Shadow fills a specific gap between them: API traffic to AI providers from developer machines, internal applications, agents and pipelines, where blocking breaks the work and placeholders break the answers. It replaces sensitive values with consistent, reversible fakes on the endpoint or next to the workload, so detected values reach the provider only as fakes and the tools keep working. The only real values sent by design are those a provider-hosted action needs, each one logged, and you can turn that off.
 
 ## Where Shadow fits in the stack
 
@@ -81,7 +81,7 @@ Containers in a pod share a network namespace, so a pod-level `NetworkPolicy` ca
 llmgw = "https://llm-gateway.acme.internal"
 ```
 
-The app calls `http://127.0.0.1:8877/gw/llmgw/v1/...`. Shadow masks, the gateway handles keys, quotas and routing, and the provider receives only masked content. Your gateway's logs also see masked content only.
+The app calls `http://127.0.0.1:8877/gw/llmgw/v1/...`. Shadow masks, the gateway handles keys, quotas and routing, and the provider receives the masked request. Your gateway's logs hold the same masked content, not the real values Shadow detected.
 
 ## Rollout checklist
 

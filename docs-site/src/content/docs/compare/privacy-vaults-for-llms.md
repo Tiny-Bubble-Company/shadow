@@ -90,7 +90,7 @@ These can coexist. For example, Tonic Textual for training data and Shadow for l
 
 ## Accuracy
 
-Vendors in this category mostly publish their own benchmarks; treat those as vendor-run. The Shadow [benchmark](/shadow/benchmarks/) measures leak rate, over-masking, replacement validity and round-trip exactness with published code.
+Vendors in this category mostly publish their own benchmarks; treat those as vendor-run. The Shadow [benchmark](/shadow/benchmarks/) measures leak rate, over-masking and round-trip exactness with published code; the commercial vaults above are not included. On its held-out set, Shadow's built-in rules leaked 3.08% of sensitive values and round-tripped 100% of documents exactly.
 
 ## Sources
 

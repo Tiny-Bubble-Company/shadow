@@ -10,18 +10,18 @@
   <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-7C6CFF?style=flat-square"></a>
   <img alt="Rust 1.88+" src="https://img.shields.io/badge/rust-1.88%2B-B7410E?style=flat-square&logo=rust&logoColor=white">
   <img alt="Platforms: macOS, Linux, Windows" src="https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-3A3660?style=flat-square">
-  <a href="https://tiny-bubble-company.github.io/shadow/"><img alt="Docs" src="https://img.shields.io/badge/docs-tiny--bubble--company.github.io%2Fshadow-5A48E8?style=flat-square"></a>
+  <a href="https://getshadow.dev/"><img alt="Docs" src="https://img.shields.io/badge/docs-getshadow.dev-5A48E8?style=flat-square"></a>
 </p>
 
 <p align="center">
-  <a href="https://tiny-bubble-company.github.io/shadow/"><b>Docs</b></a> ·
+  <a href="https://getshadow.dev/"><b>Docs</b></a> ·
   <a href="#quick-start"><b>Quick start</b></a> ·
   <a href="#how-it-works"><b>How it works</b></a> ·
   <a href="#use-it-from-your-app"><b>Integrations</b></a> ·
-  <a href="https://tiny-bubble-company.github.io/shadow/benchmarks/"><b>Benchmarks</b></a> ·
-  <a href="https://tiny-bubble-company.github.io/shadow/compare/"><b>Compare</b></a> ·
-  <a href="https://tiny-bubble-company.github.io/shadow/use-cases/"><b>Use cases</b></a> ·
-  <a href="https://tiny-bubble-company.github.io/shadow/industries/"><b>Industries</b></a> ·
+  <a href="https://getshadow.dev/benchmarks/"><b>Benchmarks</b></a> ·
+  <a href="https://getshadow.dev/compare/"><b>Compare</b></a> ·
+  <a href="https://getshadow.dev/use-cases/"><b>Use cases</b></a> ·
+  <a href="https://getshadow.dev/industries/"><b>Industries</b></a> ·
   <a href="CONTRIBUTING.md"><b>Contributing</b></a>
 </p>
 
@@ -30,10 +30,10 @@
 Shadow is an endpoint privacy layer between your apps and AI clouds: OpenAI, Anthropic, Gemini, Azure OpenAI, OpenRouter, Mistral, Groq and more. It runs on your machine as a local proxy or gateway, or inside your Rust service as a library. It finds sensitive values in every outbound request, swaps them for format-preserving fakes from a persistent **persona**, keeps the mapping in an encrypted local vault, and translates responses back, including streamed responses and tool calls.
 
 ```text
-you      ──"Email jane@acme.com about Project Falcon for Acme GmbH"──────────────────────▶ Shadow
-Shadow   ──"Email hui.zhao@zhilan.cn about Velora Quilent for Zhilan Technology Co., Ltd."──▶ provider
-provider ──"Sure, drafting a note to hui.zhao@zhilan.cn…"────────────────────────────────▶ Shadow
-Shadow   ──"Sure, drafting a note to jane@acme.com…"─────────────────────────────────────▶ you
+you      ──"Draft an email to jane@acme.com about Project Falcon for Acme GmbH"──────────────────────▶ Shadow
+Shadow   ──"Draft an email to hui.zhao@zhilan.cn about Velora Quilent for Zhilan Technology Co., Ltd."──▶ provider
+provider ──"To: hui.zhao@zhilan.cn. Subject: Velora Quilent update…"──────────────────────────────▶ Shadow
+Shadow   ──"To: jane@acme.com. Subject: Project Falcon update…"────────────────────────────────────▶ you
 ```
 
 Single Rust binary · Apache-2.0 · no cloud, no account, no telemetry.
@@ -44,14 +44,14 @@ Prompts carry far more than the question: colleagues' names, customer lists, inv
 
 Most DLP gateways **block**, which breaks the tool, so people route around them. Plain redaction (`<PERSON>`) keeps the request flowing but destroys meaning: the model can't tell two people apart or write to the right address.
 
-Shadow **translates**. A fake email is still an email. A fake card still passes Luhn. A fake IBAN still passes mod-97. The model gets a coherent prompt about a company that does not exist, and you get a useful answer about yours.
+Shadow **translates**. A fake email is still an email. A fake card still passes Luhn. A fake IBAN still passes mod-97. The model gets a coherent prompt about a company that does not exist, and you get a useful answer about yours: the draft comes back addressed to the real Jane, and a tool call your code runs gets her real address back before it runs.
 
 ## Before and after
 
 | What you send | What the provider sees |
 |---|---|
 | `jane@acme.com` | `hui.zhao@zhilan.cn` |
-| `Acme GmbH` | `Zhilan Technology Co., Ltd.` |
+| `Acme GmbH` (your organisation) | `Zhilan Technology Co., Ltd.` |
 | `Project Falcon` | `Velora Quilent` |
 | `4111 1111 1111 1111` | `4837 2191 9471 3480` (valid Luhn) |
 | `DE89 3704 0044 0532 0130 00` | another German IBAN (valid mod-97) |
@@ -59,22 +59,23 @@ Shadow **translates**. A fake email is still an email. A fake card still passes 
 | `sk-proj-…` (an API key) | a fake key of the same shape, or `[REDACTED_SECRET]` if you opt in |
 | 400 customer rows in a report | `[PERSON_0001]`, `[EMAIL_0001]`, … restored in the answer |
 
-The same real value always gets the same fake, and no two real values share one, so restoring is exact.
+The same real value always gets the same fake, and no two real values share one, so restoring is exact. Restoration works on whole fakes and on a fake person's first or last name on its own; other fragments (the last four digits of a card, part of an email) stay fake.
 
 ## Features
 
 | | |
 |---|---|
 | **Reversible, format-preserving fakes** | Emails, phones, names, addresses, IBANs, cards, national IDs, IPs, MACs, hostnames, secrets, paths, from one coherent persona |
-| **Three integration modes** | HTTPS proxy for every tool, `/gw/<provider>` gateway with no CA, or the `shadow-core` Rust library |
+| **Three integration modes** | HTTPS proxy for every tool that calls a [supported AI API](https://getshadow.dev/reference/providers/), `/gw/<provider>` gateway with no CA, or the `shadow-core` Rust library |
 | **Stream-aware** | Restores SSE and NDJSON streams on the fly, even when a fake is split across events |
 | **Agent-safe** | Tool-call arguments are restored on your machine before your tools run |
 | **Intent-aware policy** | Classifies requests as `act`, `report`, `code` or `converse` and picks a surrogate, token, keep or redact per value |
 | **File masking** | Text, CSV, JSON, HTML, XML; DOCX, XLSX, PPTX masked in place; PDF text extracted and masked |
 | **Pluggable detection** | Regex, checksums, your dictionary, local machine facts, an optional local NER model, and Microsoft Presidio |
-| **Local and encrypted** | ChaCha20-Poly1305 vault, `0600` key, atomic multi-process writes; nothing leaves except the masked request |
+| **Local and encrypted** | ChaCha20-Poly1305 vault, `0600` key, atomic multi-process writes; the mapping never leaves the machine |
 | **Minimal interception** | Only known AI hosts are decrypted; all other traffic is tunnelled byte for byte |
 | **Identity scrubbing** | OpenAI `user`, Anthropic `metadata.user_id`, org and OS headers replaced or stripped |
+| **Activity dashboard** | Counts by data type, destination and app, never values: web UI on loopback, `shadow top`, and a menu-bar / tray app |
 
 ## Quick start
 
@@ -101,8 +102,8 @@ The install scripts use a release binary when one is published for your platform
 
 ```sh
 shadow init --org "Acme GmbH"          # persona + vault key + local CA
-echo "Mail jane@acme.com re Acme GmbH, card 4111 1111 1111 1111" | shadow mask
-# Mail tsun@xinghe.cn re Xinghe Technology Co., Ltd., card 4261 8002 0172 9224
+echo "Ticket from jane@acme.com (Acme GmbH): card 4111 1111 1111 1111 declined" | shadow mask
+# Ticket from tsun@xinghe.cn (Xinghe Technology Co., Ltd.): card 4261 8002 0172 9224 declined
 ```
 
 **Run it and send a protected request**
@@ -115,7 +116,7 @@ export OPENAI_BASE_URL=http://127.0.0.1:8877/gw/openai/v1
 export ANTHROPIC_BASE_URL=http://127.0.0.1:8877/gw/anthropic
 ```
 
-**Cover every tool on the machine (proxy mode)**
+**Cover every tool on the machine that calls an AI API (proxy mode)**
 
 ```sh
 shadow install            # dry run: prints exactly what would change
@@ -131,7 +132,7 @@ shadow identity           # the persona providers see
 shadow scan prompt.txt    # what would be masked, without changing anything
 ```
 
-Full walkthrough: [Quick start](https://tiny-bubble-company.github.io/shadow/getting-started/quick-start/).
+Full walkthrough: [Quick start](https://getshadow.dev/getting-started/quick-start/).
 
 ## Use it from your app
 
@@ -193,7 +194,7 @@ let mut response = send(&request_json)?;
 session.unmask_json(&mut response);           // tool-call arguments come back real
 ```
 
-Gateway routes are built in for `openai`, `anthropic`, `openrouter`, `gemini`, `mistral`, `groq`, `together`, `deepseek`, `xai`, `cohere`, `perplexity`, `fireworks` and `cerebras`; add Azure, Bedrock or your own under `[proxy.routes]`. See [Integrations](https://tiny-bubble-company.github.io/shadow/integrate/overview/).
+Gateway routes are built in for `openai`, `anthropic`, `openrouter`, `gemini`, `mistral`, `groq`, `together`, `deepseek`, `xai`, `cohere`, `perplexity`, `fireworks` and `cerebras`; add Azure, Bedrock or your own under `[proxy.routes]`. See [Integrations](https://getshadow.dev/integrate/overview/).
 
 ## How it works
 
@@ -219,11 +220,13 @@ flowchart LR
 5. **Scrub.** Identifying fields and headers are replaced with persona values or removed.
 6. **Restore.** Responses, SSE streams and tool-call arguments are translated back before they reach your app.
 
-Details: [How it works](https://tiny-bubble-company.github.io/shadow/concepts/how-it-works/).
+Details: [How it works](https://getshadow.dev/concepts/how-it-works/).
 
 ### Intent-aware policy
 
-"Email jane@acme.com about the renewal": with a **local** tool, the model sees a fake address and writes the tool call to the fake; Shadow restores `jane@acme.com` in the tool arguments on your machine before the tool runs. The action works and the provider never sees the address. With a **provider-hosted** tool (hosted MCP, server-side tools) Shadow can't restore values in the provider's cloud, so the target is kept by default and logged.
+"Email jane@acme.com about the renewal": with a **local** tool, the model sees a fake address and writes the tool call to the fake; Shadow restores `jane@acme.com` in the tool arguments on your machine before the tool runs. The action works and the provider never sees the address. With a **provider-hosted** tool (hosted MCP, server-side tools) Shadow can't restore values in the provider's cloud, so by default it keeps real what the action needs (the contact details, people, companies, addresses, usernames and IBANs named in the instruction, and for a follow-up that names no email or phone, the emails, phones and people anywhere in the request), keeps secrets, cards and IDs masked, and logs each keep.
+
+"Draft a renewal reminder to Jane Doe (jane@acme.com)": no tool, so **converse**. The provider writes the draft to a fake person, and Shadow restores Jane's real name and address in the draft you send yourself.
 
 "Build a churn report from this customer list": **report** intent. Names, emails and phones become typed tokens such as `[PERSON_0001]` that the model treats as opaque IDs, restored in the answer.
 
@@ -241,11 +244,11 @@ default = "surrogate"
 # secret = "redact"            # opt in to irreversible redaction
 ```
 
-[Read more](https://tiny-bubble-company.github.io/shadow/concepts/intent-policy/)
+[Read more](https://getshadow.dev/concepts/intent-policy/)
 
 ### Files
 
-Multipart uploads, base64 file payloads in JSON (OpenAI `input_file`, Anthropic `document`, Gemini `inline_data`) and `data:` URIs are masked before they leave. Office files stay valid documents; PDF text is sent masked; images pass through (no OCR yet) or can be blocked. [Read more](https://tiny-bubble-company.github.io/shadow/concepts/file-masking/)
+Multipart uploads, base64 file payloads in JSON (OpenAI `input_file`, Anthropic `document`, Gemini `inline_data`) and `data:` URIs are masked before they leave. Office files stay valid documents; PDF text is sent masked; images pass through (no OCR yet) or can be blocked. [Read more](https://getshadow.dev/concepts/file-masking/)
 
 ### Presidio
 
@@ -261,7 +264,7 @@ enabled = true
 url = "http://127.0.0.1:5002/analyze"
 ```
 
-[Read more](https://tiny-bubble-company.github.io/shadow/concepts/detection/#presidio)
+[Read more](https://getshadow.dev/concepts/detection/#presidio)
 
 ## How Shadow compares
 
@@ -277,24 +280,24 @@ url = "http://127.0.0.1:5002/analyze"
 
 ## Security model
 
-Shadow protects the **content** of AI requests from the provider, its subprocessors, logs, training sets and breaches. It trusts the endpoint it runs on. It does not hide your IP address or the account behind your API key (use `upstream_proxy` to route AI traffic through a relay). Detection is best effort: add your own terms and test with `shadow scan`. Images are not OCR'd; WebSocket/Realtime APIs and gRPC are not processed; SigV4-signed requests are forwarded unmasked with a warning; certificate-pinning apps reject the local CA in proxy mode.
+Shadow protects the **content** of AI requests from the provider, its subprocessors, logs, training sets and breaches. It trusts the endpoint it runs on. It does not hide your IP address or the account behind your API key (use `upstream_proxy` to route AI traffic through a relay). Detection is best effort: add your own terms and test with `shadow scan`. Only the [listed AI API hosts](https://getshadow.dev/reference/providers/) are intercepted, so AI web apps in a browser (chatgpt.com, claude.ai, gemini.google.com) are not masked. For actions the provider runs itself, the contact details the action needs are sent real by default and logged. Images are not OCR'd; WebSocket/Realtime APIs and gRPC are not processed; SigV4-signed requests are forwarded unmasked with a warning; certificate-pinning apps reject the local CA in proxy mode.
 
-Read the full [security model](https://tiny-bubble-company.github.io/shadow/reference/security/). Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
+Read the full [security model](https://getshadow.dev/reference/security/). Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
 
 ## Documentation
 
-Full documentation: **[tiny-bubble-company.github.io/shadow](https://tiny-bubble-company.github.io/shadow/)**
+Full documentation: **[getshadow.dev](https://getshadow.dev/)**
 
-- [Benchmarks](https://tiny-bubble-company.github.io/shadow/benchmarks/) · [Compare with alternatives](https://tiny-bubble-company.github.io/shadow/compare/) · [Use cases](https://tiny-bubble-company.github.io/shadow/use-cases/) · [Industries](https://tiny-bubble-company.github.io/shadow/industries/) · [By company size](https://tiny-bubble-company.github.io/shadow/company-size/)
-- [Introduction](https://tiny-bubble-company.github.io/shadow/getting-started/introduction/) · [Installation](https://tiny-bubble-company.github.io/shadow/getting-started/installation/)
-- [Proxy mode](https://tiny-bubble-company.github.io/shadow/integrate/proxy-mode/) · [Gateway mode](https://tiny-bubble-company.github.io/shadow/integrate/gateway-mode/) · [Embed in Rust](https://tiny-bubble-company.github.io/shadow/integrate/rust/) · [Docker and Kubernetes](https://tiny-bubble-company.github.io/shadow/integrate/docker-kubernetes/)
-- [Configuration](https://tiny-bubble-company.github.io/shadow/reference/configuration/) · [CLI](https://tiny-bubble-company.github.io/shadow/reference/cli/) · [Providers](https://tiny-bubble-company.github.io/shadow/reference/providers/) · [FAQ](https://tiny-bubble-company.github.io/shadow/reference/faq/)
+- [Benchmarks](https://getshadow.dev/benchmarks/) · [Compare with alternatives](https://getshadow.dev/compare/) · [Use cases](https://getshadow.dev/use-cases/) · [Industries](https://getshadow.dev/industries/) · [By company size](https://getshadow.dev/company-size/)
+- [Introduction](https://getshadow.dev/getting-started/introduction/) · [Installation](https://getshadow.dev/getting-started/installation/)
+- [Proxy mode](https://getshadow.dev/integrate/proxy-mode/) · [Gateway mode](https://getshadow.dev/integrate/gateway-mode/) · [Embed in Rust](https://getshadow.dev/integrate/rust/) · [Docker and Kubernetes](https://getshadow.dev/integrate/docker-kubernetes/)
+- [Configuration](https://getshadow.dev/reference/configuration/) · [CLI](https://getshadow.dev/reference/cli/) · [Providers](https://getshadow.dev/reference/providers/) · [FAQ](https://getshadow.dev/reference/faq/)
 
-The source of the docs is in [`docs-site/`](docs-site/). For LLMs and answer engines, the docs are also published as [`llms.txt`](https://tiny-bubble-company.github.io/shadow/llms.txt) and [`llms-full.txt`](https://tiny-bubble-company.github.io/shadow/llms-full.txt).
+The source of the docs is in [`docs-site/`](docs-site/). For LLMs and answer engines, the docs are also published as [`llms.txt`](https://getshadow.dev/llms.txt) and [`llms-full.txt`](https://getshadow.dev/llms-full.txt).
 
 ## Roadmap
 
-Release binaries and a published container image, local OCR for images and scanned PDFs, WebSocket/Realtime support, an optional local audit log, more persona regions, and language bindings for `shadow-core`. See the [roadmap](https://tiny-bubble-company.github.io/shadow/project/roadmap/).
+Release binaries and a published container image, local OCR for images and scanned PDFs, WebSocket/Realtime support, an optional local audit log, more persona regions, and language bindings for `shadow-core`. See the [roadmap](https://getshadow.dev/project/roadmap/).
 
 ## Repository layout
 
@@ -302,6 +305,8 @@ Release binaries and a published container image, local OCR for images and scann
 crates/shadow-core    detection, persona, vault, policy, translation
 crates/shadow-proxy   CA, forward proxy, gateway, files, SSE translation
 crates/shadow-cli     the `shadow` binary
+apps/shadow-tray      menu-bar / tray app for the activity dashboard
+bench/                detection benchmark
 ml/                   optional PyTorch NER sidecar
 packaging/            install scripts, launchd / systemd / Windows service, Dockerfile
 docs-site/            documentation site (Starlight)

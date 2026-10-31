@@ -33,7 +33,7 @@ GDPR Article 4(5) defines pseudonymisation as processing personal data so that i
 |---|---|
 | Personal data replaced | Detected values become fakes or typed tokens |
 | Additional information | The real↔fake mapping in `vault.bin` |
-| Kept separately | The vault and its key stay on the machine or pod running Shadow. The provider only ever receives the fakes |
+| Kept separately | The vault and its key stay on the machine or pod running Shadow. The provider receives fakes for every detected value, never the mapping |
 | Technical measures | ChaCha20-Poly1305 encryption, a 32-byte key in `vault.key` with mode `0600`, atomic writes |
 
 The "reversible" part is what makes it practical. Plain redaction (`<PERSON>`) is safe but destroys meaning, and the answer refers to placeholders you then have to resolve by hand. With reversible pseudonymisation the answer comes back about your real customer.
@@ -41,8 +41,8 @@ The "reversible" part is what makes it practical. Plain redaction (`<PERSON>`) i
 ## How does Shadow pseudonymise a prompt?
 
 ```text
-you      ──"Email jane.doe@acme.example about the Acme GmbH renewal"────────────────▶ Shadow
-Shadow   ──"Email xiu.wang@lingxi.cn about the Lingxi Technology Co., Ltd. renewal"──▶ provider
+you      ──"Draft an email to jane.doe@acme.example about the Acme GmbH renewal"────────────────▶ Shadow
+Shadow   ──"Draft an email to xiu.wang@lingxi.cn about the Lingxi Technology Co., Ltd. renewal"──▶ provider
 provider ──"Here is a draft to xiu.wang@lingxi.cn…"────────────────────────────────▶ Shadow
 Shadow   ──"Here is a draft to jane.doe@acme.example…"─────────────────────────────▶ you
 ```
@@ -121,7 +121,7 @@ export OPENAI_BASE_URL=http://127.0.0.1:8877/gw/openai/v1
 export ANTHROPIC_BASE_URL=http://127.0.0.1:8877/gw/anthropic
 ```
 
-Or cover every tool on the machine with [proxy mode](/shadow/integrate/proxy-mode/) (`shadow install --apply`). If you build in Rust, [embed `shadow-core`](/shadow/integrate/rust/) and call `mask` / `unmask` directly.
+Or cover every tool on the machine that calls a [supported provider](/shadow/reference/providers/) with [proxy mode](/shadow/integrate/proxy-mode/) (`shadow install --apply`). If you build in Rust, [embed `shadow-core`](/shadow/integrate/rust/) and call `mask` / `unmask` directly.
 
 ### 6. Inspect and manage the mapping
 
@@ -131,7 +131,7 @@ shadow vault export --i-understand          # real↔fake pairs in clear text
 shadow vault forget "jane.doe@acme.example" # drop one mapping
 ```
 
-After `forget`, the value gets a new fake next time it appears, and older responses that mention the old fake are no longer restored. That is useful for honouring an erasure request against your local mapping. It does not delete anything the provider already holds, which is only ever the fake.
+After `forget`, the value gets a new fake next time it appears, and older responses that mention the old fake are no longer restored. That is useful for honouring an erasure request against your local mapping. It does not delete anything the provider already holds, which for a detected value is only the fake.
 
 ## Limits to know
 
@@ -139,6 +139,7 @@ After `forget`, the value gets a new fake next time it appears, and older respon
 - **Detection is best effort.** A value that is not detected is not pseudonymised. Add terms, enable the [NER sidecar or Presidio](/shadow/concepts/detection/), and test with `shadow scan`.
 - **Dates and internal record numbers** (MRNs, claim or matter numbers) are not detected by the built-in detectors. There is no custom regex setting in `shadow.toml`.
 - **Context can identify.** A unique event or a rare combination of facts can point to a person or company even with every name replaced.
+- **Whole values, plus name parts.** Restoration matches complete fakes, and a fake person's first or last name on its own. Other fragments, such as the last four digits of a fake card or the domain of a fake email, are not translated back.
 - **Coincidental fakes.** If the model happens to write text equal to one of your fakes, it is translated back too. This is rare and usually harmless.
 - **The vault is the key.** Anyone who can read the data directory as your user can reverse everything. Use full-disk encryption and treat `vault.key` like a credential.
 :::

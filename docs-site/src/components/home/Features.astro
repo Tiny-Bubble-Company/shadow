@@ -1,0 +1,38 @@
+---
+import { Icon } from '@astrojs/starlight/components';
+import Section from './Section.astro';
+import { href } from './links';
+
+const features = [
+	{ icon: 'random', title: 'Realistic, reversible fakes', text: 'Every value maps to a stable fake of the same format from one persistent persona, so answers stay useful.', link: '/concepts/personas/' },
+	{ icon: 'padlock', title: 'Encrypted local vault', text: 'The real-to-fake mapping lives in an encrypted vault on your machine and never leaves it.', link: '/concepts/vault/' },
+	{ icon: 'magnifier', title: 'Layered detection', text: 'Checksummed patterns, secrets, machine facts, your dictionary, plus optional NER or Presidio.', link: '/concepts/detection/' },
+	{ icon: 'comment-alt', title: 'Streams and tool calls', text: 'Fakes split across SSE events are reassembled; tool-call arguments are restored before your tools run.', link: '/concepts/tool-calls/' },
+	{ icon: 'setting', title: 'Intent-aware policy', text: 'Act, report, code or converse: each request gets the right treatment, from fakes to typed tokens.', link: '/concepts/intent-policy/' },
+	{ icon: 'document', title: 'Files too', text: 'Text, CSV, JSON, DOCX, XLSX, PPTX and PDF uploads are masked, and Office files stay valid.', link: '/concepts/file-masking/' },
+	{ icon: 'laptop', title: 'Single binary, no cloud', text: 'One Rust binary for macOS, Linux and Windows. No account, no hosted component, no telemetry.', link: '/getting-started/installation/' },
+	{ icon: 'puzzle', title: 'Works with your tools', text: 'HTTPS proxy for apps that call AI APIs, a gateway base URL for SDKs, a Docker sidecar, or a Rust library.', link: '/integrate/overview/' },
+	{ icon: 'approve-check', title: 'Open source', text: 'Apache-2.0, free to use and audit. Methodology and benchmarks are published and reproducible.', link: '/reference/security/' },
+];
+---
+
+<Section
+	id="features"
+	eyebrow="Features"
+	title="Everything between your data and the model"
+	lead="Detection is only the start. Shadow handles what sits around it, so AI tools keep working on masked data."
+>
+	<div class="hp-grid hp-grid--3">
+		{
+			features.map((f) => (
+				<a class="hp-card hp-card--link hp-feature" href={href(f.link)}>
+					<div class="hp-card__icon">
+						<Icon name={f.icon as any} size="1.25rem" />
+					</div>
+					<h3>{f.title}</h3>
+					<p>{f.text}</p>
+				</a>
+			))
+		}
+	</div>
+</Section>

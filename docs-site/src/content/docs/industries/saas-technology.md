@@ -23,7 +23,7 @@ sidebar:
   order: 8
 ---
 
-Shadow is for SaaS and technology companies whose support, engineering and product teams use LLMs on text that contains customer data. It runs on laptops, servers or as a sidecar, replaces customer names, emails, IPs, internal hostnames, usernames and secrets with realistic, format-preserving fakes, and restores them in the answer, including streamed responses and tool calls. Your customers' data stays on your infrastructure; the provider sees a coherent but fake world.
+Shadow is for SaaS and technology companies whose support, engineering and product teams use LLMs on text that contains customer data. It runs on laptops, servers or as a sidecar, replaces customer names, emails, IPs, internal hostnames, usernames and secrets with realistic, format-preserving fakes, and restores them in the answer, including streamed responses and tool calls. The mapping stays on your infrastructure and the provider sees a coherent but fake world. The exceptions are values detection misses and, for an action the provider runs itself (a hosted MCP server or server-side tool), the contact details it needs, which are kept real by default and logged.
 
 ## What data leaks into AI tools at SaaS and tech companies
 

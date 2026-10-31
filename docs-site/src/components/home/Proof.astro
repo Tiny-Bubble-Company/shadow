@@ -1,0 +1,24 @@
+---
+import { Icon } from '@astrojs/starlight/components';
+
+const facts = [
+	{ icon: 'approve-check', value: 'Apache-2.0', label: 'Free and open source' },
+	{ icon: 'laptop', value: 'Single binary', label: 'macOS, Linux, Windows' },
+	{ icon: 'padlock', value: 'No cloud', label: 'No account, no telemetry' },
+	{ icon: 'puzzle', value: '15+ providers', label: 'OpenAI, Anthropic, Gemini…' },
+];
+---
+
+<ul class="hp-proof not-content" aria-label="Key facts">
+	{
+		facts.map((f) => (
+			<li>
+				<Icon name={f.icon as any} size="1.15rem" />
+				<span>
+					<strong>{f.value}</strong>
+					{f.label}
+				</span>
+			</li>
+		))
+	}
+</ul>

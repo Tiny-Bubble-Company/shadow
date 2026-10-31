@@ -83,7 +83,7 @@ internal_domains = ["acme.example", "acme.internal"]
 remote_tool_targets = "surrogate"   # never send action targets to provider-hosted tools in clear
 
 [policy.always]
-secret = "redact"                   # secrets never leave in any form
+secret = "redact"                   # detected secrets never leave in any form
 
 [files]
 pdf = "text"
@@ -108,7 +108,7 @@ There is no central admin console or fleet management yet. Use MDM or configurat
 
 ### 6. Monitor
 
-With `shadow run` in the foreground or the service logs, each request shows its intent and counts per treatment (surrogates, tokens, kept, redacted). Every `keep` is logged with kind and reason. Values are never logged.
+With `shadow run` in the foreground or the service logs, each request shows its intent and counts per treatment (surrogates, tokens, kept, redacted). Every `keep` is logged with kind and reason. Values are never logged. On each machine, the local [activity dashboard](/shadow/concepts/activity-dashboard/) (`shadow dashboard`) shows the same counts by data type, provider and app.
 
 ## What Shadow does not do
 

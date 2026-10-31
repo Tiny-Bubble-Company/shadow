@@ -16,7 +16,7 @@ faq:
   - q: "Do order numbers get masked?"
     a: "Not by default. Order numbers are usually not personal on their own and the built-in detectors do not look for them. If yours are sensitive, add known values as terms or use a custom detector in Rust."
   - q: "Can an AI agent still refund or email the right customer?"
-    a: "Yes, when the tool runs in your code. The model sees a fake email or address and writes the tool call with it; Shadow restores the real value in the tool-call arguments before your code executes it."
+    a: "Yes, when the tool runs in your code. The model sees a fake email or address and writes the tool call with it; Shadow restores the real value in the tool-call arguments before your code executes it. If the tool is hosted by the provider (a hosted MCP server or server-side tool), Shadow cannot restore inside the provider, so by default the customer contact details the action needs are kept real and each keep is logged."
   - q: "How do I analyse thousands of customers with an LLM safely?"
     a: "Ask for a report and attach the export. Shadow classifies the request as a report and replaces names, emails, phones and addresses with typed tokens such as [PERSON_0001], so the model treats them as IDs. The answer comes back with real values."
 sidebar:
@@ -95,17 +95,19 @@ Sent (fictional):
 
 ```text
 Customer Jane Doe (jane.doe@acme.example, +1 415 555 0132) says order NW-77812 to
-221 Baker Street never arrived. She paid with 4111 1111 1111 1111. Draft an apology and next steps.
+221 Baker Street never arrived. She pasted her card number 4111 1111 1111 1111 into the chat.
+Draft an apology and next steps.
 ```
 
 Seen by the provider (persona varies):
 
 ```text
 Customer Hui Zhao (hui.zhao@zhilan.cn, +86 21 5550 3816) says order NW-77812 to
-48 Huaihai Road never arrived. She paid with [CREDIT_CARD_0001]. Draft an apology and next steps.
+48 Huaihai Road never arrived. She pasted her card number [CREDIT_CARD_0001] into the chat.
+Draft an apology and next steps.
 ```
 
-The reply comes back with Jane's real details. The order number passes through unless you configure it.
+The draft comes back with Jane Doe's real name, email and address restored, ready to send. The card number was never needed for the apology, so the provider only ever saw a token. The order number passes through unless you configure it.
 
 ### Refund agent with a local tool
 
@@ -113,7 +115,7 @@ A support agent built on the OpenAI SDK offers `issue_refund(email, amount)`. Th
 
 ### Review mining
 
-A merchandiser attaches 3,000 reviews as CSV and asks for the top complaints by product. Reviewer names and emails become tokens, product names stay readable, and quoted reviews are restored with real names on the merchandiser's screen.
+A merchandiser pastes 3,000 reviews as CSV and asks for the top complaints by product. With that many names and emails in tabular form, Shadow treats the request as a report, so reviewer names and emails become tokens, product names stay readable, and quoted reviews are restored with real names on the merchandiser's screen.
 
 ## Deployment patterns
 

@@ -22,7 +22,7 @@ faq:
   - q: "Does Shadow work with Azure OpenAI?"
     a: "Yes. Shadow intercepts *.openai.azure.com and Azure AI services hosts in proxy mode, and you can add your Azure endpoint as a custom gateway route."
   - q: "Which is more accurate, Azure PII or Shadow?"
-    a: "Azure scored 0.61 aggregate F1 in a vendor-run Tonic benchmark, but results vary with dataset and label mapping. See the Shadow benchmarks page for a reproducible comparison."
+    a: "Azure AI Language is not in the Shadow benchmark, because commercial cloud APIs are impractical to run publicly and reproducibly. Vendor-run benchmarks such as Tonic's include it, but results vary with dataset and label mapping."
 ---
 
 **Azure AI Language PII detection is a managed Microsoft API that finds personal data in text and returns a redacted version. Shadow is an open-source privacy layer that replaces sensitive values in AI requests with realistic, reversible fakes on your own machine, then restores them in the model's answer.** Azure suits teams that want a managed, multilingual detector inside Azure. Shadow suits teams that want prompts to any provider masked and answers restored without building that pipeline.
@@ -103,7 +103,7 @@ Shadow doesn't call Azure AI Language as a detector out of the box. You can impl
 
 ## How do they compare on accuracy?
 
-In Tonic's vendor-run benchmark (October 2025), Azure scored 0.61 aggregate F1. Numbers swing widely with datasets and label mapping, so treat any single figure with care. Shadow's [benchmark](/shadow/benchmarks/) reports cloud APIs in a separate table, with code and mappings published.
+Tonic's vendor-run benchmark (October 2025) includes Azure. Numbers swing widely with datasets and label mapping, so treat any single figure with care. Shadow's [benchmark](/shadow/benchmarks/) publishes its code and mappings; commercial cloud APIs such as Azure are not included, because their terms and pricing make public, reproducible runs impractical.
 
 ## Sources
 

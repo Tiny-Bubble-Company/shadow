@@ -119,7 +119,7 @@ A marketer uploads a PPTX for an unannounced campaign. Title, codename, partner 
 
 ### Subscriber churn analysis
 
-An analyst attaches a CSV of subscribers and viewing data and asks which titles drive cancellations. The `report` intent tokenises subscriber names and emails; title names in your term list get consistent fakes. The analysis is restored locally.
+An analyst attaches a CSV of subscribers and viewing data and asks "Analyse these subscriber records: which titles drive cancellations?". The request reads as a report, so the `report` intent tokenises subscriber names and emails; title names in your term list get consistent fakes. The analysis is restored locally.
 
 ## Deployment patterns
 

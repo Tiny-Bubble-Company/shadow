@@ -124,17 +124,17 @@ What the clinician sends (fictional data):
 
 ```text
 Draft a follow-up letter to Maria Lopez, 12 Elm Road, Springfield,
-phone (217) 555-0142, SSN 078-05-1120, about her MRI results with Dr Amara Okafor.
+phone (217) 555-0142, about her MRI results with Dr Amara Okafor.
 ```
 
 What the provider sees (persona values differ):
 
 ```text
 Draft a follow-up letter to Ying Chen, 88 Tianfu Road, Springfield,
-phone +86 28 6512 0417, SSN 412-73-9906, about her MRI results with Dr Tao Zhu.
+phone +86 28 6512 0417, about her MRI results with Dr Tao Zhu.
 ```
 
-The letter comes back addressed to Maria Lopez from Dr Okafor. "Springfield" was not masked here: a city on its own is often missed, which is one reason to keep a BAA in place.
+The draft comes back addressed to Maria Lopez at 12 Elm Road from Dr Amara Okafor, so the letter the clinician sends reaches the real patient. A salutation such as "Dear Ms Chen" or "Dr Zhu" is restored too, because fake first and last names are restored on their own; other fragments, such as part of an address, are not. Leave identifiers the letter does not need, such as an SSN, out of the prompt altogether. "Springfield" was not masked here: a city on its own is often missed, which is one reason to keep a BAA in place.
 
 ## Example: a report over patient rows
 

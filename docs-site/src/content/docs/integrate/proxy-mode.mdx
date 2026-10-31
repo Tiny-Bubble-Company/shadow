@@ -1,6 +1,6 @@
 ---
 title: Proxy mode
-description: "Run Shadow as an HTTPS forward proxy that masks PII in every AI tool on a machine: trusting the local CA, intercepted hosts, bypass rules and PAC files."
+description: "Run Shadow as an HTTPS forward proxy that masks PII in the AI API traffic of every tool on a machine: trusting the local CA, intercepted hosts, bypass rules and PAC files."
 ---
 
 import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
@@ -100,7 +100,7 @@ Add `source "<data dir>/env.sh"` to `~/.zshrc` or `~/.bashrc` to make it permane
 
 ## System-wide with a PAC file
 
-Apps that use the OS proxy settings (browsers, many desktop apps) can use the PAC file Shadow serves at `/proxy.pac`. It sends only the intercepted hosts through Shadow and everything else direct:
+Apps that use the OS proxy settings (browsers, many desktop apps) can use the PAC file Shadow serves at `/proxy.pac`. It sends only the intercepted hosts through Shadow and everything else direct. In a browser that means AI web apps such as chatgpt.com, claude.ai and gemini.google.com go direct and are not masked:
 
 ```sh
 # macOS

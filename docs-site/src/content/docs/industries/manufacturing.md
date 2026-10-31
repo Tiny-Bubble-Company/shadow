@@ -117,7 +117,7 @@ Summarise this 8D for Zhilan Motors: Velora Quilent housings from Lumeth Casting
 failed porosity checks at Plant 2. Containment led by Ying Chen (ying.chen@xinghe.cn).
 ```
 
-The summary comes back about Globex, the KX-400 and Jonas Weber. The porosity issue is still visible to the provider, because it is the substance of the question.
+The summary comes back about Globex Automotive, the KX-400 Actuator and Jonas Weber. The porosity issue is still visible to the provider, because it is the substance of the question.
 
 ### Supplier comparison in a spreadsheet
 

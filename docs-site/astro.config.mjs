@@ -7,7 +7,7 @@ import rehypeBaseLinks from './src/plugins/rehype-base-links.mjs';
 import { SITE, BASE, REPO_URL, SITE_DESCRIPTION } from './src/site.mjs';
 
 // Where the site is published comes from the SITE and BASE environment variables
-// (see src/site.mjs). Default: https://tiny-bubble-company.github.io/shadow/
+// (see src/site.mjs). Default: served at the domain root (BASE=""); GitHub Pages uses BASE=/shadow.
 
 // https://astro.build/config
 export default defineConfig({
@@ -31,10 +31,12 @@ export default defineConfig({
 			social: [{ icon: 'github', label: 'GitHub', href: REPO_URL }],
 			editLink: { baseUrl: `${REPO_URL}/edit/main/docs-site/` },
 			lastUpdated: false,
-			customCss: ['./src/styles/custom.css'],
+			customCss: ['./src/styles/custom.css', './src/styles/home.css', './src/styles/site-chrome.css'],
 			routeMiddleware: './src/seo/middleware.ts',
 			components: {
 				MarkdownContent: './src/components/MarkdownContent.astro',
+				Header: './src/components/Header.astro',
+				PageFrame: './src/components/PageFrame.astro',
 			},
 			head: [
 				{ tag: 'meta', attrs: { name: 'theme-color', content: '#7C6CFF' } },
@@ -87,6 +89,7 @@ export default defineConfig({
 						'concepts/intent-policy',
 						'concepts/file-masking',
 						'concepts/tool-calls',
+						'concepts/activity-dashboard',
 					],
 				},
 				{ label: 'Benchmarks', collapsed: true, items: [{ autogenerate: { directory: 'benchmarks' } }] },

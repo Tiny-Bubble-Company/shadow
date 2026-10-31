@@ -1,0 +1,73 @@
+---
+import Section from './Section.astro';
+import { LINKS } from './links';
+
+// Held-out test set results from the benchmarks page. Keep in sync with /benchmarks/.
+const rows = [
+	{ name: 'Shadow + open-weight NER sidecar', leak: 0.08, shadow: true },
+	{ name: 'Shadow + Presidio detector', leak: 1.35, shadow: true },
+	{ name: 'Shadow, built-in rules only', leak: 3.08, shadow: true },
+	{ name: 'OpenAI Privacy Filter', leak: 11.01 },
+	{ name: 'GLiNER', leak: 13.28 },
+	{ name: 'Microsoft Presidio', leak: 20.74 },
+	{ name: 'LLM Guard', leak: 29.26 },
+];
+const max = 30;
+const fmt = (n: number) => `${n.toFixed(2)}%`;
+const stats = [
+	{ value: '3.08%', label: 'of sensitive values leaked with built-in rules alone' },
+	{ value: '~7.5 ms', label: 'per document with built-in rules' },
+	{ value: '0%', label: 'public names changed by mistake' },
+	{ value: '100%', label: 'exact round trip back to the original text' },
+];
+---
+
+<Section
+	id="benchmarks"
+	eyebrow="Benchmarks"
+	title="Leaks less than standalone detectors"
+	lead="Measured on a held-out test set with a reproducible benchmark: the share of sensitive values that still reached the model. Lower is better."
+>
+	<div class="hp-bench">
+		<figure class="hp-card hp-bench__chart">
+			<figcaption class="hp-bench__caption">
+				<span>Sensitive values leaked</span>
+				<span class="hp-bench__legend"><i class="is-shadow"></i>Shadow <i></i>Standalone tools</span>
+			</figcaption>
+			<table class="hp-bars">
+				<caption class="sr-only">Share of sensitive values leaked on the held-out test set, lower is better</caption>
+				<thead class="sr-only">
+					<tr><th scope="col">Tool</th><th scope="col">Leaked</th></tr>
+				</thead>
+				<tbody>
+					{
+						rows.map((r) => (
+							<tr class:list={{ 'is-shadow': r.shadow }}>
+								<th scope="row">{r.name}</th>
+								<td>
+									<span class="hp-bars__track">
+										<span class="hp-bars__fill" style={`--w:${Math.max((r.leak / max) * 100, 0.6)}%`} />
+									</span>
+									<span class="hp-bars__value">{fmt(r.leak)}</span>
+								</td>
+							</tr>
+						))
+					}
+				</tbody>
+			</table>
+		</figure>
+		<ul class="hp-bench__stats">
+			{
+				stats.map((s) => (
+					<li class="hp-card">
+						<strong>{s.value}</strong>
+						<span>{s.label}</span>
+					</li>
+				))
+			}
+		</ul>
+	</div>
+	<p class="hp-section__more">
+		<a href={LINKS.benchmarks}>Methodology, datasets and full results <span aria-hidden="true">→</span></a>
+	</p>
+</Section>

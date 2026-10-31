@@ -43,9 +43,11 @@ The docs site lives in `docs-site/` and uses [Starlight](https://starlight.astro
 ```sh
 cd docs-site
 pnpm install
-pnpm dev      # http://localhost:4321/shadow/
+pnpm dev      # http://localhost:4321/
 pnpm build    # static site in docs-site/dist
 ```
+
+The site is published at [getshadow.dev](https://getshadow.dev/) and served from the domain root. `SITE` (default `https://getshadow.dev`) sets canonical URLs, the sitemap and structured data; `BASE` builds for a sub-path. `docs-site/deploy/` has a Docker and Caddy setup for self-hosting a copy.
 
 Pages are Markdown or MDX files under `docs-site/src/content/docs/`. The sidebar is configured in `docs-site/astro.config.mjs`. Every page has an *Edit page* link to its source on GitHub.
 

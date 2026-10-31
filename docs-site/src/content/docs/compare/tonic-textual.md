@@ -21,7 +21,7 @@ faq:
   - q: "How much does Tonic Textual cost?"
     a: "Tonic Textual offers pay-as-you-go cloud usage and quoted enterprise plans, including self-hosting. Shadow is free and open source under Apache-2.0."
   - q: "How accurate is Tonic Textual?"
-    a: "Tonic publishes a vendor-run benchmark (October 2025) reporting an aggregate F1 of 0.96 for Textual on legal, medical and call-transcript data. Shadow publishes its own methodology and results on the benchmarks page."
+    a: "Tonic publishes a vendor-run benchmark (October 2025) on legal, medical and call-transcript data in which Textual scores highest. Tonic Textual is not in Shadow's benchmark; Shadow publishes its own methodology and results on the benchmarks page."
   - q: "Can Tonic Textual run on-premises?"
     a: "Yes. Tonic Textual is available as SaaS or self-hosted with Docker or Helm. Shadow is self-hosted only, as a single binary or container."
 ---
@@ -48,7 +48,7 @@ Tonic Textual and Shadow both replace sensitive values with realistic synthetic 
 
 ## What Tonic Textual does well
 
-- **Detection quality with published numbers.** Tonic's [benchmark](https://www.tonic.ai/ai-model-benchmarks/textual-benchmark) (vendor-run, October 2025, legal, medical and call-transcript data) reports an aggregate F1 of 0.96 for Textual, with AWS Comprehend at 0.88 and Presidio at 0.57 on the same data.
+- **Detection quality with published numbers.** Tonic's [benchmark](https://www.tonic.ai/ai-model-benchmarks/textual-benchmark) (vendor-run, October 2025, legal, medical and call-transcript data) reports Textual ahead of AWS Comprehend and Presidio on the same data.
 - **Consistent synthesis.** Textual can replace values with realistic synthetic ones and keep them consistent across documents, so a de-identified dataset still reads naturally.
 - **Measuring replacement quality.** Tonic released [PrivacyBench](https://www.tonic.ai/ai-model-benchmarks/privacy-bench), a public benchmark (CC-BY-4.0) that scores not only detection but replacement quality and cross-document consistency. That is a useful contribution to the whole field.
 - **Files in original format.** Documents are redacted in place, including PDFs and images, which matters for dataset pipelines.
@@ -94,11 +94,11 @@ Tonic handles images and scanned PDFs; Shadow has no OCR and converts PDFs to ma
 
 ## Using them together
 
-A natural split: use Tonic Textual to de-identify the corpus you index for RAG or use for fine-tuning, and run Shadow on the request path so that whatever users paste in at query time, and whatever the retriever pulls in, is also masked before it reaches the provider. PrivacyBench is also a natural dataset for scoring Shadow's replacement quality; see the [benchmark](/shadow/benchmarks/).
+A natural split: use Tonic Textual to de-identify the corpus you index for RAG or use for fine-tuning, and run Shadow on the request path so that whatever users paste in at query time, and whatever the retriever pulls in, is also masked before it reaches the provider.
 
 ## How do they compare on accuracy?
 
-Tonic's numbers are vendor-run on Tonic-selected data. Shadow does not quote its own numbers here; see the [benchmark](/shadow/benchmarks/) for methodology, datasets and results.
+Tonic's numbers are vendor-run on Tonic-selected data, and Tonic Textual is not in Shadow's [benchmark](/shadow/benchmarks/). On that benchmark's held-out set, Shadow's built-in rules leaked 3.08% of sensitive values (0.08% with the open-weight NER sidecar) and round-tripped 100% of documents exactly.
 
 ## Sources
 

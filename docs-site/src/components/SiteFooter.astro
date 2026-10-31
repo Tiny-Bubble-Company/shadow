@@ -1,0 +1,88 @@
+---
+// Site-wide footer (home + docs), rendered by PageFrame.astro below every page.
+// Lists come from the docs collection via src/nav/site-nav.ts.
+import { Icon } from '@astrojs/starlight/components';
+import { ORG_NAME, ORG_URL, REPO_URL } from '../site.mjs';
+import { RESOURCE_LINKS, mainNav, sectionGroups, sitePath, type NavGroup } from '../nav/site-nav';
+
+const groups = await sectionGroups();
+const nav = await mainNav();
+const g = (dir: string): NavGroup => groups[dir] ?? { id: dir, label: dir, links: [] };
+
+const columns: (NavGroup & { span?: number })[] = [
+	{ ...nav.product, label: 'Product' },
+	{ ...g('getting-started'), label: 'Get started' },
+	{ ...g('integrate'), label: 'Integrations' },
+	{ ...g('concepts'), label: 'Concepts' },
+	{ ...g('reference'), label: 'Reference' },
+	{ ...g('use-cases'), label: 'Use cases', span: 2 },
+	{ ...g('company-size'), label: 'By company size' },
+	{ ...g('industries'), label: 'Industries', span: 2 },
+	{ ...g('compare'), label: 'Compare and alternatives', span: 3 },
+	{ id: 'benchmarks', label: 'Benchmarks', href: sitePath('/benchmarks/'), links: [
+		{ label: 'PII redaction benchmark results', href: sitePath('/benchmarks/') },
+		{ label: 'Shadow vs Presidio accuracy', href: sitePath('/compare/presidio/') },
+		{ label: 'Shadow vs LLM Guard', href: sitePath('/compare/llm-guard/') },
+		{ label: 'Open-source PII tools compared', href: sitePath('/compare/open-source-pii-redaction-tools/') },
+	] },
+	{ id: 'resources', label: 'Open source and resources', links: RESOURCE_LINKS },
+];
+const badges = ['Apache-2.0', 'Self-hosted', 'No account', 'No telemetry', 'Single binary'];
+const year = new Date().getFullYear();
+---
+
+<footer class="sh-footer not-content" aria-labelledby="site-footer-title">
+	<div class="sh-footer__inner">
+		<div class="sh-footer__brand">
+			<a class="sh-footer__logo" href={sitePath('/')}>
+				<img src={sitePath('/favicon.svg')} alt="" width="28" height="28" />
+				<span id="site-footer-title">Shadow</span>
+			</a>
+			<p>
+				The free, open-source privacy layer for AI. Shadow swaps names, emails, customer data and secrets for
+				realistic, reversible fakes before prompts reach the OpenAI, Anthropic, Gemini and other LLM APIs, and restores them in the answer.
+			</p>
+			<ul class="sh-footer__badges" aria-label="Project facts">
+				{badges.map((b) => <li>{b}</li>)}
+			</ul>
+			<div class="sh-footer__actions">
+				<a class="sh-footer__btn sh-footer__btn--primary" href={sitePath('/getting-started/quick-start/')}>
+					Quick start <span aria-hidden="true">→</span>
+				</a>
+				<a class="sh-footer__btn" href={REPO_URL} rel="noopener">
+					<Icon name="github" size="1rem" /> Star on GitHub
+				</a>
+			</div>
+		</div>
+
+		<nav class="sh-footer__grid" aria-label="Site map">
+			{
+				columns.map((c) => (
+					<div class:list={['sh-footer__col', c.span && `span-${c.span}`]}>
+						<p class="sh-footer__heading">{c.href ? <a href={c.href}>{c.label}</a> : c.label}</p>
+						<ul>
+							{c.links.map((l) => (
+								<li>
+									<a href={l.href} rel={l.external ? 'noopener' : undefined}>
+										{l.label}
+									</a>
+								</li>
+							))}
+						</ul>
+					</div>
+				))
+			}
+		</nav>
+
+		<div class="sh-footer__bottom">
+			<p>
+				© {year} <a href={ORG_URL} rel="noopener">{ORG_NAME}</a>. Shadow is free and open-source software released under
+				the <a href={`${REPO_URL}/blob/main/LICENSE`} rel="noopener">Apache-2.0 licence</a>.
+			</p>
+			<p>
+				Product names on comparison pages belong to their owners; Shadow is not affiliated with them. Comparisons are
+				based on public documentation.
+			</p>
+		</div>
+	</div>
+</footer>

@@ -76,7 +76,7 @@ Everything else is still generated.
 |---|---|
 | Email | A name from the persona region at the faked domain: your organisation's domain becomes the persona domain, webmail domains such as `gmail.com` are kept. Separators, digits and case follow the original |
 | Person | A name from the persona region's first and last names |
-| Organisation | The persona company for your primary organisation (and its short name for the bare name); other organisations get a generated name with the region's legal suffix |
+| Organisation | The persona company for your primary organisation (and its short name for the bare name); other organisations get a generated name that keeps the original legal form (`Globex Ltd` becomes, for example, `Zephyr Ltd`) |
 | Term (codename, project) | A generated codeword such as `Velora Quilent` |
 | Phone | Same digit layout with the persona's dial code |
 | Credit card | Same length and grouping, valid Luhn check digit |

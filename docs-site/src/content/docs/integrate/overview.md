@@ -1,6 +1,6 @@
 ---
 title: Integration modes
-description: "Choose how to run Shadow: HTTPS proxy for every tool, gateway base URL for SDKs, or the embedded Rust library. How each mode works and when to use it."
+description: "Choose how to run Shadow: HTTPS proxy for AI tools on a machine, gateway base URL for SDKs, or the embedded Rust library. How each mode works and when to use it."
 ---
 
 Shadow runs the same masking engine in three ways. You can mix them on one machine: the proxy and the gateway are served from the same port, and they share the persona and vault.
@@ -9,7 +9,7 @@ Shadow runs the same masking engine in three ways. You can mix them on one machi
 |---|---|---|---|
 | **How you connect** | `HTTPS_PROXY=http://127.0.0.1:8877`, or a PAC file | Base URL `http://127.0.0.1:8877/gw/<provider>/...` | `shadow-core` crate in your Rust process |
 | **CA trust needed** | Yes, once | No | No |
-| **Covers** | Any tool that honours proxy settings | Tools and SDKs that accept a base URL | Your own code |
+| **Covers** | Any tool that honours proxy settings and calls an [intercepted AI API host](/shadow/reference/providers/) | Tools and SDKs that accept a base URL | Your own code |
 | **Non-AI traffic** | Tunnelled without decryption | Not involved | Not involved |
 | **Typical users** | Developer laptops, IDEs, desktop apps, CI runners | SDK-based apps, services, containers | Platforms that call models from Rust |
 | **Guide** | [Proxy mode](/shadow/integrate/proxy-mode/) | [Gateway mode](/shadow/integrate/gateway-mode/) | [Embed in Rust](/shadow/integrate/rust/) |
@@ -18,7 +18,7 @@ Shadow runs the same masking engine in three ways. You can mix them on one machi
 
 **Start with the gateway** if the tool lets you set a base URL. It is explicit, it needs no certificate, and you can see in the configuration that requests go through Shadow.
 
-**Use the proxy** when you want a whole machine covered, including tools you don't control. Shadow decrypts only the [known AI hosts](/shadow/reference/providers/) and tunnels everything else byte for byte, so banking, email and package downloads are never touched.
+**Use the proxy** when you want every AI API client on a machine covered, including tools you don't control. Shadow decrypts only the [known AI hosts](/shadow/reference/providers/) and tunnels everything else byte for byte, so banking, email and package downloads are never touched.
 
 **Embed the library** when you are building the application yourself in Rust. There is no extra hop, you control exactly which strings are masked, and you can use [sessions](/shadow/integrate/rust/#sessions-and-intent) to apply the intent policy per request.
 

@@ -58,7 +58,7 @@ Skyflow centralises sensitive data in a managed vault and governs re-identificat
 
 ### Is Shadow a free alternative to Skyflow?
 
-Yes. Shadow is Apache-2.0, free, and runs without an account. There is no external vault to call, so prompts are masked on the machine before anything leaves it, and nothing sensitive is stored with a third party.
+Yes. Shadow is Apache-2.0, free, and runs without an account. There is no external vault to call, so prompts are masked on the machine before the request leaves it, and the mapping is never stored with a third party.
 
 ### Realistic fakes instead of tokens
 
@@ -70,11 +70,11 @@ Shadow restores fakes in [server-sent event streams](/shadow/concepts/how-it-wor
 
 ### Endpoint coverage without code changes
 
-Skyflow is integrated through APIs, SDKs or a gateway plugin. Shadow can also intercept traffic as an HTTPS proxy, so desktop tools, IDE assistants and CLIs that you don't control are covered. See [proxy mode](/shadow/integrate/proxy-mode/).
+Skyflow is integrated through APIs, SDKs or a gateway plugin. Shadow can also intercept traffic as an HTTPS proxy, so desktop tools, IDE assistants and CLIs that you don't control are covered when they call a [supported AI API](/shadow/reference/providers/). See [proxy mode](/shadow/integrate/proxy-mode/).
 
 ### Local vault
 
-Shadow's [vault](/shadow/concepts/vault/) is a ChaCha20-Poly1305 encrypted file next to the binary. That is simpler, but it also means Shadow does not offer Skyflow's central, role-based governance across an organisation.
+Shadow's [vault](/shadow/concepts/vault/) is a ChaCha20-Poly1305 encrypted file in Shadow's data directory. That is simpler, but it also means Shadow does not offer Skyflow's central, role-based governance across an organisation.
 
 ## When should you choose Skyflow?
 
@@ -92,7 +92,7 @@ Shadow's [vault](/shadow/concepts/vault/) is a ChaCha20-Poly1305 encrypted file 
 
 ## Using them together
 
-They solve adjacent problems. A team might keep Skyflow as the system of record for customer PII in its applications, and run Shadow on developer laptops and CI runners so code assistants and ad-hoc scripts never send real values to providers. If the data reaching a prompt is already Skyflow-tokenised, Shadow will treat the tokens as ordinary text and mask anything else it detects.
+They solve adjacent problems. A team might keep Skyflow as the system of record for customer PII in its applications, and run Shadow on developer laptops and CI runners so code assistants and ad-hoc scripts send fakes instead of the values Shadow detects. If the data reaching a prompt is already Skyflow-tokenised, Shadow will treat the tokens as ordinary text and mask anything else it detects.
 
 ## Migrating LLM traffic from Skyflow
 

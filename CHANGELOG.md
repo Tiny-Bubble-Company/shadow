@@ -11,9 +11,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Intent-aware policy.** Each request is classified as `act`, `report`, `code` or `converse`, and every detected value gets a treatment: `surrogate` (default), `token` (typed placeholders such as `[PERSON_0001]`), `keep` (for action targets in provider-hosted tools, always logged) or `redact` (opt-in, irreversible). Configured under `[policy]`, `[policy.act]`, `[policy.report]` and `[policy.always]`.
 - **Session API** in `shadow-core`: `Shadow::session_for(&request_json)` and `Shadow::session(RequestContext { .. })`, with `mask`, `mask_json`, `unmask`, `unmask_json`, `stream_unmasker`, `classification` and `summary`.
 - **File masking.** `multipart/form-data` uploads, base64 file payloads in JSON (OpenAI `input_file.file_data`, Anthropic `document` blocks, Gemini `inline_data`) and `data:` URIs. Text, Markdown, CSV, JSON, HTML and XML masked as text; DOCX, XLSX and PPTX masked in place; PDF text extracted, masked and sent as text; images passed through or blocked. Configured under `[files]`.
+- **Activity dashboard.** A privacy-safe activity feed (counts and categories only, never values) served on loopback at `/shadow/ui`, plus `shadow top`, `shadow activity` and `shadow dashboard`, and a menu-bar / tray app in `apps/shadow-tray`.
+- **Name-part restoration.** A fake person's first or last name on its own is restored too ("Dear Hui," becomes "Dear Jane,", "Dr Zhu" becomes "Dr Okafor"). Parts under 3 characters, parts shared by two fake people and parts that are real names in the vault are skipped; real text equal to a fake name part is masked so a real person who shares it is not renamed. Other fragments (card endings, email parts, partial addresses) are still not restored.
 - **Presidio integration.** A Microsoft Presidio Analyzer can be used as an additional detector. Findings are merged with the built-in detectors; Shadow fails open if Presidio is unavailable. Configured under `[presidio]`.
 - **Documentation site** built with Astro Starlight in `docs-site/`, with a GitHub Pages workflow.
 - New README, logo and banner, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, issue and pull request templates.
+
+### Changed
+
+- **Goal-preserving intent.** Action verbs are also detected after "to", "and", "then" and "you" ("can you send...", "draft it and email..."). For provider-hosted actions with `remote_tool_targets = "keep"`, usernames and IBANs named in the instruction are kept real, and a follow-up that names no email or phone keeps the emails, phones and people anywhere in the request (earlier messages, pasted documents, tool results). Secrets, cards, national IDs, hostnames and IPs stay masked; every keep is logged.
 
 ### Removed
 

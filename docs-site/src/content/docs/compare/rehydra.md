@@ -19,11 +19,11 @@ faq:
   - q: "Is Rehydra free?"
     a: "Yes. Rehydra is MIT-licensed and published on npm. Shadow is Apache-2.0. Both are free."
   - q: "Which one runs in the browser?"
-    a: "Rehydra runs on Node, Bun and in the browser. Shadow runs on macOS, Linux and Windows hosts, servers and containers, not inside a browser page; browsers can use it through the system proxy."
+    a: "Rehydra runs on Node, Bun and in the browser. Shadow runs on macOS, Linux and Windows hosts, servers and containers, not inside a browser page. A browser can send traffic through it as the system proxy, but only calls to supported AI API hosts are masked, not web chat such as chatgpt.com or claude.ai."
   - q: "Do both work with Claude Code?"
     a: "Yes. Rehydra documents a local proxy for Claude Code and OpenAI and Anthropic clients. Shadow covers Claude Code through proxy mode or by setting the Anthropic base URL to its gateway."
   - q: "Which one is more accurate?"
-    a: "Neither project publishes detection benchmarks at the time of review. Shadow's benchmarks page publishes its methodology and results."
+    a: "Rehydra does not publish detection benchmarks at the time of review, and it is not in Shadow's benchmark. Shadow publishes its methodology and results: on the held-out set its built-in rules leaked 3.08% of sensitive values, 0.08% with the open-weight NER sidecar."
 ---
 
 **Rehydra and Shadow are the two open-source projects closest to each other in this space: both mask PII locally before a request reaches an LLM provider, and both restore the original values in responses, streams and tool calls.** Rehydra is a TypeScript SDK and local proxy under MIT that replaces values with XML-style placeholders. Shadow is a Rust binary and library under Apache-2.0 that replaces values with realistic, format-preserving fakes from a persistent persona, adds an intent policy and masks Office files. Pick by language ecosystem and by whether you want placeholders or realistic fakes.
@@ -79,7 +79,7 @@ Shadow masks DOCX, XLSX and PPTX uploads in place, extracts PDF text, and handle
 
 ### Whole-machine coverage
 
-Shadow's [HTTPS proxy](/shadow/integrate/proxy-mode/) with a local CA decrypts only known AI hosts and tunnels everything else, so any tool that honours proxy settings is covered.
+Shadow's [HTTPS proxy](/shadow/integrate/proxy-mode/) with a local CA decrypts only [known AI API hosts](/shadow/reference/providers/) and tunnels everything else, so any tool that honours proxy settings is covered when it calls one of those APIs.
 
 ## When should you choose Rehydra?
 
@@ -90,7 +90,7 @@ Shadow's [HTTPS proxy](/shadow/integrate/proxy-mode/) with a local CA decrypts o
 ## When should you choose Shadow?
 
 - You want realistic fakes that keep answers natural.
-- You want one install to cover every AI tool on a machine.
+- You want one install to cover every tool on a machine that calls a supported AI API.
 - You need Office file masking or an intent policy.
 - You want a single native binary, or a Rust crate.
 
@@ -108,7 +108,7 @@ Usually you would pick one per path to avoid double masking. A reasonable split:
 
 ## How do they compare on accuracy?
 
-Rehydra does not publish benchmarks at the time of review. See the Shadow [benchmark](/shadow/benchmarks/) for methodology and results.
+Rehydra does not publish benchmarks at the time of review and is not in Shadow's [benchmark](/shadow/benchmarks/). There, Shadow's built-in rules leaked 3.08% of sensitive values and round-tripped 100% of documents exactly.
 
 ## Sources
 

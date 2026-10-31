@@ -18,7 +18,7 @@ faq:
   - q: "Does Shadow make AI tenant screening compliant with fair housing rules?"
     a: "No. Masking names does not remove bias that can come from addresses, income sources, language or history, and Shadow does not evaluate model decisions. AI-assisted screening and advertising still need human review and legal guidance."
   - q: "Does it help mortgage brokers with GLBA?"
-    a: "It supports the Safeguards Rule by keeping detected customer identifiers, such as names, account-style numbers, SSNs and bank details, out of requests to AI vendors. It does not replace an information security programme or vendor oversight."
+    a: "It supports the Safeguards Rule by keeping detected customer identifiers, such as names, SSNs, IBANs and (with Presidio or the NER sidecar) account numbers, out of requests to AI vendors. It does not replace an information security programme or vendor oversight."
 sidebar:
   order: 18
 ---
@@ -125,7 +125,7 @@ An agent uploads a DOCX lease and asks for a plain-English summary of the break 
 
 ### Portfolio arrears analysis
 
-A finance manager uploads an XLSX rent roll of 450 units and asks which buildings have rising arrears. The `report` intent turns tenant names, emails and phones into typed tokens; amounts stay as numbers. The analysis is restored locally.
+A finance manager uploads an XLSX rent roll of 450 units and asks "Analyse these records: which buildings have rising arrears?". The request reads as a report, so the `report` intent turns tenant names, emails and phones into typed tokens; amounts stay as numbers. The analysis is restored locally.
 
 ## Deployment patterns
 

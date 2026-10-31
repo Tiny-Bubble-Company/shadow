@@ -1,0 +1,177 @@
+---
+// Site header for the home page and every docs page (overrides Starlight's Header).
+// Logo · mega menu (Product, Docs, Solutions, Industries, Compare, Benchmarks) · search ·
+// GitHub · theme. Menus are <details>; a small script only closes them on Escape,
+// outside click or when another one opens. Below 75rem the groups move into one "Menu"
+// panel (on docs pages under 50rem Starlight's own sidebar menu takes over).
+import Search from '@astrojs/starlight/components/Search.astro';
+import SiteTitle from '@astrojs/starlight/components/SiteTitle.astro';
+import ThemeSelect from '@astrojs/starlight/components/ThemeSelect.astro';
+import { Icon } from '@astrojs/starlight/components';
+import { REPO_URL } from '../site.mjs';
+import { mainNav, sitePath, type NavGroup } from '../nav/site-nav';
+
+const nav = await mainNav();
+const columnsOf = (g: NavGroup) => [g];
+const menus: { id: string; label: string; wide?: boolean; columns: NavGroup[]; all?: { label: string; href: string } }[] = [
+	{ id: 'product', label: 'Product', columns: columnsOf(nav.product) },
+	{ id: 'docs', label: 'Docs', wide: true, columns: nav.docs.columns },
+	{
+		id: 'solutions',
+		label: 'Solutions',
+		wide: true,
+		columns: nav.solutions.columns,
+	},
+	{
+		id: 'industries',
+		label: 'Industries',
+		wide: true,
+		columns: [nav.industries],
+		all: nav.industries.href ? { label: 'All industries', href: nav.industries.href } : undefined,
+	},
+	{
+		id: 'compare',
+		label: 'Compare',
+		wide: true,
+		columns: [nav.compare],
+		all: nav.compare.href ? { label: 'Compare all AI data-leak tools', href: nav.compare.href } : undefined,
+	},
+];
+const benchmarks = sitePath('/benchmarks/');
+const { hasSidebar } = Astro.locals.starlightRoute;
+---
+
+<div class:list={['sh-header', { 'has-sidebar': hasSidebar }]}>
+	<div class="sh-header__title">
+		<SiteTitle />
+	</div>
+
+	<nav class="sh-nav" aria-label="Main">
+		<ul class="sh-nav__list">
+			{
+				menus.map((m) => (
+					<li>
+						<details class="sh-nav__item" data-sh-menu>
+							<summary>
+								{m.label}
+								<Icon name="down-caret" size="0.9rem" class="sh-caret" />
+							</summary>
+							<div class:list={['sh-panel', { 'sh-panel--wide': m.wide }]}>
+								<div class:list={['sh-panel__cols', `sh-panel__cols--${m.columns.length}`, { 'sh-panel__cols--many': m.columns.length === 1 && m.columns[0]!.links.length > 10 }]}>
+									{m.columns.map((g) => (
+										<div class="sh-panel__group">
+											{m.columns.length > 1 && (
+												<p class="sh-panel__heading">
+													{g.href ? <a href={g.href}>{g.label}</a> : g.label}
+												</p>
+											)}
+											<ul>
+												{g.links.map((l) => (
+													<li>
+														<a href={l.href}>
+															<span class="sh-panel__label">{l.label}</span>
+															{m.id === 'product' && l.description && <span class="sh-panel__desc">{l.description}</span>}
+														</a>
+													</li>
+												))}
+											</ul>
+										</div>
+									))}
+								</div>
+								{m.all && (
+									<a class="sh-panel__all" href={m.all.href}>
+										{m.all.label} <span aria-hidden="true">→</span>
+									</a>
+								)}
+							</div>
+						</details>
+					</li>
+				))
+			}
+			<li><a class="sh-nav__link" href={benchmarks}>Benchmarks</a></li>
+		</ul>
+	</nav>
+
+	<div class="sh-header__search print:hidden">
+		<Search />
+	</div>
+
+	<div class="sh-header__right print:hidden">
+		<a class="sh-gh" href={REPO_URL} rel="noopener">
+			<Icon name="github" size="1.1rem" />
+			<span>GitHub</span>
+			<span class="sh-gh__badge">Open source</span>
+		</a>
+		<ThemeSelect />
+	</div>
+
+	<details class="sh-menu print:hidden" data-sh-menu>
+		<summary aria-label="Site menu">
+			<Icon name="bars" size="1.25rem" class="sh-menu__open" />
+			<Icon name="close" size="1.25rem" class="sh-menu__close" />
+		</summary>
+		<div class="sh-menu__panel">
+			{
+				menus.map((m) => (
+					<details class="sh-menu__group">
+						<summary>{m.label}</summary>
+						{m.columns.map((g) => (
+							<div class="sh-menu__sub">
+								{m.columns.length > 1 && <p class="sh-panel__heading">{g.href ? <a href={g.href}>{g.label}</a> : g.label}</p>}
+								<ul>
+									{g.links.map((l) => (
+										<li>
+											<a href={l.href}>{l.label}</a>
+										</li>
+									))}
+								</ul>
+							</div>
+						))}
+						{m.all && (
+							<a class="sh-panel__all" href={m.all.href}>
+								{m.all.label} <span aria-hidden="true">→</span>
+							</a>
+						)}
+					</details>
+				))
+			}
+			<a class="sh-menu__link" href={benchmarks}>Benchmarks</a>
+			<div class="sh-menu__foot">
+				<a class="sh-gh" href={REPO_URL} rel="noopener">
+					<Icon name="github" size="1.1rem" /> <span>GitHub</span>
+					<span class="sh-gh__badge">Apache-2.0</span>
+				</a>
+				<ThemeSelect />
+			</div>
+		</div>
+	</details>
+</div>
+
+<script>
+	const menus = () => [...document.querySelectorAll<HTMLDetailsElement>('[data-sh-menu]')];
+	const closeAll = (except?: Element) =>
+		menus().forEach((d) => {
+			if (d !== except) d.open = false;
+		});
+	document.addEventListener(
+		'toggle',
+		(e) => {
+			const t = e.target as HTMLElement;
+			if (t instanceof HTMLDetailsElement && t.matches('[data-sh-menu]') && t.open) closeAll(t);
+		},
+		true,
+	);
+	document.addEventListener('click', (e) => {
+		const t = e.target as HTMLElement;
+		if (!t.closest('[data-sh-menu]')) closeAll();
+		else if (t.closest('.sh-panel a, .sh-menu__panel a')) closeAll();
+	});
+	document.addEventListener('keydown', (e) => {
+		if (e.key !== 'Escape') return;
+		const open = menus().find((d) => d.open);
+		if (open) {
+			open.open = false;
+			open.querySelector('summary')?.focus();
+		}
+	});
+</script>

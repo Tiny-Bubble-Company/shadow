@@ -1,13 +1,13 @@
 # Shadow documentation
 
-The documentation is published at **https://tiny-bubble-company.github.io/shadow/**.
+The documentation is published at **https://getshadow.dev/**.
 
 Its source lives in [`../docs-site/`](../docs-site/), an [Astro Starlight](https://starlight.astro.build/) project:
 
 ```sh
 cd docs-site
 pnpm install
-pnpm dev      # http://localhost:4321/shadow/
+pnpm dev      # http://localhost:4321/
 pnpm build    # static site in docs-site/dist
 ```
 

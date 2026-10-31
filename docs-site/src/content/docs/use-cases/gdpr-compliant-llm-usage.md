@@ -135,7 +135,7 @@ Antworte höflich: Frau Yui Sato (yui.sato@hoshino.jp, +81 3 5412 7780,
 Sakura-dori 12, IBAN DE44 5001 0517 5407 3249 31) fordert eine Rückerstattung.
 ```
 
-The reply arrives addressed to Frau Novak.
+The reply arrives with Jana Novak and her contact details restored wherever the model used the full fake values. A salutation with the surname alone ("Sehr geehrte Frau Sato") is restored too, because fake first and last names are restored on their own; other fragments, such as the domain of a fake email, stay fake.
 
 ## Limits to record in your DPIA
 

@@ -18,7 +18,7 @@ faq:
   - q: "Can Shadow mask CVs uploaded as PDF or Word files?"
     a: "Yes for text. DOCX CVs are masked in place and stay valid documents. PDF text is extracted, masked and sent as text, so layout is lost. Scanned CVs and photos are not OCR'd; block images if they may be uploaded."
   - q: "Can we compare a shortlist without the model seeing who the candidates are?"
-    a: "Yes. A request over many candidates is classified as a report, so names, emails, phones and addresses become typed tokens such as [PERSON_0003]. The model ranks and compares tokens, and the answer is restored with real names on your screen."
+    a: "Yes. A request that pastes many candidates in at once, such as a table with their names and contact details, is classified as a report, so names, emails, phones and addresses become typed tokens such as [PERSON_0003]. The model ranks and compares tokens, and the answer is restored with real names on your screen."
 sidebar:
   order: 14
 ---
@@ -120,11 +120,15 @@ The summary comes back about Daniel Okoye. His experience, which is what the hir
 
 ### Comparing a shortlist
 
-A recruiter uploads a CSV of 40 shortlisted candidates with notes and asks for a comparison against the job description. Shadow classifies this as `report`: candidate names, emails and phones become `[PERSON_0001]`, `[EMAIL_0001]` and so on. The model compares tokens and the ranking comes back with real names. A human still makes the decision.
+A recruiter pastes a CSV of 40 shortlisted candidates with notes and asks for a comparison against the job description. With that many names and contact details in tabular form, Shadow classifies this as `report`: candidate names, emails and phones become `[PERSON_0001]`, `[EMAIL_0001]` and so on. The model compares tokens and the ranking comes back with real names. A human still makes the decision.
 
 ### Offer letter from a template
 
 An HR partner uploads a DOCX offer template filled in for a candidate. Names, address and bank details are masked inside the Word document, it stays valid, and the edited letter comes back with the real details restored.
+
+### Scheduling interviews with an agent
+
+If an assistant emails or schedules candidates itself, they still get the message. With a tool your code runs, the model writes the call with a fake email and Shadow restores the real one in the tool-call arguments before your code sends it. With a provider-hosted tool, Shadow cannot restore inside the provider, so by default the contact details the action needs are kept real and each keep is logged. See [intent-aware policy](/shadow/concepts/intent-policy/).
 
 ## Deployment patterns
 

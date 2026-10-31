@@ -68,6 +68,11 @@ All `true` by default. See [Detection](/shadow/concepts/detection/).
 | `hostname` | Non-public hostnames and internal domains |
 | `secret` | API keys, tokens, private keys, password assignments |
 | `path` | Usernames in home-directory paths |
+| `org` | Organisation names with a legal form (`GmbH`, `Ltd`, `S.A.`...) |
+| `username` | Usernames from context (`ssh user@host`, `username=`, URL userinfo) |
+| `date_of_birth` | Dates in a birth context ("born", "DOB", "Geburtsdatum") |
+| `fields` | Labelled fields (`Name:`, `Address:`, `Tel:`), CSV columns and signature names |
+| `public_allowlist` | Keeps well-known public names (companies, places, public figures) that name detectors would otherwise mask |
 | `local_facts` | OS user, hostname, git `user.name` / `user.email`, local domain |
 
 ## `[model_detector]`
@@ -108,7 +113,7 @@ The [intent-aware policy](/shadow/concepts/intent-policy/). Treatments are `surr
 | Key | Type | Default | Description |
 |---|---|---|---|
 | `targets` | `surrogate` \| `keep` | `"surrogate"` | Treatment of the values an action is aimed at when the tool runs locally |
-| `remote_tool_targets` | `surrogate` \| `keep` | `"keep"` | Treatment of action targets when the tool runs in the provider's cloud (hosted MCP, server-side tools). Each keep is logged |
+| `remote_tool_targets` | `surrogate` \| `keep` | `"keep"` | Treatment of what an action needs when the tool runs in the provider's cloud (hosted MCP, server-side tools): the contact details, people, companies, addresses, usernames and IBANs named in the instruction (and, for a follow-up that names no email or phone, the email, phone and person values anywhere in the request, including pasted documents and tool results). Secrets, cards, national IDs, hostnames and IPs stay masked. Each keep is logged |
 
 ### `[policy.report]`
 
@@ -142,6 +147,18 @@ secret = "redact"   # never send secrets in any form; irreversible [REDACTED_SEC
 | `images` | `pass` \| `block` | `"pass"` | Images are not OCR'd. `block` refuses requests that carry images |
 | `max_bytes` | integer | `52428800` | Largest file Shadow will process (50 MiB) |
 | `block_oversize` | bool | `false` | Refuse requests with files over `max_bytes` instead of forwarding them unmasked with a warning |
+
+## `[activity]`
+
+The [activity dashboard](/shadow/concepts/activity-dashboard/) feed. It records counts and categories only, never real values, fakes, prompts or file names.
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | bool | `true` | Record activity events |
+| `persist` | bool | `true` | Keep history in `<data_dir>/activity/activity.jsonl` (mode 0600) |
+| `retention_days` | integer | `30` | Drop events older than this |
+| `max_file_mb` | integer | `16` | Rotate the log past this size; one previous file is kept |
+| `allow_remote` | bool | `false` | Serve the dashboard and activity API to non-loopback clients |
 
 ## `[proxy]`
 

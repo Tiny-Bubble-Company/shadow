@@ -23,7 +23,7 @@ faq:
   - q: "How much does AWS Comprehend PII detection cost?"
     a: "Comprehend is billed per 100-character unit with a minimum per request; a third-party pricing guide lists about $0.0001 per unit. Check the AWS pricing page for current rates. Shadow is free and runs locally."
   - q: "Which is more accurate, AWS Comprehend or Shadow?"
-    a: "Comprehend scored well in a vendor-run benchmark by Tonic. Results depend heavily on the dataset and label mapping. See the Shadow benchmarks page for a reproducible comparison."
+    a: "Comprehend scored well in a vendor-run benchmark by Tonic. Results depend heavily on the dataset and label mapping. Comprehend is not in the Shadow benchmark, because commercial cloud APIs are impractical to run publicly and reproducibly."
 ---
 
 **AWS offers two PII services relevant to LLMs: Amazon Comprehend detects and redacts PII in text, and Amazon Bedrock Guardrails can block or anonymise PII in prompts and responses for Bedrock models. Shadow is an open-source privacy layer that replaces sensitive values with realistic, reversible fakes before a request reaches any provider, and restores them in the answer.** If you run everything on Bedrock and want managed guardrails, AWS is the natural fit. If you call several providers, need the real values back in responses, or want data masked before it leaves your machine, Shadow covers that.
@@ -50,7 +50,7 @@ Comprehend is a cloud PII detector; Bedrock Guardrails blocks or replaces PII wi
 
 - **Managed and integrated.** No servers to run. Guardrails attach directly to Bedrock model invocations and agents, with IAM, CloudWatch and CloudTrail around them.
 - **More than PII.** Bedrock Guardrails also offers content filters, denied topics, word filters and contextual grounding checks. Shadow only handles sensitive values.
-- **Strong generic detection.** In Tonic's vendor-run benchmark (October 2025), Comprehend had the highest aggregate F1 of the generic detectors tested (0.88), well ahead of several open-source options. Treat vendor benchmarks with care, but it is a strong signal.
+- **Strong generic detection.** In Tonic's vendor-run benchmark (October 2025), Comprehend scored highest of the generic detectors tested, ahead of several open-source options. Treat vendor benchmarks with care, but it is a strong signal.
 - **Batch processing.** Comprehend runs asynchronous PII jobs over documents stored in S3, which suits dataset preparation.
 - **Custom patterns.** Guardrails accept custom regex for organisation-specific identifiers; AWS documents regex filters as not charged separately (per a third-party pricing guide).
 
@@ -64,7 +64,7 @@ No. ANONYMIZE replaces values with type tags, so a prompt about Jane Doe reaches
 
 A Shadow fake email is a valid email at a consistent fake domain; a fake card number passes Luhn; an IBAN passes mod-97. The model reasons about a coherent fake world. Type tags lose the distinction between two people of the same type and break tasks like drafting an email or filling a table.
 
-### Works with every provider, not only Bedrock
+### Works with many providers, not only Bedrock
 
 Shadow masks traffic to OpenAI, Anthropic, Gemini, Azure OpenAI, Mistral, OpenRouter and more, as a [proxy](/shadow/integrate/proxy-mode/) or [gateway](/shadow/integrate/gateway-mode/). Bedrock Guardrails protect Bedrock calls (and text you pass to `ApplyGuardrail`).
 
@@ -74,7 +74,7 @@ With Comprehend, the plaintext you want to protect is sent to an AWS API to be s
 
 ### Streams, tool calls and intent
 
-Shadow restores fakes split across SSE events and inside streamed tool-call arguments, and its [intent policy](/shadow/concepts/intent-policy/) chooses fakes, typed tokens like `[PERSON_0007]`, or keeps the target of a provider-hosted action. See [tool calls](/shadow/concepts/tool-calls/).
+Shadow restores fakes split across SSE events and inside streamed tool-call arguments, and its [intent policy](/shadow/concepts/intent-policy/) chooses fakes, typed tokens like `[PERSON_0007]`, or keeps real what a provider-hosted action needs (each keep is logged). See [tool calls](/shadow/concepts/tool-calls/).
 
 ### Files in prompts
 
@@ -112,7 +112,7 @@ Yes. Shadow can mask requests to Bedrock (with API keys) before they arrive, and
 
 ## How do they compare on accuracy?
 
-Comprehend performed well in Tonic's vendor-run benchmark, and the language support is ambiguous in AWS's own documentation (the API reference lists 12 language codes while other AWS pages say English). Shadow's [benchmark](/shadow/benchmarks/) measures leak rate, over-masking and round-trip exactness with published code and mappings; cloud APIs are reported in a separate table.
+Comprehend performed well in Tonic's vendor-run benchmark, and the language support is ambiguous in AWS's own documentation (the API reference lists 12 language codes while other AWS pages say English). Shadow's [benchmark](/shadow/benchmarks/) measures leak rate, over-masking and round-trip exactness with published code and mappings; commercial cloud APIs such as Comprehend are not included, because their terms and pricing make public, reproducible runs impractical.
 
 ## Sources
 

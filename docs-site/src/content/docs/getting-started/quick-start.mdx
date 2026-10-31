@@ -55,11 +55,11 @@ This guide takes about five minutes. You will install the `shadow` binary, creat
 3. **Try masking offline**
 
    ```sh
-   echo "Mail jane@acme.com re Acme GmbH, card 4111 1111 1111 1111, see /Users/jdoe/src" | shadow mask
+   echo "Ticket from jane@acme.com (Acme GmbH): card 4111 1111 1111 1111 declined, logs in /Users/jdoe/src" | shadow mask
    ```
 
    ```text
-   Mail tsun@xinghe.cn re Xinghe Technology Co., Ltd., card 4261 8002 0172 9224, see /Users/jwang/src
+   Ticket from tsun@xinghe.cn (Xinghe Technology Co., Ltd.): card 4261 8002 0172 9224 declined, logs in /Users/jwang/src
    ```
 
    Pipe the output into `shadow unmask` and you get the original back. Nothing is sent anywhere by these commands.
@@ -103,9 +103,9 @@ This guide takes about five minutes. You will install the `shadow` binary, creat
 
 </Steps>
 
-## Cover every tool: proxy mode
+## Cover more tools: proxy mode
 
-Gateway mode works for anything that accepts a base URL. To cover tools that don't, such as IDE extensions, desktop apps and scripts, use Shadow as an HTTPS proxy. That needs the local CA to be trusted once:
+Gateway mode works for anything that accepts a base URL. To cover tools that don't, such as IDE extensions, desktop apps and scripts that call a [supported AI API](/shadow/reference/providers/) and honour `HTTPS_PROXY`, use Shadow as an HTTPS proxy. That needs the local CA to be trusted once:
 
 ```sh
 shadow install            # dry run: prints every step it would take
@@ -119,7 +119,7 @@ export HTTPS_PROXY=http://127.0.0.1:8877
 export NO_PROXY=localhost,127.0.0.1
 ```
 
-Only known AI hosts are decrypted. Everything else passes through a blind tunnel. Details in [Proxy mode](/shadow/integrate/proxy-mode/).
+Only known AI hosts are decrypted. Everything else passes through a blind tunnel, which also means AI web apps such as chatgpt.com in a browser are not masked. Details in [Proxy mode](/shadow/integrate/proxy-mode/).
 
 <Aside type="tip" title="Protect your own vocabulary">
 Detectors find structured values on their own. Add the names they cannot know about, such as codenames, customers and people:

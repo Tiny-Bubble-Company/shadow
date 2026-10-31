@@ -44,7 +44,7 @@ targets = "surrogate"          # local tools: mask, restore in the tool call
 remote_tool_targets = "keep"   # provider-hosted tools: send the real target
 ```
 
-- With `keep` (default), only the **target of the action** is sent in clear text; everything else in the request stays masked. Each keep is logged with its kind and reason.
+- With `keep` (default), only what the action needs is sent in clear text: the contact details, people, companies, addresses, usernames and IBANs named in the latest instruction, and, for a follow-up such as "now send her the invite" that names no email or phone, the email, phone and person values anywhere in the request (earlier messages, pasted documents, tool results). Secrets, card numbers, national IDs, hostnames and IPs stay masked. Each keep is logged with its kind and reason, never the value.
 - With `surrogate`, the provider never sees the target, and the hosted action operates on a fake. Use this when exposure matters more than the action succeeding.
 
 ## Practical guidance
@@ -52,5 +52,5 @@ remote_tool_targets = "keep"   # provider-hosted tools: send the real target
 - Prefer **local tool execution** for actions on personal data. It is the only way to have both privacy and a working action.
 - Keep tool **descriptions** free of personal data. Anything sensitive in them is masked like other text, which can make the description harder for the model to follow.
 - Use typed **report** handling for bulk data an agent reads (exports, query results): tokens are cheaper for the model to carry through than realistic fakes, and less likely to be embellished.
-- When a tool returns data that the model must quote exactly (IDs, account numbers), surrogates still round-trip correctly. Test with `shadow mask` and `shadow unmask` if in doubt.
+- When a tool returns data that the model must quote exactly (IDs, account numbers), surrogates still round-trip correctly as long as the model quotes the whole value. A fake person's first or last name on its own is restored, but other fragments (the last four digits of a card, part of an email) are not, so ask for full values in tool arguments. Test with `shadow mask` and `shadow unmask` if in doubt.
 - In Rust, use one [session](/shadow/integrate/rust/#sessions-and-intent) per model call, and `session.unmask_json` on the response to restore tool-call arguments.

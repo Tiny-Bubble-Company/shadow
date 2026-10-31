@@ -1,0 +1,122 @@
+---
+import { Icon } from '@astrojs/starlight/components';
+import Section from './Section.astro';
+import { LINKS, href } from './links';
+
+const columns = [
+	{
+		icon: 'rocket',
+		title: 'Use cases',
+		allLabel: 'All use cases',
+		all: LINKS.useCases,
+		links: [
+			['Protect secrets from AI coding assistants', '/use-cases/protect-secrets-from-ai-coding-assistants/'],
+			['Mask PII in agents and tool calls', '/use-cases/mask-pii-in-llm-agents-and-tool-calls/'],
+			['Protect customer data in RAG pipelines', '/use-cases/protect-customer-data-in-rag-pipelines/'],
+			['AI in customer support', '/use-cases/privacy-for-ai-in-customer-support/'],
+			['GDPR-friendly LLM usage', '/use-cases/gdpr-compliant-llm-usage/'],
+		],
+	},
+	{
+		icon: 'open-book',
+		title: 'Industries',
+		allLabel: 'All industries',
+		all: LINKS.industries,
+		links: [
+			['Healthcare', '/industries/healthcare/'],
+			['Financial services', '/industries/financial-services/'],
+			['Legal', '/industries/legal/'],
+			['Insurance', '/industries/insurance/'],
+			['Government and public sector', '/industries/government-public-sector/'],
+		],
+	},
+	{
+		icon: 'star',
+		title: 'Company size',
+		allLabel: 'All company sizes',
+		all: LINKS.companySize,
+		links: [
+			['Solo developers and freelancers', '/company-size/solo-developers-freelancers/'],
+			['Startups', '/company-size/startups/'],
+			['Small business', '/company-size/small-business/'],
+			['Mid-market', '/company-size/mid-market/'],
+			['Enterprise and regulated enterprise', '/company-size/enterprise/'],
+		],
+	},
+];
+
+const rows = [
+	['Request still reaches the model', 'No', 'Yes', 'Yes'],
+	['Model sees coherent, realistic data', '—', 'No, <PERSON> tags', 'Yes, format-valid fakes'],
+	['Answer refers to your real data', '—', 'No', 'Yes, restored locally'],
+	['Streaming and tool calls', 'Blocked', 'Placeholders leak into arguments', 'Restored on the fly'],
+	['Where it runs', 'Network edge or cloud', 'Library or service', 'On the endpoint, or in-process'],
+];
+---
+
+<Section
+	id="compare"
+	eyebrow="Compare"
+	title="Why not just block or redact?"
+	lead="Blocking breaks the tool, so people route around it. Placeholders keep requests flowing but destroy meaning. Shadow translates."
+>
+	<div class="hp-compare hp-card">
+		<table>
+			<thead>
+				<tr>
+					<th scope="col"><span class="sr-only">Capability</span></th>
+					<th scope="col">Block<span>typical DLP gateway</span></th>
+					<th scope="col">Redact<span>placeholders</span></th>
+					<th scope="col" class="is-shadow">Shadow<span>reversible fakes</span></th>
+				</tr>
+			</thead>
+			<tbody>
+				{
+					rows.map(([label, a, b, c]) => (
+						<tr>
+							<th scope="row">{label}</th>
+							<td>{a}</td>
+							<td>{b}</td>
+							<td class="is-shadow">{c}</td>
+						</tr>
+					))
+				}
+			</tbody>
+		</table>
+	</div>
+	<p class="hp-section__more">
+		<a href={LINKS.compare}>Shadow vs Presidio, LLM Guard, LiteLLM, Nightfall and 30 more <span aria-hidden="true">→</span></a>
+	</p>
+</Section>
+
+<Section
+	id="who"
+	eyebrow="Who it’s for"
+	title="From one laptop to a regulated fleet"
+	lead="Developers, security and privacy teams, and platform teams building LLM features use the same binary."
+>
+	<div class="hp-grid hp-grid--3">
+		{
+			columns.map((c) => (
+				<div class="hp-card hp-audience">
+					<div class="hp-card__icon">
+						<Icon name={c.icon as any} size="1.25rem" />
+					</div>
+					<h3>
+						<a href={c.all}>{c.title}</a>
+					</h3>
+					<ul>
+						{c.links.map(([label, link]) => (
+							<li>
+								<a href={href(link!)}>{label}</a>
+							</li>
+						))}
+					</ul>
+					<a class="hp-audience__all" href={c.all}>
+						{c.allLabel} <span aria-hidden="true">→</span>
+					</a>
+				</div>
+			))
+		}
+	</div>
+</Section>

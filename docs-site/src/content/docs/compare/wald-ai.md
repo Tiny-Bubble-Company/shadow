@@ -29,7 +29,7 @@ faq:
 **Wald.ai is a commercial secure-AI service: it replaces sensitive values with context-aware substitutes before prompts reach ChatGPT, Claude or other models, keeps the substitutions consistent through a conversation, and restores them in the answer. Shadow does the same job as open-source (Apache-2.0) software you run yourself, as an endpoint proxy, gateway or Rust library, and adds streaming and tool-call restoration, an intent policy and Office file masking.** Wald.ai suits teams that want a hosted chat product. Shadow suits teams that want the mapping and the traffic to stay on their own machines.
 
 :::note[TL;DR]
-Wald.ai and Shadow share the idea that substitution beats blocking. Wald.ai delivers it as a hosted chat and API, priced per user. Shadow delivers it as free, self-hosted software that sits in front of any AI tool or SDK, with realistic persona-based fakes and restoration in streams and tool calls.
+Wald.ai and Shadow share the idea that substitution beats blocking. Wald.ai delivers it as a hosted chat and API, priced per user. Shadow delivers it as free, self-hosted software that sits in front of AI tools and SDKs that call provider APIs, with realistic persona-based fakes and restoration in streams and tool calls.
 :::
 
 ## At a glance
@@ -61,7 +61,7 @@ Yes. Shadow is Apache-2.0, runs on macOS, Linux, Windows, servers and containers
 
 ### Works with the tools you already use
 
-Wald.ai is a destination: users chat in Wald's interface or call its API. Shadow is in the path: set `HTTPS_PROXY` or a base URL and existing tools, IDE assistants, CLIs and SDKs keep working, now masked. See [proxy mode](/shadow/integrate/proxy-mode/) and [gateway mode](/shadow/integrate/gateway-mode/).
+Wald.ai is a destination: users chat in Wald's interface or call its API. Shadow is in the path: set `HTTPS_PROXY` or a base URL and existing tools, IDE assistants, CLIs and SDKs that call a [supported AI API](/shadow/reference/providers/) keep working, now masked. Web chat such as chatgpt.com or claude.ai in a browser is not covered. See [proxy mode](/shadow/integrate/proxy-mode/) and [gateway mode](/shadow/integrate/gateway-mode/).
 
 ### Persistent persona
 
@@ -98,7 +98,7 @@ No chat UI, no hosted service, no admin console. Someone has to install and conf
 2. Point SDKs at `http://127.0.0.1:8877/gw/<provider>/...`, or set `HTTPS_PROXY` for whole-machine coverage.
 3. Add your organisation names, customers and codenames as [dictionary terms](/shadow/concepts/detection/#dictionary-terms).
 4. Test with `shadow scan` on typical prompts.
-5. Give chat users an AI client of your choice that goes through Shadow.
+5. Give chat users an API-based AI client of your choice that goes through Shadow; the chatgpt.com and claude.ai websites are not masked.
 
 ## How do they compare on accuracy?
 

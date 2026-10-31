@@ -59,7 +59,7 @@ Palo Alto AI Access Security gives security teams discovery, risk scoring and bl
 
 ### Translate instead of block
 
-Blocking a prompt stops a leak and stops the work. Shadow sends the request with every sensitive value replaced by a realistic fake from a persistent [persona](/shadow/concepts/personas/): `Acme GmbH` becomes `Zhilan Technology Co., Ltd.`, an IBAN keeps a valid checksum. The model answers normally and Shadow restores the real values.
+Blocking a prompt stops a leak and stops the work. Shadow sends the request with every sensitive value it detects replaced by a realistic fake from a persistent [persona](/shadow/concepts/personas/): `Acme GmbH` becomes `Zhilan Technology Co., Ltd.`, an IBAN keeps a valid checksum. The model answers normally and Shadow restores the real values.
 
 ### Can Palo Alto restore values in streams and tool calls?
 
@@ -75,7 +75,7 @@ Shadow masks DOCX, XLSX and PPTX uploads in place and turns PDFs into masked tex
 
 ### Open source, local, free
 
-No account and no telemetry. Plaintext prompts never go to a security cloud.
+No account and no telemetry. Detection runs locally, so plaintext prompts are not sent to a security cloud for inspection.
 
 ## When should you choose Palo Alto?
 
@@ -86,7 +86,7 @@ No account and no telemetry. Plaintext prompts never go to a security cloud.
 
 ## When should you choose Shadow?
 
-- You need to protect API calls from developer tools, agents, CI runners and services.
+- You need to protect API calls to [supported AI providers](/shadow/reference/providers/) from developer tools, agents, CI runners and services.
 - People must keep using AI with sensitive data, and answers must come back with real values.
 - You need streaming, tool-call and Office-file support.
 - You want an auditable, self-hosted, open-source control.

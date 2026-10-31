@@ -22,7 +22,7 @@ faq:
   - q: "Is DataFog free?"
     a: "Yes. DataFog is open source under the MIT licence. Shadow is open source under Apache-2.0. Both are free to self-host."
   - q: "Which is faster, DataFog or Shadow?"
-    a: "DataFog publishes its own latency figures for its regex mode and hook. Shadow does in-process string work in Rust. See the Shadow benchmarks page for a measured comparison."
+    a: "DataFog publishes its own latency figures for its regex mode and hook. Shadow's built-in rules take about 7.5 ms per document on the held-out benchmark. DataFog itself is not in that benchmark."
 ---
 
 **DataFog is an open-source (MIT) Python library for detecting and redacting PII, with integrations for LiteLLM and Claude Code. Shadow is an open-source (Apache-2.0) privacy layer for AI traffic that replaces sensitive values with realistic, reversible fakes and restores them in the model's response.** DataFog is a light, flexible choice when one-way redaction is enough. Shadow is built for the full round trip, where the answer has to come back with the real names, emails and IDs.
@@ -48,7 +48,7 @@ DataFog redacts, replaces or hashes PII before it reaches a model, with a choice
 ## What DataFog does well
 
 - **Engine choice.** Regex for speed, spaCy or GLiNER for named entities, and a "smart" cascade that combines them. You pick the trade-off between latency and recall.
-- **Fast regex path.** DataFog publishes vendor latency figures of roughly 40 µs per message in regex mode and 70 to 90 ms per Claude Code hook call.
+- **Fast regex path.** DataFog publishes low vendor latency figures for its regex mode and its Claude Code hook.
 - **Integrations where developers are.** A LiteLLM guardrail and a Claude Code hook make it easy to add PII checks to an existing gateway or coding agent.
 - **Simple Python API.** Easy to drop into scripts, notebooks and data pipelines.
 - **Permissive licence.** MIT, active releases (v4.9.0 at the time of review).
@@ -63,9 +63,9 @@ Its documented modes are redact, replace and hash. A prompt about `jane@acme.com
 
 Shadow replaces values with format-preserving fakes from a persistent [persona](/shadow/concepts/personas/): a plausible name, a valid email at a consistent fake domain, a Luhn-valid card, a mod-97-valid IBAN. The model reads natural text, and the same customer gets the same fake across sessions.
 
-### Covering every tool on a machine
+### Covering many tools on a machine
 
-DataFog integrates through LiteLLM or a Claude Code hook. Shadow intercepts at the network layer, so any tool that honours `HTTPS_PROXY` or accepts a base URL is covered, including desktop apps and SDKs you didn't configure individually. See [proxy mode](/shadow/integrate/proxy-mode/) and [gateway mode](/shadow/integrate/gateway-mode/).
+DataFog integrates through LiteLLM or a Claude Code hook. Shadow intercepts at the network layer, so any tool that honours `HTTPS_PROXY` or accepts a base URL is covered when it calls a [supported AI API host](/shadow/reference/providers/), including desktop apps and SDKs you didn't configure individually. Web chat in a browser (chatgpt.com, claude.ai) is not covered. See [proxy mode](/shadow/integrate/proxy-mode/) and [gateway mode](/shadow/integrate/gateway-mode/).
 
 ### Intent policy and files
 
@@ -86,7 +86,7 @@ Shadow is a single Rust binary for macOS, Linux and Windows. That matters when y
 
 - The model's answer must contain the real values.
 - You use streaming, agents and tool calls.
-- You want one control that covers every AI tool on a machine.
+- You want one control that covers every tool on a machine that calls a supported AI API.
 - You want Office uploads masked before they leave.
 
 ## Can you use them together?
@@ -103,7 +103,7 @@ There is no built-in integration. You can run both on the same traffic, for exam
 
 ## How do they compare on accuracy and speed?
 
-DataFog's published figures are latency claims from the vendor, not accuracy results on public datasets. Shadow's [benchmark](/shadow/benchmarks/) measures leak rate, over-masking, round-trip exactness and added latency for both, with code published.
+DataFog's published figures are latency claims from the vendor, not accuracy results on public datasets. DataFog is not in Shadow's [benchmark](/shadow/benchmarks/), which measures leak rate, over-masking, round-trip exactness and latency for Shadow and other open-source tools, with code published. Its GLiNER engine is represented there by the GLiNER baseline.
 
 ## Sources
 

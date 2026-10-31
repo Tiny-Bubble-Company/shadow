@@ -15,6 +15,8 @@ Shadow is young. This page lists what we intend to work on next, roughly in prio
 - File masking: text formats, DOCX, XLSX, PPTX in place, PDF as text
 - Presidio as an additional detector
 - Service installation on macOS, Linux and Windows; Docker image
+- Activity dashboard (web UI, `shadow top`, `shadow activity`) recording counts only, and a menu-bar / tray app for macOS and Windows
+- A reproducible detection benchmark on a held-out test set
 - Documentation site
 
 ## Next
@@ -31,8 +33,8 @@ Shadow is young. This page lists what we intend to work on next, roughly in prio
 - **Team identities**: a shared persona and vault for a group of machines, with key distribution.
 - **Policy per host and per tool**: different treatments for different providers or tools.
 - **Language bindings** for `shadow-core` (Python, Node.js) for in-process masking outside Rust.
-- **Desktop status app**: a menu-bar indicator for status, recent counts and quick bypass.
-- **Detection quality benchmarks**: a public corpus and reproducible precision/recall numbers per detector.
+- **Quick bypass** from the menu-bar / tray app.
+- **Per-detector precision and recall** numbers in the benchmark.
 
 ## Not planned
 

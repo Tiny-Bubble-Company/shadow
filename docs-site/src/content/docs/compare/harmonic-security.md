@@ -59,11 +59,11 @@ Harmonic is a user-facing control in the browser: AI app visibility, contextual 
 
 ### What happens after sensitive data is detected?
 
-Harmonic mostly decides whether to warn, block or redirect. Shadow decides how to transform: every sensitive value becomes a realistic fake from a persistent [persona](/shadow/concepts/personas/), the request proceeds, and the real values are restored in the answer. Users don't have to choose between privacy and getting the work done.
+Harmonic mostly decides whether to warn, block or redirect. Shadow decides how to transform: every sensitive value it detects becomes a realistic fake from a persistent [persona](/shadow/concepts/personas/), the request proceeds, and the real values are restored in the answer. Users don't have to choose between privacy and getting the work done.
 
 ### Traffic a browser extension cannot see
 
-IDE assistants, CLIs, agents, CI jobs and back-end services call model APIs directly. Shadow covers them through [proxy mode](/shadow/integrate/proxy-mode/), [gateway mode](/shadow/integrate/gateway-mode/) or the [Rust library](/shadow/integrate/rust/), and restores [streams](/shadow/concepts/how-it-works/#streaming-hold-back) and [tool-call arguments](/shadow/concepts/tool-calls/).
+IDE assistants, CLIs, agents, CI jobs and back-end services call model APIs directly. Shadow covers them when they call a [supported AI API host](/shadow/reference/providers/) through [proxy mode](/shadow/integrate/proxy-mode/), [gateway mode](/shadow/integrate/gateway-mode/) or the [Rust library](/shadow/integrate/rust/), and restores [streams](/shadow/concepts/how-it-works/#streaming-hold-back) and [tool-call arguments](/shadow/concepts/tool-calls/).
 
 ### Intent that changes the transformation
 

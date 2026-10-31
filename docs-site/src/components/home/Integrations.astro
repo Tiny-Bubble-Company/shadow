@@ -1,0 +1,69 @@
+---
+import Section from './Section.astro';
+import { LINKS, href } from './links';
+
+const modes = [
+	{ name: 'Proxy', for: 'Every AI API client on a machine', code: 'HTTPS_PROXY=http://127.0.0.1:8877', link: '/integrate/proxy-mode/' },
+	{ name: 'Gateway', for: 'Anything with a base URL', code: 'OPENAI_BASE_URL=http://127.0.0.1:8877/gw/openai/v1', link: '/integrate/gateway-mode/' },
+	{ name: 'Sidecar', for: 'Services in Docker or Kubernetes', code: 'localhost:8877 next to your service', link: '/integrate/docker-kubernetes/' },
+	{ name: 'Library', for: 'Rust services', code: 'shadow-core, masking in-process', link: '/integrate/rust/' },
+];
+const groups = [
+	{
+		title: 'Model providers',
+		link: '/reference/providers/',
+		items: ['OpenAI', 'Anthropic', 'Google Gemini', 'Vertex AI', 'Azure OpenAI', 'AWS Bedrock', 'Mistral', 'OpenRouter', 'Groq', 'DeepSeek', 'xAI', 'Cohere', 'Self-hosted APIs'],
+	},
+	{
+		title: 'SDKs and frameworks',
+		link: '/integrate/gateway-mode/',
+		items: ['OpenAI SDK', 'Anthropic SDK', 'LangChain', 'LlamaIndex', 'Vercel AI SDK', 'LiteLLM'],
+	},
+	{
+		title: 'Tools and agents',
+		link: '/integrate/any-endpoint/',
+		items: ['Claude Code', 'VS Code extensions that call AI APIs', 'JetBrains plugins that call AI APIs', 'Terminal assistants', 'Your own agents'],
+	},
+	{
+		title: 'Runs on',
+		link: '/getting-started/installation/',
+		items: ['macOS', 'Linux', 'Windows', 'Docker', 'Kubernetes'],
+	},
+];
+---
+
+<Section
+	id="integrations"
+	eyebrow="Integrations"
+	title="Plugs into what you already use"
+	lead="No code changes for most tools: point them at Shadow with one environment variable or a base URL."
+>
+	<div class="hp-grid hp-grid--2 hp-modes">
+		{
+			modes.map((m) => (
+				<a class="hp-card hp-card--link hp-mode" href={href(m.link)}>
+					<span class="hp-mode__name">{m.name}</span>
+					<span class="hp-mode__for">{m.for}</span>
+					<code class="hp-mode__code">{m.code}</code>
+				</a>
+			))
+		}
+	</div>
+	<div class="hp-grid hp-grid--2 hp-integrations">
+		{
+			groups.map((g) => (
+				<div class="hp-card hp-integ">
+					<h3>
+						<a href={href(g.link)}>{g.title}</a>
+					</h3>
+					<ul class="hp-chips">
+						{g.items.map((i) => <li>{i}</li>)}
+					</ul>
+				</div>
+			))
+		}
+	</div>
+	<p class="hp-section__more">
+		<a href={LINKS.integrate}>Choose an integration mode <span aria-hidden="true">→</span></a>
+	</p>
+</Section>

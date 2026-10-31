@@ -20,7 +20,7 @@ faq:
   - q: "Can Netskope redact sensitive data in ChatGPT prompts?"
     a: "Yes. Netskope's documentation describes inline redaction that can mask, format-preserving encrypt or hash data per DLP entity. The same documentation says redaction does not apply to file content, server-sent event (SSE) streaming responses or MCP traffic."
   - q: "Does Netskope restore redacted values in the AI response?"
-    a: "Public documentation does not describe restoring redacted values in responses. Shadow restores every fake in JSON responses, SSE streams and tool-call arguments on the local machine."
+    a: "Public documentation does not describe restoring redacted values in responses. Shadow restores its fakes in JSON responses, SSE streams and tool-call arguments on the local machine."
   - q: "How much does Netskope cost?"
     a: "Netskope does not publish list prices; pricing is by quote and depends on the modules licensed. Shadow is free to self-host."
   - q: "Can Netskope and Shadow run together?"
@@ -76,7 +76,7 @@ Shadow masks DOCX, XLSX and PPTX uploads in place, extracts PDF text, and handle
 
 ### Local, open source, free
 
-Shadow is a single Rust binary with no account and no telemetry. Plaintext never leaves the machine, not even to a security cloud. You can audit the code.
+Shadow is a single Rust binary with no account and no telemetry. Detection runs locally, so plaintext is never sent to a security cloud for inspection. You can audit the code.
 
 ## When should you choose Netskope?
 
@@ -90,7 +90,7 @@ Shadow is a single Rust binary with no account and no telemetry. Plaintext never
 - Developers, agents and services call model APIs and rely on streaming and tool calls.
 - You want answers to stay useful, with real values restored, rather than blocked or one-way redacted.
 - You want Office files in AI requests masked before they leave.
-- You need a self-hosted, open-source control with no data sent to a third-party cloud.
+- You need a self-hosted, open-source control that does not send plaintext to a third-party inspection cloud.
 - You don't have a SASE budget, or you need coverage for machines outside the managed fleet, such as CI runners and containers.
 
 ## Using Netskope and Shadow together

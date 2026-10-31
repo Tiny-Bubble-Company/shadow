@@ -23,10 +23,10 @@ faq:
   - q: "Is LLM Guard free for commercial use?"
     a: "LLM Guard itself is MIT-licensed. Check the licences of the models it downloads: one optional recognizer model used by the Anonymize scanner is published under CC-BY-NC-4.0, which restricts commercial use."
   - q: "Which is faster, LLM Guard or Shadow?"
-    a: "LLM Guard publishes latency figures for its scanners, which depend on hardware and whether ONNX or a GPU is used. Shadow's built-in detectors are in-process Rust; optional NER models add their own time. See the Shadow benchmarks page for measured, reproducible numbers."
+    a: "LLM Guard publishes latency figures for its scanners, which depend on hardware and whether ONNX or a GPU is used. Shadow's built-in detectors are in-process Rust, about 7.5 ms per document on the held-out benchmark; optional NER models add their own time. See the Shadow benchmarks page for measured, reproducible numbers."
 ---
 
-**LLM Guard, from Protect AI, is an open-source Python toolkit of scanners that check LLM inputs and outputs, including an Anonymize/Deanonymize pair for PII. Shadow is an open-source privacy layer that does one job: it replaces sensitive values with realistic, reversible fakes before requests reach the provider and restores them in responses, streams and tool calls.** If you want a broad guardrail toolkit in Python, LLM Guard is a strong option. If you want PII masking with restoration across every tool on a machine, without changing application code, Shadow is built for that.
+**LLM Guard, from Protect AI, is an open-source Python toolkit of scanners that check LLM inputs and outputs, including an Anonymize/Deanonymize pair for PII. Shadow is an open-source privacy layer that does one job: it replaces sensitive values with realistic, reversible fakes before requests reach the provider and restores them in responses, streams and tool calls.** If you want a broad guardrail toolkit in Python, LLM Guard is a strong option. If you want PII masking with restoration for every tool on a machine that calls a supported AI API, without changing application code, Shadow is built for that.
 
 :::note[TL;DR]
 LLM Guard and Shadow share the same core idea for PII: replace on the way out, restore on the way back. LLM Guard does it inside your Python app with placeholders by default and also scans for prompt injection, toxicity and more. Shadow does it at the network layer with persona-based fakes, restores streamed responses and tool-call arguments, and masks Office uploads.
@@ -66,11 +66,11 @@ Most agent and chat clients stream. Shadow parses SSE and NDJSON events for Open
 
 ### Intent-aware policy
 
-Shadow classifies each request as act, report, code or converse and picks a treatment per value: fakes for conversation, typed tokens such as `[PERSON_0007]` for bulk reports, and an explicit, logged `keep` for the target of a provider-hosted action. See [intent-aware policy](/shadow/concepts/intent-policy/).
+Shadow classifies each request as act, report, code or converse and picks a treatment per value: fakes for conversation, typed tokens such as `[PERSON_0007]` for bulk reports, and an explicit, logged `keep` for what a provider-hosted action needs, such as its recipient. See [intent-aware policy](/shadow/concepts/intent-policy/).
 
 ### No code changes
 
-LLM Guard runs where you call it. Shadow runs as an [HTTPS proxy](/shadow/integrate/proxy-mode/) or [gateway](/shadow/integrate/gateway-mode/), so IDE assistants, CLIs and desktop apps you don't control are covered too.
+LLM Guard runs where you call it. Shadow runs as an [HTTPS proxy](/shadow/integrate/proxy-mode/) or [gateway](/shadow/integrate/gateway-mode/), so IDE assistants, CLIs and desktop apps you don't control are covered too, when they call a [supported provider API](/shadow/reference/providers/).
 
 ### Files and runtime
 
@@ -103,7 +103,7 @@ Yes. They solve overlapping but different problems. A common split is LLM Guard 
 
 ## How do they compare on accuracy?
 
-Both tools' detection depends on configuration and models. Shadow's [benchmark](/shadow/benchmarks/) measures leak rate, over-masking, round-trip exactness and latency on public datasets with published code and label mappings. LLM Guard's own documentation publishes latency figures; check them against your hardware.
+Both tools' detection depends on configuration and models. Shadow's [benchmark](/shadow/benchmarks/) measures leak rate, over-masking, round-trip exactness and latency on a held-out test set, with published code and label mappings. On it, LLM Guard's Anonymize scanner leaked 29.26% of sensitive values, against 3.08% for Shadow's built-in rules (about 7.5 ms per document). LLM Guard's own documentation publishes latency figures; check them against your hardware.
 
 ## Sources
 

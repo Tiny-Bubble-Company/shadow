@@ -16,7 +16,7 @@ faq:
   - q: "What does Shadow cost for a regulated organisation?"
     a: "Nothing to license. Shadow is open source under Apache-2.0, self-hosted, with no account and no telemetry. Your costs are the time to roll it out and any optional detector infrastructure, such as a Presidio container."
   - q: "Does the AI provider still receive our data?"
-    a: "It receives a masked version: realistic, format-preserving fakes instead of names, emails, IDs, card numbers, hostnames and secrets. Detection is best effort and context is not masked, so keep the provider under your normal vendor and contract controls."
+    a: "It receives a masked version: realistic, format-preserving fakes instead of names, emails, IDs, card numbers, hostnames and secrets. The only real values sent on purpose are those a provider-hosted action (such as a hosted MCP tool sending an email) needs to reach the right person, and each one is logged. Detection is best effort and context is not masked, so keep the provider under your normal vendor and contract controls."
   - q: "Which AI tools does Shadow cover?"
     a: "Anything that calls a model API through Shadow's proxy or gateway: SDKs, internal apps, agents, and coding assistants that use your own API key, for OpenAI, Anthropic, Azure OpenAI, Gemini, Bedrock, OpenRouter, Mistral and more. Consumer web apps such as chatgpt.com are not built-in hosts."
 sidebar:

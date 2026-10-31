@@ -2,13 +2,16 @@
 // Wraps Starlight's MarkdownContent to append a visible FAQ section when the page's
 // frontmatter has `faq:`. The same questions are emitted as FAQPage JSON-LD by
 // src/seo/middleware.ts, and search engines expect the Q&A to be visible on the page.
+// The home page places its FAQ itself (src/content/docs/index.mdx).
 import Default from '@astrojs/starlight/components/MarkdownContent.astro';
 import FaqSection from './FaqSection.astro';
 
-const { faq } = Astro.locals.starlightRoute.entry.data as { faq?: { q: string; a: string }[] };
+const route = Astro.locals.starlightRoute;
+const { faq } = route.entry.data as { faq?: { q: string; a: string }[] };
+const isHome = route.id === '' || route.entry.id === 'index';
 ---
 
 <Default>
 	<slot />
-	{faq && faq.length > 0 && <FaqSection items={faq} />}
+	{!isHome && faq && faq.length > 0 && <FaqSection items={faq} />}
 </Default>

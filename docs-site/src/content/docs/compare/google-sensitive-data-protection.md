@@ -23,7 +23,7 @@ faq:
   - q: "How much does Google Sensitive Data Protection cost?"
     a: "Google's pricing page lists content inspection at $3 per GB beyond the first 1 GB per month, and transformation at about $2 per GB. Shadow is free and open source."
   - q: "Which is more accurate, Google DLP or Shadow?"
-    a: "Google DLP scored 0.61 aggregate F1 in a vendor-run Tonic benchmark, but results vary by dataset and label mapping. See the Shadow benchmarks page for a reproducible comparison."
+    a: "Google DLP is not in the Shadow benchmark, because commercial cloud APIs are impractical to run publicly and reproducibly. Vendor-run benchmarks such as Tonic's include it, but results vary by dataset and label mapping."
 ---
 
 **Google Cloud Sensitive Data Protection (formerly Cloud DLP) is a managed API that inspects, classifies and de-identifies sensitive data, and it is the only hyperscaler PII service with documented reversible, format-preserving transforms. Shadow is an open-source privacy layer that sits in front of AI providers, replaces values with realistic, reversible fakes, and restores them in responses, streams and tool calls.** Google is a strong choice for data pipelines and storage scanning on GCP. Shadow is built specifically for live LLM traffic and runs on your own machines.
@@ -71,7 +71,7 @@ With Google, plaintext is sent to a Google Cloud API for inspection. Shadow dete
 
 ### Intent-aware treatment
 
-Shadow's [intent policy](/shadow/concepts/intent-policy/) uses realistic fakes for conversation, typed tokens like `[PERSON_0007]` for bulk reports, and can keep the target of an action run by a provider-hosted tool. Google gives you the transforms; choosing per request is up to you.
+Shadow's [intent policy](/shadow/concepts/intent-policy/) uses realistic fakes for conversation, typed tokens like `[PERSON_0007]` for bulk reports, and keeps real what an action run by a provider-hosted tool needs, logging each keep. Google gives you the transforms; choosing per request is up to you.
 
 ### Office files inside requests
 
@@ -109,7 +109,7 @@ Yes, for different jobs. Use Google SDP to scan and de-identify data at rest in 
 
 ## How do they compare on accuracy?
 
-Tonic's vendor-run benchmark (October 2025) gave Google DLP an aggregate F1 of 0.61. As with every tool here, results depend heavily on dataset and label mapping. Shadow's [benchmark](/shadow/benchmarks/) puts cloud APIs in a separate table and publishes its code and mappings.
+Tonic's vendor-run benchmark (October 2025) includes Google DLP. As with every tool here, results depend heavily on dataset and label mapping. Shadow's [benchmark](/shadow/benchmarks/) publishes its code and mappings; commercial cloud APIs such as Google SDP are not included, because their terms and pricing make public, reproducible runs impractical.
 
 ## Sources
 

@@ -12,7 +12,7 @@ faq:
   - q: "Is Shadow FedRAMP authorised?"
     a: "FedRAMP authorises cloud services, and Shadow is not one. It is open-source software you run on your own endpoints, servers or clusters, with no hosted component or telemetry. The AI provider you send masked requests to is a cloud service and still needs whatever authorisation your agency requires."
   - q: "Does Shadow solve data residency for AI?"
-    a: "Partly. Detection, masking and the vault all stay on your infrastructure, so real identifiers never leave it. The masked text still goes to the provider's region, so residency requirements for the remaining content, and for metadata, still apply to the provider."
+    a: "Partly. Detection, masking and the vault all stay on your infrastructure, so detected identifiers leave only as fakes or tokens. The exception is a provider-hosted action (such as a hosted MCP tool sending an email), where by default the contact details it needs are kept real, and each keep is logged; set remote_tool_targets = \"surrogate\" to stop that. The masked text still goes to the provider's region, so residency requirements for the remaining content, and for metadata, still apply to the provider."
   - q: "Can Shadow run in an air-gapped or restricted network?"
     a: "Shadow itself needs no internet access: it builds from source, has no licence server and sends nothing except the masked requests you route through it. It is useful in restricted networks that allow egress only to an approved model endpoint, which you can add with a custom gateway route or extra_hosts."
   - q: "Can caseworkers use ChatGPT with Shadow?"
@@ -79,7 +79,7 @@ The persona's region affects answers about holidays, phone formats and legal con
 |---|---|
 | Real identifiers, the vault and its key, the persona, logs | The masked prompt and its non-identifying content |
 | Detection, including the optional NER and Presidio sidecars on loopback | Your API key (identifying the account) and your egress IP, unless you use a relay |
-| Restored answers | Any value a detector missed |
+| Restored answers | Any value a detector missed, and values a provider-hosted action needs (kept real by default and logged) |
 
 For the strongest position, combine Shadow with a provider region or sovereign endpoint that meets your residency rules, or a self-hosted model added through `[proxy.routes]` or `extra_hosts`.
 
@@ -112,14 +112,14 @@ Seen by the provider (persona varies):
 
 ```text
 Draft a reply to Liam Walker, 52 Banksia Street, Northshire, liam.walker@coralbay.com.au,
-NINO JK 48 21 77 B, about the delayed housing benefit decision.
+NINO [NATIONAL_ID_0001], about the delayed housing benefit decision.
 ```
 
-The draft is restored with Sam Okoro's real details before an officer reviews it.
+The NINO is a token because the configuration above sets `national_id = "token"`; without it, the NINO would be a fake of the same format. The draft is restored with Sam Okoro's real name, address, email and NINO before an officer reviews it.
 
 ### Consultation analysis
 
-A policy team attaches a CSV of 5,000 responses and asks for themes and counts. Respondent names and emails become typed tokens, the free text is masked by the detectors, and the analysis comes back with real names where quotes are attributed.
+A policy team pastes a CSV of 5,000 responses and asks for an analysis of themes and counts. With that many names and emails in tabular form, Shadow classifies it as `report`, so respondent names and emails become typed tokens, the free text is masked by the detectors, and the analysis comes back with real names where quotes are attributed.
 
 ### Service team debugging
 

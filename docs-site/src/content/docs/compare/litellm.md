@@ -104,7 +104,7 @@ In either case, disable LiteLLM's Presidio masking for those routes so the two l
 
 ## How do they compare on accuracy?
 
-With the Presidio guardrail, LiteLLM's detection accuracy is Presidio's. Shadow's [benchmark](/shadow/benchmarks/) includes LiteLLM with Presidio as a round-trip and streaming baseline, with published code.
+With the Presidio guardrail, LiteLLM's detection accuracy is essentially Presidio's. Shadow's [benchmark](/shadow/benchmarks/) does not test LiteLLM itself, but on the held-out set Microsoft Presidio leaked 20.74% of sensitive values, against 3.08% for Shadow's built-in rules and 1.35% for Shadow using Presidio as an extra detector.
 
 ## Sources
 

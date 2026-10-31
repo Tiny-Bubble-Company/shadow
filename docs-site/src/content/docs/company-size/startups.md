@@ -23,7 +23,7 @@ sidebar:
   order: 2
 ---
 
-For a startup, Shadow is a cheap way to keep customer data out of AI providers from the start: a free binary on each engineer's laptop and a sidecar next to any product feature that calls a model. It takes minutes per machine, needs no vendor contract, and gives you a concrete answer when an enterprise prospect asks what customer data reaches OpenAI or Anthropic.
+For a startup, Shadow is a cheap way to keep the customer data it detects out of AI providers from the start: a free binary on each engineer's laptop and a sidecar next to any product feature that calls a model. It takes minutes per machine, needs no vendor contract, and gives you a concrete answer when an enterprise prospect asks what customer data reaches OpenAI or Anthropic.
 
 ## What matters at this stage
 

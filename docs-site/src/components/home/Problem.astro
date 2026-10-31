@@ -1,0 +1,44 @@
+---
+import { Icon } from '@astrojs/starlight/components';
+import Section from './Section.astro';
+
+const leaks = [
+	{ icon: 'email', title: 'People', text: 'Names, emails and phone numbers of colleagues, patients and customers.', tags: ['jane@acme.com', '+49 30 1234567'] },
+	{ icon: 'list-format', title: 'Customer records', text: 'Customer lists, invoices with IBANs and cards, contracts with addresses.', tags: ['DE89 3704 …', '4111 1111 …'] },
+	{ icon: 'padlock', title: 'Secrets', text: 'API keys, tokens and passwords pasted along with a config file or a stack trace.', tags: ['sk-live-…', 'ghp_…'] },
+	{ icon: 'server', title: 'Infrastructure', text: 'Internal hostnames, IP addresses and file paths that contain your username.', tags: ['db-prod-3.corp', '/Users/jdoe'] },
+	{ icon: 'rocket', title: 'Company secrets', text: 'Your company name, clients and the codenames of unreleased projects.', tags: ['Acme GmbH', 'Project Falcon'] },
+	{ icon: 'document', title: 'Files', text: 'Uploaded spreadsheets, Word documents, slides and PDFs full of all of the above.', tags: ['.xlsx', '.docx', '.pdf'] },
+];
+const sinks = ['Provider logs', 'Abuse-monitoring queues', 'Support tooling', 'Training data', 'A future breach'];
+---
+
+<Section
+	id="problem"
+	eyebrow="The problem"
+	title="Prompts carry far more than the question"
+	lead="People paste whatever makes the answer better. Policies say “don’t”, and people do it anyway, because the tool is useful. This is what ends up in a request to an AI provider:"
+>
+	<div class="hp-grid hp-grid--3">
+		{
+			leaks.map((l) => (
+				<article class="hp-card hp-leak">
+					<div class="hp-card__icon hp-card__icon--warn">
+						<Icon name={l.icon as any} size="1.25rem" />
+					</div>
+					<h3>{l.title}</h3>
+					<p>{l.text}</p>
+					<ul class="hp-tags" aria-label="Examples">
+						{l.tags.map((t) => <li><code>{t}</code></li>)}
+					</ul>
+				</article>
+			))
+		}
+	</div>
+	<div class="hp-sinks">
+		<span class="hp-sinks__label">Once it leaves your machine, it can end up in</span>
+		<ul>
+			{sinks.map((s) => <li>{s}</li>)}
+		</ul>
+	</div>
+</Section>

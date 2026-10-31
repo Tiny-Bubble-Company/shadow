@@ -114,7 +114,7 @@ Draft a reply to Dr Tao Zhu (tao.zhu@zhilan.cn) at Jinghua Medical Group
 asking whether Velora Quilent can be co-administered with warfarin.
 ```
 
-The reply comes back addressed to Dr Okafor about HLX-4417. Warfarin stays as written because it is public.
+The reply comes back addressed to Dr Amara Okafor at a.okafor@stmarys.example about HLX-4417. A shortened "Dr Zhu" is restored too, because fake surnames are restored on their own. Warfarin stays as written because it is public.
 
 ### Partnering memo
 

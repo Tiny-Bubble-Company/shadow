@@ -18,7 +18,7 @@ faq:
   - q: "Will Shadow catch a password in a database URL?"
     a: "Not reliably. The secret detector finds known key formats, JWTs, PEM private keys, bearer tokens and password= style assignments, but not a password embedded in a connection URL such as postgres://user:pw@host. Keep such URLs in environment variables, or add the hostname to internal_domains so at least the host is masked."
   - q: "Can I bypass Shadow for a single command?"
-    a: "Yes. Unset the proxy for that command with env -u HTTPS_PROXY, or drop the base URL variable. Nothing silently bypasses Shadow otherwise: if it is down, proxied tools fail to connect."
+    a: "Yes. Unset the proxy for that command with env -u HTTPS_PROXY, or drop the base URL variable. Shadow never falls back to a direct connection: if it is down, proxied tools fail to connect. Hosts that are not on the intercepted list, and anything in NO_PROXY, go direct by design."
 sidebar:
   order: 4
 ---
@@ -99,7 +99,7 @@ export OPENAI_BASE_URL=http://127.0.0.1:8877/gw/openai/v1
 claude
 ```
 
-Proxy mode, which covers every tool in the shell, including ones without a base URL setting:
+Proxy mode, which covers every tool in the shell that calls a supported provider API, including ones without a base URL setting:
 
 ```sh
 shadow install --apply                     # background service, CA trust, env.sh

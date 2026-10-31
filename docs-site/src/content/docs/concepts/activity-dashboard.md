@@ -22,7 +22,7 @@ faq:
 
 Shadow works quietly in the background, so it can be hard to tell that it is doing anything. The activity feed answers three questions at a glance:
 
-- **How much AI traffic went through Shadow?** Requests monitored, by destination (OpenAI, Anthropic, Google Gemini, ChatGPT, ...) and by the app that sent them (Claude Code, Cursor, the OpenAI Python SDK, curl, ...).
+- **How much AI traffic went through Shadow?** Requests monitored, by destination (OpenAI, Anthropic, Google Gemini, Azure OpenAI, ...) and by the app that sent them (Claude Code, Codex CLI, the OpenAI Python SDK, curl, ...). Only traffic to [intercepted AI API hosts](/shadow/reference/providers/) is counted; AI web apps used in a browser are not.
 - **What did it protect?** Values masked before they left the machine, by data type (email addresses, names, secrets and API keys, hostnames, card numbers, ...), and how many were restored in the answers.
 - **What did it stop?** Requests blocked by policy, such as an image upload when `files.images = "block"`, with the reason.
 

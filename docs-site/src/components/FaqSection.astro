@@ -1,27 +1,68 @@
 ---
+// Visible FAQ for pages with `faq:` frontmatter. The same questions are emitted as
+// FAQPage JSON-LD by src/seo/middleware.ts.
+//   variant="list"      docs pages: every answer visible (default)
+//   variant="accordion" home page: collapsible questions in two columns
 import { inlineMarkdownToHtml } from '../seo/inline-md';
 
 interface Props {
 	items: { q: string; a: string }[];
 	title?: string;
+	variant?: 'list' | 'accordion';
+	eyebrow?: string;
+	lead?: string;
+	/** Link under the accordion, e.g. to the full FAQ page. */
+	more?: { href: string; label: string };
 }
-const { items, title = 'Frequently asked questions' } = Astro.props;
+const { items, title = 'Frequently asked questions', variant = 'list', eyebrow, lead, more } = Astro.props;
+const paragraphs = (a: string) => a.split(/\n\s*\n/).map((p) => inlineMarkdownToHtml(p.trim()));
 ---
 
-<section class="faq" aria-labelledby="faq">
-	<h2 id="faq">{title}</h2>
-	<div class="faq-list">
-		{
-			items.map(({ q, a }) => (
-				<div class="faq-item">
-					<h3 set:html={inlineMarkdownToHtml(q)} />
-					<div class="faq-answer">
-						{a
-							.split(/\n\s*\n/)
-							.map((para) => <p set:html={inlineMarkdownToHtml(para.trim())} />)}
+{
+	variant === 'accordion' ? (
+		<section class="hp-section hp-section--center hp-faq not-content" aria-labelledby="faq">
+			<header class="hp-section__head">
+				{eyebrow && <p class="hp-eyebrow">{eyebrow}</p>}
+				<h2 id="faq">{title}</h2>
+				{lead && <p class="hp-lead" set:html={lead} />}
+			</header>
+			<div class="hp-faq__list">
+				{items.map(({ q, a }) => (
+					<details class="hp-faq__item">
+						<summary>
+							<span set:html={inlineMarkdownToHtml(q)} />
+						</summary>
+						<div class="hp-faq__answer">
+							{paragraphs(a).map((html) => (
+								<p set:html={html} />
+							))}
+						</div>
+					</details>
+				))}
+			</div>
+			{more && (
+				<p class="hp-section__more">
+					<a href={more.href}>
+						{more.label} <span aria-hidden="true">→</span>
+					</a>
+				</p>
+			)}
+		</section>
+	) : (
+		<section class="faq" aria-labelledby="faq">
+			<h2 id="faq">{title}</h2>
+			<div class="faq-list">
+				{items.map(({ q, a }) => (
+					<div class="faq-item">
+						<h3 set:html={inlineMarkdownToHtml(q)} />
+						<div class="faq-answer">
+							{paragraphs(a).map((html) => (
+								<p set:html={html} />
+							))}
+						</div>
 					</div>
-				</div>
-			))
-		}
-	</div>
-</section>
+				))}
+			</div>
+		</section>
+	)
+}

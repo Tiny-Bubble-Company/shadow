@@ -8,7 +8,7 @@ Shadow is not tied to a list of applications. If something sends HTTP requests t
 ## Decision guide
 
 1. **Can you set a base URL?** Use [gateway mode](/shadow/integrate/gateway-mode/). Most SDKs, CLIs and frameworks (LangChain, LlamaIndex, Vercel AI SDK, LiteLLM, the OpenAI and Anthropic SDKs) accept one, often from `OPENAI_BASE_URL` or `ANTHROPIC_BASE_URL`.
-2. **Does it honour `HTTPS_PROXY` or the system proxy?** Use [proxy mode](/shadow/integrate/proxy-mode/). This covers most IDE extensions, Electron apps, Python and Node scripts, and CI jobs.
+2. **Does it honour `HTTPS_PROXY` or the system proxy?** Use [proxy mode](/shadow/integrate/proxy-mode/). This covers most IDE extensions, Electron apps, Python and Node scripts, and CI jobs, as long as they call an [intercepted AI host](/shadow/reference/providers/). Tools that talk to their vendor's own backend instead (GitHub Copilot, Cursor) are not masked unless you add that host with `extra_hosts`, and then only if Shadow can parse their request format.
 3. **Is it your own Rust code?** [Embed `shadow-core`](/shadow/integrate/rust/).
 4. **Is the endpoint not a built-in provider?** Add a route or an intercepted host for it (below).
 
@@ -35,7 +35,7 @@ Non-JSON request bodies are forwarded as they are, except for [file uploads](/sh
 Agents are where privacy and usefulness collide: the model has to *act* on real values. Shadow handles this with the [intent-aware policy](/shadow/concepts/intent-policy/):
 
 - When the agent's tools run **on your side** (your code executes the tool call), the model sees fakes and writes tool calls with fakes. Shadow restores the real values in the tool-call arguments before they reach your code, so the email goes to the real address.
-- When tools run **in the provider's cloud** (hosted MCP servers, server-side tools), Shadow cannot restore values there. By default it keeps the action's target real and logs that decision. You can change this.
+- When tools run **in the provider's cloud** (hosted MCP servers, server-side tools), Shadow cannot restore values there. By default it keeps real what the action needs (the contact details, people, companies, addresses, usernames and IBANs named in the instruction, and for a follow-up that names no email or phone, the emails, phones and people anywhere in the request), keeps secrets, cards and IDs masked, and logs each keep. You can change this.
 
 Details and examples in [Tool calls and agents](/shadow/concepts/tool-calls/).
 
@@ -45,7 +45,7 @@ Coding assistants send file contents, paths, hostnames and pasted configuration,
 
 - **VS Code and JetBrains extensions.** Most use the IDE's proxy setting or `HTTPS_PROXY`. Set the IDE's HTTP proxy to `http://127.0.0.1:8877` and make sure the CA is trusted by the OS (VS Code uses the OS store; JetBrains IDEs can be pointed at it in *Settings → Tools → Server Certificates*).
 - **Terminal assistants and CLIs.** Start them from a shell where `env.sh` is sourced, or set their base URL variable.
-- **Desktop chat apps.** Use the [PAC file](/shadow/integrate/proxy-mode/#system-wide-with-a-pac-file) or system proxy. Apps that pin certificates will refuse the local CA; there is no workaround for those besides using a different client.
+- **Desktop chat apps.** Use the [PAC file](/shadow/integrate/proxy-mode/#system-wide-with-a-pac-file) or system proxy for apps that call a provider API with your key. The ChatGPT and Claude desktop apps talk to their consumer backends (chatgpt.com, claude.ai), which are not intercepted. Apps that pin certificates will refuse the local CA; there is no workaround for those besides using a different client.
 
 ## Backend services in any language
 

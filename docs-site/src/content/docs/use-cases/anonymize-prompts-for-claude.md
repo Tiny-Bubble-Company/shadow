@@ -74,6 +74,8 @@ msg = client.messages.create(
 print(msg.content[0].text)    # mentions Jane Doe, Globex and Project Falcon
 ```
 
+Shadow restores whole fakes, and a fake person's first or last name on its own, so a greeting by first name comes back right. Other fragments, such as the domain of a fake email, stay fake, so ask for full values when the text goes to a real person.
+
 TypeScript:
 
 ```ts

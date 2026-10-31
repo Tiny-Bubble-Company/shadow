@@ -23,7 +23,7 @@ sidebar:
   order: 11
 ---
 
-To protect customer data in a RAG pipeline, keep the document store and retrieval inside your infrastructure and mask the retrieved chunks at the moment they are sent to the model. Shadow does that masking in transit: names, emails, account numbers, hostnames and secrets in the prompt and its context become reversible fakes, and the model's answer, including streamed text and citations, comes back with real values.
+To protect customer data in a RAG pipeline, keep the document store and retrieval inside your infrastructure and mask the retrieved chunks at the moment they are sent to the model. Shadow does that masking in transit: names, emails, IBANs, hostnames and secrets in the prompt and its context become reversible fakes, and the model's answer, including streamed text and citations, comes back with real values.
 
 ## Where does customer data leak in a RAG pipeline?
 
@@ -131,7 +131,7 @@ Q: Does our policy cover water damage for Qiang Xu at 211 Jianguo Road?
 Context: [chunk 1] Qiang Xu, policy holder, jing.zhu@bryula.cn
 ```
 
-The person, address and email are consistent between the question and the chunk, so the model can connect them. The answer comes back about Tom Becker.
+The person, address and email are consistent between the question and the chunk, so the model can connect them. The answer comes back about Tom Becker at 12 Elm Road: each full fake is restored, and so is a fake first or last name on its own. "Mr Xu" is the exception: name parts under three characters are not restored, nor are other fragments such as part of the address, so ask the model to use full names and addresses in answers.
 
 ## What about embeddings?
 

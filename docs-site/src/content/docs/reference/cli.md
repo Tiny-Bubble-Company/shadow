@@ -1,6 +1,6 @@
 ---
 title: CLI
-description: "Reference for the shadow command line: init, run, install, status, mask, unmask, scan, vault, terms and hosts, with every subcommand and flag."
+description: "Reference for the shadow command line: init, run, install, status, mask, unmask, scan, vault, terms, hosts, top, activity and dashboard, with every subcommand and flag."
 ---
 
 ```text
@@ -30,6 +30,9 @@ Logs go to stderr. `shadow run` logs at `info` by default, every other command a
 | [`vault`](#shadow-vault) | Inspect, export or edit the vault |
 | [`terms`](#shadow-terms) | Manage protected dictionary terms |
 | [`hosts`](#shadow-hosts) | List intercepted hosts and gateway routes |
+| [`top`](#shadow-top) | Live activity view in the terminal |
+| [`activity`](#shadow-activity) | Print an activity summary |
+| [`dashboard`](#shadow-dashboard) | Open the web activity dashboard |
 
 ## `shadow init`
 
@@ -179,6 +182,30 @@ List the hosts intercepted in proxy mode (built-ins plus `extra_hosts`, with `by
 
 ```sh
 shadow hosts
+```
+
+## `shadow top`
+
+A live, full-screen view of the running proxy's [activity](/shadow/concepts/activity-dashboard/): totals, a timeline, and breakdowns by data type, destination and app. `--demo` shows synthetic data instead.
+
+```sh
+shadow top [--demo]
+```
+
+## `shadow activity`
+
+Print the activity summary as plain tables, or as JSON with `--json`. `--window` (`-w`) is `1h`, `24h` (default), `7d`, `30d` or `today`. `--demo` summarises synthetic data.
+
+```sh
+shadow activity [--window <WINDOW>] [--json] [--demo]
+```
+
+## `shadow dashboard`
+
+Open the web dashboard (`http://127.0.0.1:8877/shadow/ui`) in your browser. `--print` prints the URL instead; `--demo` opens it with synthetic data.
+
+```sh
+shadow dashboard [--demo] [--print]
 ```
 
 ## Exit codes

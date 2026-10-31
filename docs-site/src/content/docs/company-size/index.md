@@ -58,7 +58,7 @@ Shadow is the same binary for a freelancer and for a bank. What changes with siz
 
 :::note[Current gaps, from the roadmap]
 - **No central admin console or fleet management.** Configuration is a file; distribute it with the tools you already use.
-- **No audit log yet.** Today the proxy logs the intent and counts per request, never values. An optional local, append-only audit log is a [roadmap](/shadow/project/roadmap/) "Next" item.
+- **No audit log yet.** Today the proxy logs the intent and counts per request, never values, and each machine's local [activity dashboard](/shadow/concepts/activity-dashboard/) shows counts by data type. An optional local, append-only audit log is a [roadmap](/shadow/project/roadmap/) "Next" item.
 - **No shared team identity yet.** Each machine has its own persona and vault. Team identities with key distribution are a "Later" item; today you can copy `persona.json`, `vault.bin` and `vault.key`.
 - **Release binaries and a published container image are in progress.** The install scripts fall back to building with `cargo` where no release exists, and the Docker image is built from `packaging/Dockerfile`.
 - **API traffic only.** Consumer web apps such as chatgpt.com are not built-in hosts.

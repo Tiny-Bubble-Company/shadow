@@ -1,7 +1,5 @@
 // /robots.txt — allow search engines and AI crawlers, point them at the sitemap.
-// Note: crawlers only read robots.txt at the domain root. On a GitHub Pages project
-// site (…github.io/shadow/) this file is informative; it takes full effect on a custom
-// domain built with BASE=/.
+// Crawlers only read robots.txt at the domain root, so build with BASE="" for it to apply.
 import type { APIRoute } from 'astro';
 import { HOME_URL } from '../site.mjs';
 

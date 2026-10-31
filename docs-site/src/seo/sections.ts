@@ -17,7 +17,7 @@ export const SECTIONS: { dir: string; label: string; optional?: boolean; pages?:
 	{
 		dir: 'concepts',
 		label: 'Concepts',
-		pages: ['how-it-works', 'personas', 'vault', 'detection', 'intent-policy', 'file-masking', 'tool-calls'],
+		pages: ['how-it-works', 'personas', 'vault', 'detection', 'intent-policy', 'file-masking', 'tool-calls', 'activity-dashboard'],
 	},
 	{ dir: 'benchmarks', label: 'Benchmarks' },
 	{ dir: 'compare', label: 'Compare' },

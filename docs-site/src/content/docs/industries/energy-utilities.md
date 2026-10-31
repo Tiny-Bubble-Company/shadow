@@ -118,7 +118,7 @@ A customer service agent asks for a letter to Sarah Murphy at 21 Mill Lane, phon
 
 ### Outage report over a work-order export
 
-An analyst uploads a CSV of 900 work orders. The `report` intent turns customer names, phones and addresses into typed tokens; site terms become consistent fakes. The summary by cause and region is restored locally.
+An analyst pastes a CSV of 900 work orders and asks for a summary. The rows of personal data make it a `report`, so Shadow turns customer names, phones and addresses into typed tokens; site terms become consistent fakes. The summary by cause and region is restored locally.
 
 ## Deployment patterns
 

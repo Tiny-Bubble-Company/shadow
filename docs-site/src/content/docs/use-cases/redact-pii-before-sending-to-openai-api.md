@@ -10,7 +10,7 @@ keywords:
   - pii redaction proxy openai
 faq:
   - q: "Do I need to change my code to mask PII for the OpenAI API?"
-    a: "Usually only the base URL. Point the OpenAI SDK at http://127.0.0.1:8877/gw/openai/v1, or set OPENAI_BASE_URL, and Shadow masks every request and restores every response. Your API key passes through unchanged."
+    a: "Usually only the base URL. Point the OpenAI SDK at http://127.0.0.1:8877/gw/openai/v1, or set OPENAI_BASE_URL, and Shadow masks the sensitive values it detects in every request and restores them in every response. Your API key passes through unchanged."
   - q: "Is this redaction or pseudonymisation?"
     a: "By default it is reversible pseudonymisation: values become realistic fakes that are restored in the response. You can opt in to irreversible redaction per kind, for example secrets, with [policy.always] secret = \"redact\"."
   - q: "Does it work with streaming and the Responses API?"
@@ -18,7 +18,7 @@ faq:
   - q: "Does it work with Azure OpenAI?"
     a: "Yes. Add a custom gateway route for your Azure resource under [proxy.routes], or use proxy mode, where *.openai.azure.com is intercepted by default."
   - q: "How much latency does masking add?"
-    a: "Built-in masking is in-process string work, typically well under a few milliseconds per request, small next to model latency. Optional detectors such as Presidio or the NER sidecar add a local HTTP call each."
+    a: "Built-in masking is local, in-process string work: about 7.5 ms per document on the benchmark set, small next to model latency. Optional detectors such as Presidio or the NER sidecar add a local HTTP call each."
 sidebar:
   order: 2
 ---

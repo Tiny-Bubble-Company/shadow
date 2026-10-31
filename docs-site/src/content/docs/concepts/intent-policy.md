@@ -3,7 +3,9 @@ title: Intent-aware policy
 description: "Shadow classifies each AI request as act, report, code or converse and picks a fake, token, real value or redaction for every sensitive value."
 ---
 
-One treatment does not fit every request. A chat about a customer works best with realistic fakes. A report over a thousand customer rows works best with opaque IDs. An agent that sends an email has to reach the real address. Shadow's policy looks at what a request is *for*, then picks a treatment for each detected value.
+One treatment does not fit every request. A chat about a customer works best with realistic fakes. A report over a thousand customer rows works best with opaque IDs. An email has to reach the real person. Shadow's policy looks at what a request is *for*, then picks a treatment for each detected value, so masking never gets in the way of the goal.
+
+The rule behind every decision: **a value is masked unless masking it would change what happens in the real world.** Text the model writes comes back through Shadow, which restores the real values before you see it. Tool calls your own code runs also come back through Shadow first. Only an action the provider carries out itself (a hosted MCP server or other server-side tool) never passes back through Shadow, so for that action alone the values it needs are sent as they are, and every such value is logged.
 
 ## Treatments
 
@@ -22,10 +24,10 @@ With `[policy] intent = true` (the default), every request is classified into on
 
 | Intent | Signals | Example |
 |---|---|---|
-| `act` | The model is asked to *do* something through a tool: send, email, message, call, invite, book, pay, post | "Email jane@acme.com about the renewal" |
+| `act` | The model is asked to *do* something: send, email, message, call, invite, book, pay, post. The verb can open the sentence or follow "to", "and" or "then" ("I need you to email…", "write it and send it") | "Email jane@acme.com about the renewal" |
 | `report` | Report, summarise, analyse, export or aggregate over data; or many PII values or tabular data in the request | "Build a churn report from this customer list" |
 | `code` | Source code, diffs, stack traces, configuration | "Why does this config fail to connect?" |
-| `converse` | Everything else | "Help me reply politely to Jane's complaint" |
+| `converse` | Everything else, including drafting text such as an email you will send yourself | "Draft a renewal reminder to Jane Doe" |
 
 In Rust, `session.classification()` returns the intent, whether any actions run remotely (`remote_actions`), and the reasons for the decision. The proxy logs the intent and a per-treatment summary for each request.
 
@@ -35,7 +37,7 @@ In Rust, `session.classification()` returns the intent, whether any actions run 
 |---|---|---|---|---|
 | Person, email, phone, address | surrogate | surrogate | **token** | surrogate |
 | Target of the action, local tool | | | | surrogate, restored in the tool call |
-| Target of the action, provider-hosted tool | | | | **keep** (configurable) |
+| What a provider-hosted action needs: recipient, people, companies, addresses, usernames and IBANs in the instruction (and, for a follow-up like "now send her the invite", emails, phones and people anywhere in the request) | | | | **keep** (configurable) |
 | Organisation, terms, hostnames, IDs | surrogate | surrogate | surrogate | surrogate |
 | Secrets | surrogate | surrogate | surrogate | surrogate |
 | Anything listed under `[policy.always]` | that treatment | that treatment | that treatment | that treatment |
@@ -60,7 +62,13 @@ The action works, and the provider never saw the address. This also works when t
 
 Same instruction, but the tool is a hosted MCP server or another server-side tool that the **provider** executes. Shadow cannot restore values inside the provider's cloud: if it sent a fake, the email would go to `hui.zhao@zhilan.cn`.
 
-So by default the target is **kept**: the provider sees `jane@acme.com` for that one value, every other value in the request is still masked, and the keep is logged. If you would rather the action fail than reveal the target, set `remote_tool_targets = "surrogate"`.
+So by default what the action needs is **kept**: the recipient, and the contact details, people, companies, addresses, usernames and IBANs named in the instruction, because they end up in the email Jane receives. For a follow-up that names no email address or phone number ("now send her the invite"), the email, phone and person values anywhere in the request (earlier messages, pasted documents, tool results) are kept too, because that is where the recipient is. Secrets, card numbers, national IDs, hostnames and IPs are still masked, other values in earlier messages and files stay masked, and every keep is logged. If you would rather the action fail than reveal those values, set `remote_tool_targets = "surrogate"`.
+
+## Example: drafting text you will send yourself
+
+> "Draft a renewal reminder to Jane Doe (jane@acme.com) at Acme GmbH"
+
+No tool is involved: the model only writes text. The provider sees *"Draft a renewal reminder to Hui Zhao (hui.zhao@zhilan.cn) at Zhilan GmbH"* and writes the draft with those names. On the way back Shadow restores them, so the draft you read and send says Jane Doe, jane@acme.com and Acme GmbH. If the model greets her as "Dear Hui", that is restored to "Dear Jane", because fake first and last names are restored on their own. Other fragments, such as the domain of the fake email, stay fake.
 
 ## Example: a report
 

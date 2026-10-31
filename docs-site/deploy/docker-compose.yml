@@ -1,0 +1,26 @@
+# Shadow website on a single VM. Usage (from docs-site/deploy):
+#   cp .env.example .env   # set DOMAIN
+#   docker compose up -d --build
+services:
+  site:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      args:
+        SITE: https://${DOMAIN:?set DOMAIN in .env}
+    image: shadow-site:latest
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    volumes:
+      # Certificates and ACME account; keep them across rebuilds.
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

@@ -10,7 +10,7 @@ keywords:
   - reversible pseudonymization llm
 faq:
   - q: "What problem does Shadow solve?"
-    a: "It stops sensitive values in prompts, files and tool results from reaching AI providers, without breaking the tools. Names, emails, IDs, card numbers, hostnames and secrets are replaced with realistic fakes before the request leaves and restored in the answer."
+    a: "It keeps the sensitive values it detects in prompts, files and tool results from reaching AI providers, without breaking the tools. Names, emails, IDs, card numbers, hostnames and secrets are replaced with realistic fakes before the request leaves and restored in the answer, so drafts and tool calls still reach the real people. The only real values sent are those an action run by the provider itself needs, and each one is logged."
   - q: "How is this different from redacting PII with placeholders?"
     a: "Placeholders such as <PERSON> destroy meaning, so answers get worse and actions cannot reach the real target. Shadow uses format-preserving fakes from one consistent persona and restores them in the response, including streams and tool calls. It uses typed tokens only where they work better, such as bulk reports."
   - q: "Do I need to change my code?"
@@ -68,7 +68,7 @@ For sector-specific guidance, see [Shadow by industry](/shadow/industries/).
 
 | Need | Shadow feature | Reference |
 |---|---|---|
-| Cover every tool on a laptop | HTTPS proxy with a local CA; only AI hosts are decrypted | [Proxy mode](/shadow/integrate/proxy-mode/) |
+| Cover AI API tools on a laptop | HTTPS proxy with a local CA; only AI hosts are decrypted | [Proxy mode](/shadow/integrate/proxy-mode/) |
 | Cover an SDK or service | `http://127.0.0.1:8877/gw/<provider>/` base URL | [Gateway mode](/shadow/integrate/gateway-mode/) |
 | Run next to an app in containers | Sidecar on `localhost` | [Docker and Kubernetes](/shadow/integrate/docker-kubernetes/) |
 | Protect your own vocabulary | `organization`, `terms`, `internal_domains`, `shadow terms add` | [Detection](/shadow/concepts/detection/) |
@@ -79,7 +79,7 @@ For sector-specific guidance, see [Shadow by industry](/shadow/industries/).
 
 ```sh
 shadow init --org "Acme GmbH"
-echo "Mail jane.doe@acme.example re Acme GmbH, card 4111 1111 1111 1111" | shadow mask
+echo "Summarise: jane.doe@acme.example at Acme GmbH disputes a charge on card 4111 1111 1111 1111" | shadow mask
 ```
 
 The output contains a fake email, the persona's company name and a different card number that still passes the Luhn check. Pipe it into `shadow unmask` to get the original back. Nothing is sent anywhere. The full walkthrough is in the [quick start](/shadow/getting-started/quick-start/), and the [benchmarks](/shadow/benchmarks/) show how detection performs on public datasets.

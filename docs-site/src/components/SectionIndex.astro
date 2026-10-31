@@ -1,0 +1,61 @@
+---
+// Card grid of every page in a docs section, read from the content collection, so a
+// section landing page stays complete as pages are added.
+import { sectionGroups } from '../nav/site-nav';
+
+interface Props {
+	dir: string;
+}
+const { dir } = Astro.props;
+const group = (await sectionGroups())[dir];
+---
+
+<ul class="section-index not-content">
+	{
+		group?.links.map((l) => (
+			<li>
+				<a href={l.href}>
+					<span class="section-index__title">{l.label}</span>
+					{l.description && <span class="section-index__desc">{l.description}</span>}
+				</a>
+			</li>
+		))
+	}
+</ul>
+
+<style>
+	.section-index {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+		gap: 0.75rem;
+		margin: 1.5rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+	.section-index a {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		height: 100%;
+		padding: 1rem 1.1rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.75rem;
+		background: var(--sl-color-bg-nav);
+		color: var(--sl-color-white);
+		text-decoration: none;
+		transition: border-color 0.15s, transform 0.15s;
+	}
+	.section-index a:hover,
+	.section-index a:focus-visible {
+		border-color: var(--sl-color-accent);
+		transform: translateY(-1px);
+	}
+	.section-index__title {
+		font-weight: 600;
+	}
+	.section-index__desc {
+		color: var(--sl-color-gray-3);
+		font-size: var(--sl-text-sm);
+		line-height: 1.45;
+	}
+</style>

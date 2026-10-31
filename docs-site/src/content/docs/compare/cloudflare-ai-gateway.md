@@ -62,7 +62,7 @@ A blocked request protects the data but leaves the user without an answer, and p
 
 ### Where is sensitive data processed?
 
-With a hosted gateway, prompts travel to the gateway in clear text before they are inspected. Shadow masks on the endpoint or in the same pod, so the provider and any gateway downstream only see fakes. No account, no telemetry.
+With a hosted gateway, prompts travel to the gateway in clear text before they are inspected. Shadow masks on the endpoint or in the same pod, so the provider and any gateway downstream see fakes for every value Shadow detects. The exception is a provider-hosted action (a hosted MCP server or server-side tool), where the contact details it needs are kept real by default and logged; see [intent policy](/shadow/concepts/intent-policy/). No account, no telemetry.
 
 ### Streaming without buffering
 
@@ -87,7 +87,7 @@ Shadow restores [tool-call arguments](/shadow/concepts/tool-calls/) locally, use
 
 ## Can you use Cloudflare AI Gateway with Shadow?
 
-Yes, and the combination is natural. Add a [custom route](/shadow/integrate/gateway-mode/#custom-routes) in Shadow pointing at your Cloudflare AI Gateway URL, or run your client behind Shadow's [proxy](/shadow/integrate/proxy-mode/) with the gateway host added to `extra_hosts`. Shadow masks first; Cloudflare caches, logs and analyses masked traffic, and its DLP profiles act as a backstop for anything Shadow's detectors miss. Logs stored at the gateway then contain fakes, not real values.
+Yes, and the combination is natural. Add a [custom route](/shadow/integrate/gateway-mode/#custom-routes) in Shadow pointing at your Cloudflare AI Gateway URL, or run your client behind Shadow's [proxy](/shadow/integrate/proxy-mode/) with the gateway host added to `extra_hosts`. Shadow masks first; Cloudflare caches, logs and analyses masked traffic, and its DLP profiles act as a backstop for anything Shadow's detectors miss. Logs stored at the gateway then contain fakes rather than the values Shadow detected.
 
 ## How do they compare on accuracy?
 

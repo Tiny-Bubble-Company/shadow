@@ -53,7 +53,7 @@ Detection is only half the job when the text goes to an LLM. Ask:
 | [LangChain PIIMiddleware](/shadow/compare/langchain-pii-middleware/) | Agent middleware | MIT | Redact, mask, hash, block | No | n/a | Tool results | LangChain agents |
 | [DataFog](/shadow/compare/datafog/) | Library + hooks | MIT | Redact, replace, hash | Not documented | Not documented | No | Fast regex-first scrubbing |
 | [Rehydra](/shadow/compare/rehydra/) | SDK + local proxy | MIT | Reversible placeholders | Yes | Yes | Yes | TypeScript and browser apps |
-| **Shadow** | Proxy, gateway, Rust library | Apache-2.0 | Reversible realistic fakes; tokens for reports | Yes | Yes | Yes, intent-aware | Endpoint and service traffic to any provider |
+| **Shadow** | Proxy, gateway, Rust library | Apache-2.0 | Reversible realistic fakes; tokens for reports | Yes | Yes | Yes, intent-aware | Endpoint and service traffic to supported AI providers |
 
 ## 1. Presidio: the reference detector
 
@@ -63,7 +63,7 @@ Presidio has the broadest recognizer set, a pluggable NLP engine (spaCy, Stanza,
 
 ## 2. OpenAI Privacy Filter: a strong free model
 
-Released in April 2026 under Apache-2.0, it is a token-classification model with eight labels (person, address, email, phone, URL, date, account number, secret). OpenAI reports an F1 of 96% on pii-masking-300k (self-reported). It is primarily English and is a detector only. **Shadow's optional NER sidecar can run it**, alone or in an ensemble with GLiNER. [Shadow vs OpenAI Privacy Filter](/shadow/compare/openai-privacy-filter/).
+Released in April 2026 under Apache-2.0, it is a token-classification model with eight labels (person, address, email, phone, URL, date, account number, secret). On Shadow's held-out benchmark it leaked 11.01% of sensitive values on its own, against 3.08% for Shadow's built-in rules. It is primarily English and is a detector only. **Shadow's optional NER sidecar can run it**, alone or in an ensemble with GLiNER. [Shadow vs OpenAI Privacy Filter](/shadow/compare/openai-privacy-filter/).
 
 ## 3. GLiNER PII models: zero-shot and multilingual
 
@@ -108,7 +108,7 @@ Shadow replaces values with realistic, format-preserving fakes from a persistent
 
 ## How accurate are they?
 
-Published numbers for the same tool vary by up to five times between datasets because of label mapping and annotation style, so headline F1 scores rarely transfer. The Shadow [benchmark](/shadow/benchmarks/) runs these open-source tools side by side on licence-clean datasets and measures leak rate, over-masking, round-trip exactness and latency, with the mapping and code published.
+Published numbers for the same tool vary by up to five times between datasets because of label mapping and annotation style, so headline F1 scores rarely transfer. The Shadow [benchmark](/shadow/benchmarks/) runs Presidio, LLM Guard, GLiNER, OpenAI Privacy Filter and scrubadub side by side with Shadow on a licence-clean held-out set, and measures leak rate, over-masking, round-trip exactness and latency, with the mapping and code published. Leak rates there range from 0.08% (Shadow with the NER sidecar) and 3.08% (Shadow's built-in rules) to 20.74% for Presidio and 29.26% for LLM Guard.
 
 ## Sources
 

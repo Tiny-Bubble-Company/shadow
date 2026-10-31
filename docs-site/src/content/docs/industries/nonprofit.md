@@ -123,7 +123,7 @@ The letter comes back addressed to Margaret Ellis about the Warm Homes Appeal.
 
 ### Segmenting a donor export
 
-A CRM export of 3,000 supporters goes in as a CSV with the question "Which segments lapsed this year?". Shadow classifies it as a report, so names, emails, phones and addresses become `[PERSON_0001]`, `[EMAIL_0001]` and so on. Gift amounts and dates are left alone so the analysis works. The answer is restored on your screen.
+A CRM export of 3,000 supporters is pasted in as CSV with the question "Which segments lapsed this year?". Shadow classifies it as a report, so names, emails, phones and addresses become `[PERSON_0001]`, `[EMAIL_0001]` and so on. Gift amounts and dates are left alone so the analysis works. The answer is restored on your screen.
 
 ### Grant report from case summaries
 

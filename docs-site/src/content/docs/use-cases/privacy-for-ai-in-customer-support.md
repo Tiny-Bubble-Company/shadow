@@ -132,7 +132,7 @@ Customer Yong Sun (xiu.wang@lingxi.cn) says ticket #88213 was charged twice on
 card ending 1111. Call her on +86 40 2223 8912. Order shipped to 192 Keyuan Road, London.
 ```
 
-The model drafts an apology and calls `issue_refund(customer_email="xiu.wang@lingxi.cn", ...)`. Shadow restores `jane.doe@acme.example` in the tool arguments before your refund code runs, and the agent reads the reply with Jane's real name.
+The model drafts an apology and calls `issue_refund(customer_email="xiu.wang@lingxi.cn", ...)`. Shadow restores `jane.doe@acme.example` in the tool arguments before your refund code runs, so the refund and the confirmation reach the real customer. In the draft reply, every full fake ("Yong Sun", the fake phone and address) comes back as Jane's real details. A salutation with the first name alone ("Dear Yong") is restored too; other fragments, such as part of the fake address, would stay fake.
 
 Note that the last four card digits and the ticket number are sent as is: they are not full identifiers, and the built-in detectors do not treat them as such.
 

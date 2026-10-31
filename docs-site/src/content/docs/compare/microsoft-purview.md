@@ -24,7 +24,7 @@ faq:
   - q: "How much does Purview DSPM for AI cost?"
     a: "It is part of Microsoft 365 E5-class or Purview add-on licensing; exact entitlements vary by plan. Shadow is free under Apache-2.0."
   - q: "Does Shadow make us compliant with GDPR?"
-    a: "No tool does that alone. Shadow helps meet data-minimisation requirements by keeping personal data out of requests to AI providers. Purview helps with discovery, classification and audit. Compliance depends on your whole programme."
+    a: "No tool does that alone. Shadow helps meet data-minimisation requirements by replacing detected personal data with fakes before requests reach AI providers. Purview helps with discovery, classification and audit. Compliance depends on your whole programme."
 ---
 
 **Microsoft Purview Data Security Posture Management (DSPM) for AI gives Microsoft 365 organisations visibility into AI use and applies DLP to Copilot and to third-party AI sites through Endpoint DLP and a browser extension, mainly by warning, blocking and auditing. Shadow is an open-source privacy layer that translates sensitive values in AI API requests into realistic, reversible fakes and restores them in the response.** If your AI use centres on Copilot and Microsoft-managed devices, Purview is the natural control. If developers, agents and services call model APIs directly, Shadow keeps that content private while answers stay useful.
@@ -68,7 +68,7 @@ Microsoft's documentation says Purview cannot scan files uploaded into prompts. 
 
 ### API, agent and developer traffic
 
-Purview's AI controls focus on Copilot and browser use. Shadow intercepts model API calls from any tool via [proxy mode](/shadow/integrate/proxy-mode/) or [gateway mode](/shadow/integrate/gateway-mode/), restores [streams](/shadow/concepts/how-it-works/#streaming-hold-back) and [tool-call arguments](/shadow/concepts/tool-calls/), and applies an [intent-aware policy](/shadow/concepts/intent-policy/).
+Purview's AI controls focus on Copilot and browser use, which Shadow does not cover. Shadow intercepts model API calls to [supported providers](/shadow/reference/providers/) from any tool via [proxy mode](/shadow/integrate/proxy-mode/) or [gateway mode](/shadow/integrate/gateway-mode/), restores [streams](/shadow/concepts/how-it-works/#streaming-hold-back) and [tool-call arguments](/shadow/concepts/tool-calls/), and applies an [intent-aware policy](/shadow/concepts/intent-policy/).
 
 ### Not tied to one vendor's stack
 

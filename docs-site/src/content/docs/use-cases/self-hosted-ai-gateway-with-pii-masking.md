@@ -133,7 +133,7 @@ Shadow is deliberately narrow. Compared with general-purpose gateways:
 | Tool-call arguments | Usually not restored | Restored locally before your tools run |
 | Where it runs | Central service | Next to each app: loopback, sidecar or in-process |
 
-They combine well. Put Shadow next to the app and route it to your existing gateway, so the central gateway keeps doing keys, quotas and observability but only ever sees masked prompts:
+They combine well. Put Shadow next to the app and route it to your existing gateway, so the central gateway keeps doing keys, quotas and observability but sees prompts with detected values already masked:
 
 ```toml
 [proxy.routes]

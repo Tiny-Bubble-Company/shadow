@@ -114,7 +114,7 @@ The summary is restored with Tom Becker, Priya Patel and the real account. The l
 
 ### Loss-run analysis
 
-An underwriter attaches an XLSX of 1,200 claims and asks for frequency and severity by peril. Shadow masks the workbook's shared strings in place: claimant names become typed tokens, amounts and formulas are untouched. The model's tables come back with real names wherever it quotes them.
+An underwriter attaches an XLSX of 1,200 claims and asks for a breakdown of the claim records by peril, with frequency and severity. The request reads as a report, so Shadow masks the workbook's shared strings in place: claimant names become typed tokens, amounts and formulas are untouched. The model's tables come back with real names wherever it quotes them.
 
 ### Letter drafting with an agent
 

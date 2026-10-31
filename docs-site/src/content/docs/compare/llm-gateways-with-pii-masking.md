@@ -73,7 +73,7 @@ Shadow is not a router: it has no budgets, caching, fallbacks or multi-tenant ke
 
 | Pattern | How | Benefit |
 |---|---|---|
-| Shadow on clients, gateway central | Clients use Shadow's [proxy](/shadow/integrate/proxy-mode/) or [gateway mode](/shadow/integrate/gateway-mode/) with a custom route to your gateway | Prompts are masked before they leave the endpoint; gateway logs hold only fakes |
+| Shadow on clients, gateway central | Clients use Shadow's [proxy](/shadow/integrate/proxy-mode/) or [gateway mode](/shadow/integrate/gateway-mode/) with a custom route to your gateway | Detected values are masked before they leave the endpoint, so gateway logs hold fakes instead |
 | Shadow as a sidecar next to the gateway | Gateway's upstream points at Shadow's `/gw/<provider>/` routes in the same pod | One masking point for all services; see [Docker and Kubernetes](/shadow/integrate/docker-kubernetes/) |
 | Shadow inside your service | Embed `shadow-core` in a [Rust service](/shadow/integrate/rust/) | No extra hop |
 
@@ -85,7 +85,7 @@ In the first pattern, the gateway's own PII guardrail becomes a second line of d
 - **You need answers that mention the real values, including streams and agents:** add Shadow, or use Kong's `ai-sanitizer` if you are on Kong Enterprise and do not need streaming guarantees.
 - **You only need to block known-bad data:** Cloudflare DLP or Bedrock Guardrails may be enough.
 
-Accuracy and round-trip behaviour under adversarial stream chunking are measured on the [benchmarks page](/shadow/benchmarks/).
+Detection accuracy and round-trip exactness are measured on the [benchmarks page](/shadow/benchmarks/): on the held-out set, Shadow's built-in rules leaked 3.08% of sensitive values and round-tripped 100% of documents exactly. The gateways themselves are not benchmarked there.
 
 ## Sources
 

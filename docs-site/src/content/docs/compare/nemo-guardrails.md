@@ -62,7 +62,7 @@ NeMo replaces `jane@acme.com` with `[EMAIL]`. The model can no longer tell two a
 
 ### Streaming and tool calls
 
-Shadow restores fakes in [server-sent event streams](/shadow/concepts/how-it-works/#streaming-hold-back) even when they are split across events, and restores [tool-call arguments](/shadow/concepts/tool-calls/) before your code runs the tool, so an agent can send an email to the real address while the provider only saw a fake.
+Shadow restores fakes in [server-sent event streams](/shadow/concepts/how-it-works/#streaming-hold-back) even when they are split across events, and restores [tool-call arguments](/shadow/concepts/tool-calls/) before your code runs the tool, so an agent's own `send_email` tool reaches the real address while the provider only saw a fake.
 
 ### Intent-aware policy
 
@@ -70,7 +70,7 @@ Shadow decides per request whether values become fakes, typed tokens (`[PERSON_0
 
 ### Covers tools you don't control
 
-NeMo Guardrails wraps an application you build. Shadow sits at the network layer as an [HTTPS proxy](/shadow/integrate/proxy-mode/) or [gateway](/shadow/integrate/gateway-mode/), so IDE agents, CLIs and third-party apps are covered too. It also masks [uploaded Office files](/shadow/concepts/file-masking/) in place.
+NeMo Guardrails wraps an application you build. Shadow sits at the network layer as an [HTTPS proxy](/shadow/integrate/proxy-mode/) or [gateway](/shadow/integrate/gateway-mode/), so IDE agents, CLIs and third-party apps that call a [supported provider API](/shadow/reference/providers/) are covered too. It also masks [uploaded Office files](/shadow/concepts/file-masking/) in place.
 
 ## When should you choose NeMo Guardrails?
 

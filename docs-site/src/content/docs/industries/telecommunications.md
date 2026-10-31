@@ -138,7 +138,7 @@ The provider sees different private IPs, a fake hostname under the persona's dom
 
 ### Churn analysis over an export
 
-An analyst attaches a CSV of 1,200 subscribers and asks for churn drivers by plan. Shadow classifies this as `report`, so subscriber names, numbers and emails become `[PERSON_0001]`, `[PHONE_0001]` and so on. Plan names and usage figures are left alone so the analysis still works. The answer is restored locally.
+An analyst pastes a CSV of 1,200 subscribers and asks for churn drivers by plan. Shadow classifies this as `report`, so subscriber names, numbers and emails become `[PERSON_0001]`, `[PHONE_0001]` and so on. Plan names and usage figures are left alone so the analysis still works. The answer is restored locally.
 
 ## Deployment patterns
 

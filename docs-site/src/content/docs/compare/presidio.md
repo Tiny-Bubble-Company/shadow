@@ -23,7 +23,7 @@ faq:
   - q: Is Presidio still maintained by Microsoft?
     a: "As of October 2026 the repository redirects from microsoft/presidio to data-privacy-stack/presidio, and documentation lives at presidio.dataprivacystack.org. It is still MIT-licensed and actively released. Container images moved to ghcr.io/data-privacy-stack."
   - q: Which is more accurate, Presidio or Shadow?
-    a: "Accuracy depends on the dataset and how entity labels are mapped, and published Presidio numbers vary widely. Shadow can run Presidio as an extra detector. See the Shadow benchmarks page for a reproducible comparison."
+    a: "Accuracy depends on the dataset and how entity labels are mapped, and published Presidio numbers vary widely. Shadow can run Presidio as an extra detector. On Shadow's held-out benchmark, Presidio alone leaked 20.74% of sensitive values, Shadow's built-in rules 3.08%, and Shadow with Presidio as an extra detector 1.35%. See the Shadow benchmarks page."
   - q: Is Presidio free?
     a: Yes. Presidio is open source under the MIT licence. Shadow is open source under Apache-2.0. Both are free to self-host.
 ---
@@ -64,15 +64,15 @@ Presidio's default `replace` operator turns `Jane Doe` into `<PERSON>`. That is 
 
 ### Can Presidio reverse anonymisation in a response?
 
-Presidio's only reversible operator is `encrypt`, which produces AES ciphertext. The model sees random-looking strings, and you must find them in the response and decrypt them yourself. Shadow keeps a real-to-fake mapping in an [encrypted local vault](/shadow/concepts/vault/) and restores every fake in JSON responses, [server-sent event streams](/shadow/concepts/how-it-works/#streaming-hold-back) (even when a fake is split across events), and [tool-call arguments](/shadow/concepts/tool-calls/).
+Presidio's only reversible operator is `encrypt`, which produces AES ciphertext. The model sees random-looking strings, and you must find them in the response and decrypt them yourself. Shadow keeps a real-to-fake mapping in an [encrypted local vault](/shadow/concepts/vault/) and restores its fakes in JSON responses, [server-sent event streams](/shadow/concepts/how-it-works/#streaming-hold-back) (even when a fake is split across events), and [tool-call arguments](/shadow/concepts/tool-calls/).
 
 ### Intent-aware handling
 
-Shadow classifies each request as act, report, code or converse. A report over hundreds of customer rows gets typed tokens such as `[PERSON_0007]`; an agent action that runs in the provider's cloud can keep its target so the action works. See [intent-aware policy](/shadow/concepts/intent-policy/). Presidio leaves this logic to you.
+Shadow classifies each request as act, report, code or converse. A report over hundreds of customer rows gets typed tokens such as `[PERSON_0007]`; an agent action that runs in the provider's cloud keeps real the contact details it needs, so the action works, and each keep is logged. See [intent-aware policy](/shadow/concepts/intent-policy/). Presidio leaves this logic to you.
 
 ### A proxy, not just a library
 
-Presidio is something you call from code. Shadow intercepts traffic: set `HTTPS_PROXY` or a base URL and every tool on the machine, including ones you didn't write, is covered. See [proxy mode](/shadow/integrate/proxy-mode/) and [gateway mode](/shadow/integrate/gateway-mode/).
+Presidio is something you call from code. Shadow intercepts traffic: set `HTTPS_PROXY` or a base URL and every tool on the machine that calls a [supported AI API](/shadow/reference/providers/), including ones you didn't write, is covered. See [proxy mode](/shadow/integrate/proxy-mode/) and [gateway mode](/shadow/integrate/gateway-mode/).
 
 ### Office files in uploads
 
@@ -117,7 +117,7 @@ See [Detection: Presidio](/shadow/concepts/detection/#presidio) for setup.
 
 ## How do they compare on accuracy?
 
-Published Presidio results vary a lot with the dataset and label mapping, so a single number is misleading. Shadow's [benchmark](/shadow/benchmarks/) measures leak rate, over-masking, round-trip exactness and latency, with Presidio as a baseline and as a Shadow detector, and publishes its code and mappings.
+Published Presidio results vary a lot with the dataset and label mapping, so a single number is misleading. Shadow's [benchmark](/shadow/benchmarks/) measures leak rate, over-masking, round-trip exactness and latency, with Presidio as a baseline and as a Shadow detector, and publishes its code and mappings. On the held-out set, Presidio alone leaked 20.74% of sensitive values, Shadow's built-in rules 3.08%, and Shadow with Presidio as an extra detector 1.35%.
 
 ## Sources
 

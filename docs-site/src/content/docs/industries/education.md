@@ -104,11 +104,11 @@ Write a supportive email to Mei Tanaka (mei.tanaka@hoshino.co.jp, +81 3 5550 482
 her son Ren Tanaka's missed assignments at Hoshino Gakuen.
 ```
 
-The draft comes back addressed to Ana Silva about Leo, with the right school name.
+The draft comes back addressed to Ana Silva about Leo Silva, with the right school name. If the model shortens a fake to a first name ("Dear Mei,"), Shadow restores that too, because fake first and last names are restored on their own.
 
 ### Grade analysis
 
-A head of department attaches an XLSX gradebook and asks which students are at risk. Student names become typed tokens inside the workbook; grades and formulas are untouched. The model lists `[PERSON_0007]` and `[PERSON_0019]`, which the teacher sees as the real names.
+A head of department attaches an XLSX gradebook and asks "Analyse these records: which students are at risk?". The wording reads as a report over records, so student names become typed tokens inside the workbook; grades and formulas are untouched. The model lists `[PERSON_0007]` and `[PERSON_0019]`, which the teacher sees as the real names.
 
 ### Edtech feedback feature
 

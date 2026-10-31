@@ -45,7 +45,7 @@ That single prompt sends a name, an email, a card number, a phone number, an add
 | Block AI sites | Requests fail | Use moves to phones and personal accounts; no visibility |
 | Blocking DLP on prompts | Requests with PII are refused | The tool breaks for exactly the tasks people need it for |
 | Placeholder redaction (`<PERSON>`) | Request goes through with placeholders | Model can't tell people apart or write to the right address |
-| **Translate with Shadow** | Values replaced with consistent, realistic fakes and restored in the answer | The tool keeps working; the provider never sees the real values |
+| **Translate with Shadow** | Values replaced with consistent, realistic fakes and restored in the answer | The tool keeps working; the provider sees fakes for every detected value |
 
 Shadow is the last row. It does not replace a policy or your blocking controls for unsanctioned sites; it makes the sanctioned path good enough that people use it. See [LLM data loss prevention](/shadow/use-cases/llm-data-loss-prevention-dlp/) for how this fits with an existing DLP stack.
 
@@ -88,7 +88,7 @@ terms = ["org:Globex", "org:Initech", "person:Tom Reyes", "Project Falcon"]
 internal_domains = ["acme.example", "acme.internal"]
 
 [policy.always]
-secret = "redact"        # API keys and passwords never leave, even as fakes
+secret = "redact"        # detected keys and passwords never leave, even as fakes
 
 [files]
 images = "block"         # screenshots are not OCR'd, so stop them leaving unmasked
@@ -121,7 +121,7 @@ account 4837 2191 9471 3480, phone +86 28 6512 0417, order #A-20931 shipped to
 88 Tianfu Road. She says our agent Lei Li promised a refund.
 ```
 
-The card number still passes Luhn and the email is still an email, so the model writes a normal reply. The answer arrives with Jane Doe, her address and Tom Reyes restored. Order `#A-20931` is not a detected format; add such references as terms if they matter.
+The card number still passes Luhn and the email is still an email, so the model writes a normal reply. Wherever it uses the full fakes (Hui Zhao, 88 Tianfu Road, Lei Li), the answer arrives with Jane Doe, her address and Tom Reyes restored. A greeting with the first name alone ("Dear Hui") is restored too; other fragments, such as the last four digits of the fake card, stay fake. Order `#A-20931` is not a detected format; add such references as terms if they matter.
 
 ## Rolling out to a team
 

@@ -1,0 +1,21 @@
+---
+// A home page section: eyebrow, heading, lead paragraph and content.
+interface Props {
+	id: string;
+	eyebrow?: string;
+	title: string;
+	lead?: string;
+	align?: 'center' | 'start';
+	class?: string;
+}
+const { id, eyebrow, title, lead, align = 'center', class: className } = Astro.props;
+---
+
+<section class:list={['hp-section', 'not-content', `hp-section--${align}`, className]} aria-labelledby={id}>
+	<header class="hp-section__head">
+		{eyebrow && <p class="hp-eyebrow">{eyebrow}</p>}
+		<h2 id={id}>{title}</h2>
+		{lead && <p class="hp-lead" set:html={lead} />}
+	</header>
+	<slot />
+</section>

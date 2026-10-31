@@ -24,7 +24,7 @@ faq:
   - q: Does Shadow replace a DLP platform?
     a: "Not entirely. Shadow protects the content of AI API traffic on the machines where it runs. It does not offer a central admin console, user coaching, SIEM export or coverage of devices it is not installed on. Many teams run it alongside a DLP or SASE product."
   - q: Does Shadow make us GDPR or HIPAA compliant?
-    a: "No tool makes you compliant by itself. Shadow helps meet data-minimisation and confidentiality requirements by keeping personal data out of requests to AI providers, but compliance depends on your whole programme."
+    a: "No tool makes you compliant by itself. Shadow helps meet data-minimisation and confidentiality requirements by replacing detected personal data with fakes before requests reach AI providers, but compliance depends on your whole programme."
   - q: How accurate is Shadow compared with these tools?
     a: "Detection accuracy depends heavily on dataset and label mapping. Shadow publishes its methodology and results on the benchmarks page rather than quoting single numbers here."
 ---
@@ -100,7 +100,7 @@ Start from three questions: **who sends the data**, **what must happen to it**, 
 3. **Building your own pipeline and only need detection?** Use a detector: [Presidio](/shadow/compare/presidio/), [GLiNER](/shadow/compare/gliner-pii/), [OpenAI Privacy Filter](/shadow/compare/openai-privacy-filter/) or a cloud PII API. Shadow can use Presidio and both open-weight models as additional detectors.
 4. **Already standardised on an AI gateway?** Check its PII features first: [LiteLLM](/shadow/compare/litellm/), [Kong](/shadow/compare/kong-ai-gateway/), [Portkey](/shadow/compare/portkey/), [Cloudflare](/shadow/compare/cloudflare-ai-gateway/). Shadow can sit in front of a gateway as a sidecar, so masking happens before traffic leaves the host.
 5. **Need de-identified datasets for training or analytics, not live traffic?** Use a batch tool such as [Tonic Textual](/shadow/compare/tonic-textual/) or [Google Sensitive Data Protection](/shadow/compare/google-sensitive-data-protection/).
-6. **Must the data never leave your network, and must the tool be auditable?** Prefer open-source, self-hosted tools: Shadow, Presidio, LLM Guard, LiteLLM, NeMo Guardrails, Rehydra.
+6. **Must the protection tool itself run inside your network, and be auditable?** Prefer open-source, self-hosted tools: Shadow, Presidio, LLM Guard, LiteLLM, NeMo Guardrails, Rehydra.
 
 :::tip[A common combination]
 Enterprise DLP for browser chat on managed devices, plus Shadow on developer machines, CI runners and services that call model APIs. The DLP product sees what employees type into web apps; Shadow keeps API, agent and file traffic useful while masked.
@@ -112,7 +112,9 @@ Being honest about the gaps helps you choose:
 
 - **No central fleet console.** There is no admin dashboard, SIEM export or user coaching. Configuration is a file per machine or container.
 - **No OCR.** Text inside images and scanned PDFs is not detected. See [file masking](/shadow/concepts/file-masking/#limitations).
-- **Detection is best effort.** Regex, checksums, dictionaries and optional NER models miss things. Multilingual recall is being measured; see the [benchmark](/shadow/benchmarks/).
+- **Only AI API traffic.** Proxy mode intercepts a [list of AI API hosts](/shadow/reference/providers/) (plus any you add). It does not see what people type into chatgpt.com, claude.ai or gemini.google.com in a browser, phone apps, Microsoft 365 Copilot or GitHub Copilot.
+- **Detection is best effort.** Regex, checksums, dictionaries and optional NER models miss things: the built-in rules leak 3.08% of sensitive values on the held-out [benchmark](/shadow/benchmarks/), 0.08% with the open-weight NER sidecar.
+- **Provider-hosted actions see real targets.** When the provider itself runs a tool (a hosted MCP server, web search), Shadow keeps real the contact details the action needs, by default, and logs each one. See [intent policy](/shadow/concepts/intent-policy/).
 - **It protects content, not identity.** Providers still see your IP address and the account behind your API key. See the [security model](/shadow/reference/security/).
 
 ## Category guides

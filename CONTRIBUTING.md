@@ -72,7 +72,7 @@ The site in `docs-site/` uses [Starlight](https://starlight.astro.build/). You n
 ```sh
 cd docs-site
 pnpm install
-pnpm dev        # http://localhost:4321/shadow/
+pnpm dev        # http://localhost:4321/
 pnpm build      # static output in docs-site/dist
 ```
 

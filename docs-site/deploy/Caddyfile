@@ -1,0 +1,54 @@
+# Shadow website: static files from /srv with automatic HTTPS (Let's Encrypt / ZeroSSL).
+# DOMAIN is the apex domain, e.g. shadow-privacy.com (set in docker-compose.yml / .env).
+
+{
+	# Uncomment and set to get certificate-expiry mail from the ACME CA.
+	# email you@example.com
+}
+
+(security_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "accelerometer=(), camera=(), geolocation=(), gyroscope=(), microphone=(), payment=(), usb=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		-Server
+	}
+	# Content-Security-Policy with hashes of the site's inline scripts, generated at build time.
+	import /etc/caddy/csp.caddy
+}
+
+www.{$DOMAIN} {
+	import security_headers
+	redir https://{$DOMAIN}{uri} permanent
+}
+
+{$DOMAIN} {
+	import security_headers
+	root * /srv
+	encode zstd gzip
+
+	# Fingerprinted build assets never change: cache for a year.
+	@hashed path /_astro/*
+	header @hashed Cache-Control "public, max-age=31536000, immutable"
+
+	# Pages and other files: always revalidate so new deploys show up at once.
+	@revalidate not path /_astro/*
+	header @revalidate Cache-Control "public, max-age=0, must-revalidate"
+
+	# Plain-text endpoints for LLMs and crawlers.
+	@text path /llms.txt /llms-full.txt /robots.txt
+	header @text Content-Type "text/plain; charset=utf-8"
+
+	file_server
+
+	handle_errors {
+		@notfound expression {err.status_code} == 404
+		handle @notfound {
+			rewrite * /404.html
+			file_server
+		}
+	}
+}

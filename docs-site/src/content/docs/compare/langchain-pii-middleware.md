@@ -61,7 +61,7 @@ With a one-way strategy, the model sees `[REDACTED_EMAIL]` or a hash, so a tool 
 
 ### Provider-hosted tools
 
-Some tools run in the provider's cloud, where nothing can restore a fake. Shadow's [intent policy](/shadow/concepts/intent-policy/) handles this explicitly: by default it keeps only the action's target in clear text and logs it, or you can choose to send a fake and accept the action failing.
+Some tools run in the provider's cloud, where nothing can restore a fake. Shadow's [intent policy](/shadow/concepts/intent-policy/) handles this explicitly: by default it keeps real only what the action needs (the contact details, people, companies and addresses named in the instruction) while secrets, cards and IDs stay masked, and logs each keep; or you can choose to send a fake and accept the action failing.
 
 ### Streaming restoration
 
@@ -69,7 +69,7 @@ Shadow restores fakes that arrive split across streamed events, including stream
 
 ### Framework- and language-independent
 
-PIIMiddleware protects LangChain agents. Shadow protects any client that talks to a model API: other frameworks, other languages, IDE assistants, CLIs and desktop apps. See [integration modes](/shadow/integrate/overview/).
+PIIMiddleware protects LangChain agents. Shadow protects any client that talks to a [supported model API](/shadow/reference/providers/) through it: other frameworks, other languages, IDE assistants, CLIs and desktop apps. See [integration modes](/shadow/integrate/overview/).
 
 ### Consistent fakes and files
 
@@ -106,7 +106,7 @@ Yes. A common split is Shadow for everything that leaves the machine, and PIIMid
 
 ## How do they compare on accuracy?
 
-PIIMiddleware's built-in detectors are regex-based and no accuracy figures are published. Shadow's [benchmark](/shadow/benchmarks/) measures leak rate, round-trip exactness for tool calls and streams, and latency, with code published.
+PIIMiddleware's built-in detectors are regex-based and no accuracy figures are published. Shadow's [benchmark](/shadow/benchmarks/) measures leak rate, over-masking, round-trip exactness and latency, with code published. On the held-out set, Shadow's built-in rules leaked 3.08% of sensitive values and restored 100% of documents exactly.
 
 ## Sources
 

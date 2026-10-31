@@ -70,7 +70,7 @@ Shadow's fakes are drawn from a persistent [persona](/shadow/concepts/personas/)
 
 ### Endpoint coverage
 
-A gateway only sees traffic routed to it. Shadow also runs on laptops as an [HTTPS proxy](/shadow/integrate/proxy-mode/), so IDE agents and desktop apps calling providers directly are covered. It masks [Office uploads](/shadow/concepts/file-masking/) and applies an [intent policy](/shadow/concepts/intent-policy/) per request.
+A gateway only sees traffic routed to it. Shadow also runs on laptops as an [HTTPS proxy](/shadow/integrate/proxy-mode/), so IDE agents and desktop apps calling a [supported provider API](/shadow/reference/providers/) directly are covered. It masks [Office uploads](/shadow/concepts/file-masking/) and applies an [intent policy](/shadow/concepts/intent-policy/) per request.
 
 ## When should you choose Kong AI Gateway?
 

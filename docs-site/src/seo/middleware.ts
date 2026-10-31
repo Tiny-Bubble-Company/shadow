@@ -18,6 +18,7 @@ import {
 import { fileDates } from './git-dates';
 import { inlineMarkdownToText } from './inline-md';
 import { idToSlug, sectionLabel } from './sections';
+import { mainNav } from '../nav/site-nav';
 
 type HeadEntry = HeadConfig[number];
 
@@ -204,6 +205,36 @@ export const onRequest = defineRouteMiddleware(async (context) => {
 			publisher: { '@id': orgId },
 			...(data.keywords?.length ? { keywords: data.keywords.join(', ') } : {}),
 			...(crumbs.length > 1 ? { breadcrumb: { '@id': `${canonicalHref}#breadcrumb` } } : {}),
+		});
+	}
+
+	if (isHome) {
+		// The header's main navigation, for answer engines and rich results.
+		const nav = await mainNav();
+		const items = [
+			{ name: 'Introduction', url: '/getting-started/introduction/' },
+			{ name: 'Quick start', url: '/getting-started/quick-start/' },
+			{ name: 'Installation', url: '/getting-started/installation/' },
+			{ name: 'How it works', url: '/concepts/how-it-works/' },
+			{ name: 'Integrations', url: '/integrate/overview/' },
+			{ name: 'Benchmarks', url: '/benchmarks/' },
+			{ name: nav.solutions.columns[0]?.label ?? 'Use cases', url: '/use-cases/' },
+			{ name: nav.industries.label, url: '/industries/' },
+			{ name: 'Company size', url: '/company-size/' },
+			{ name: 'Compare alternatives', url: '/compare/' },
+			{ name: 'Security model', url: '/reference/security/' },
+			{ name: 'FAQ', url: '/reference/faq/' },
+		];
+		graph.push({
+			'@type': 'ItemList',
+			'@id': `${HOME_URL}#navigation`,
+			name: 'Main navigation',
+			itemListElement: items.map((it, i) => ({
+				'@type': 'SiteNavigationElement',
+				position: i + 1,
+				name: it.name,
+				url: pageUrl(it.url.replace(/^\/|\/$/g, '')),
+			})),
 		});
 	}
 

@@ -70,7 +70,7 @@ With Shadow you don't call an unmask API. Fakes are restored in JSON responses, 
 
 ### Endpoint proxy
 
-Shadow intercepts AI traffic as an HTTPS proxy for every tool on a machine, decrypting only known AI hosts. See [proxy mode](/shadow/integrate/proxy-mode/). That covers desktop and CLI tools that can't be rewritten to call an API.
+Shadow intercepts AI traffic as an HTTPS proxy for every tool on a machine, decrypting only [known AI API hosts](/shadow/reference/providers/) and tunnelling everything else untouched. See [proxy mode](/shadow/integrate/proxy-mode/). That covers desktop and CLI tools that can't be rewritten to call an API.
 
 ### Office files
 

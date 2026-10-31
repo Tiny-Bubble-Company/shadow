@@ -61,7 +61,7 @@ None of these is always right. Blocking is correct for data that must never be p
 - **User coaching.** A pop-up that explains why a paste is risky changes behaviour over time.
 - **Existing investment.** If you already run Netskope, Zscaler, Palo Alto or Microsoft 365 E5, adding GenAI controls may cost little extra.
 
-Shadow does none of these. It has no console and no browser extension.
+Shadow does none of these. It has no console and no browser extension, and it does not see what people type into AI web apps such as chatgpt.com or claude.ai.
 
 ## Where blocking and redaction fall short
 
@@ -79,7 +79,7 @@ Shadow does none of these. It has no console and no browser extension.
 
 ## Is Shadow a free alternative to enterprise AI DLP?
 
-For API, agent, developer and file traffic on machines you control, Shadow is a free, open-source way to keep sensitive values away from AI providers while keeping answers useful. It is not a replacement for fleet-wide browser DLP, central reporting or user coaching. See the [overview](/shadow/compare/) for the full landscape.
+For API, agent, developer and file traffic on machines you control, Shadow is a free, open-source way to replace detected sensitive values before they reach AI providers while keeping answers useful. It is not a replacement for fleet-wide browser DLP, central reporting or user coaching. See the [overview](/shadow/compare/) for the full landscape.
 
 ## Sources
 

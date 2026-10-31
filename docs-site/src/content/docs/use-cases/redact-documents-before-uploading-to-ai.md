@@ -131,7 +131,7 @@ xiu.wang@lingxi.cn, 53 Binjiang Avenue, 10115 Berlin. Payments to DE46 0256 5725
 
 The street address takes the persona's style while the postcode and city stay, and the IBAN is a different German IBAN that still passes mod-97. Without the `org:Globex Ltd` term, Globex would have been sent as is: add counterparties before you rely on it.
 
-The model's markup of risky clauses comes back about Acme, Globex and Jane Doe.
+The model's markup of risky clauses comes back about Acme GmbH, Globex Ltd and Jane Doe, so the lawyer works on the real contract. Shadow restores whole fakes, and a fake person's first or last name on its own; if the model shortens a company ("Talari" for Talari Technology Co., Ltd.), that short form stays fake, so ask it to quote party names in full.
 
 ## Limitations
 

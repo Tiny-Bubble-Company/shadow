@@ -60,7 +60,7 @@ Zscaler is a fleet-wide control point for AI use: visibility, block or allow, br
 
 ### Does Zscaler keep AI tools working when data is sensitive?
 
-Zscaler's documented actions for AI apps are allow, block, isolate and log. Blocking protects data but stops the work, and people find workarounds. Shadow lets the request through with every sensitive value translated: `jane@acme.com` becomes `hui.zhao@zhilan.cn`, a card number stays Luhn-valid, and a codename becomes another plausible codename from a persistent [persona](/shadow/concepts/personas/). The model answers, and Shadow restores the real values before you see them.
+Zscaler's documented actions for AI apps are allow, block, isolate and log. Blocking protects data but stops the work, and people find workarounds. Shadow lets the request through with every sensitive value it detects translated: `jane@acme.com` becomes `hui.zhao@zhilan.cn`, a card number stays Luhn-valid, and a codename becomes another plausible codename from a persistent [persona](/shadow/concepts/personas/). The model answers, and Shadow restores the real values before you see them.
 
 ### Streaming and tool calls
 

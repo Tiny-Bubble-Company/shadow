@@ -63,16 +63,37 @@
 	padding-top: 0.25rem;
 }
 
-/* Tables: denser, with a header tint */
-.sl-markdown-content table {
+/* Tables: bordered card that hugs its content, header tint, scrolls inside on small screens */
+.sl-markdown-content table:not(:where(.not-content *)) {
+	width: fit-content;
+	max-width: 100%;
 	font-size: 0.92em;
+	line-height: 1.5;
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 12px;
 }
-.sl-markdown-content th {
+.sl-markdown-content :is(th, td):not(:where(.not-content *)) {
+	padding: 0.6rem 0.9rem;
+	vertical-align: top;
+}
+.sl-markdown-content :is(th:first-child, td:first-child):not(:where(.not-content *)) {
+	padding-inline-start: 0.9rem;
+}
+.sl-markdown-content :is(th:last-child, td:last-child):not(:where(.not-content *)) {
+	padding-inline-end: 0.9rem;
+}
+.sl-markdown-content thead th:not(:where(.not-content *)) {
 	background-color: var(--sl-color-gray-6);
+}
+.sl-markdown-content tbody tr:last-child > :is(th, td):not(:where(.not-content *)) {
+	border-bottom: 0;
+}
+.sl-markdown-content tbody tr:hover > td:not(:where(.not-content *)) {
+	background-color: color-mix(in srgb, var(--sl-color-gray-6) 45%, transparent);
 }
 
 /* Inline code: accent tint */
-.sl-markdown-content :not(pre) > code {
+.sl-markdown-content :not(pre) > code:not(:where(.not-content *)) {
 	background-color: var(--sl-color-accent-low);
 	color: var(--sl-color-accent-high);
 	border: 0;
@@ -119,94 +140,10 @@
 	transform: translateY(-2px);
 }
 
-/* Real -> fake demo block on the landing page */
-.translation {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-	gap: 0.4rem 1rem;
-	align-items: center;
-	font-family: var(--sl-font-mono);
-	font-size: 0.9rem;
-	padding: 1.1rem 1.25rem;
-	border: 1px solid var(--sl-color-gray-5);
-	border-radius: 14px;
-	background: var(--sl-color-gray-6);
-	overflow-wrap: anywhere;
-}
-.translation .arrow {
-	color: var(--sl-color-accent);
-}
-.translation .fake {
-	color: var(--sl-color-accent-high);
-}
-.translation .head {
-	font-family: var(--sl-font);
-	font-size: 0.75rem;
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
-	color: var(--sl-color-gray-3);
-}
-
 /* Hero image: reserve space so the logo never shifts layout while loading */
 .hero img {
 	aspect-ratio: 1 / 1;
 	height: auto;
-}
-
-/* Landing page: key facts strip */
-.proof-strip {
-	list-style: none;
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
-	gap: 0.75rem;
-	padding: 0 !important;
-	margin-block: 1.5rem 0.5rem;
-}
-.proof-strip li {
-	margin: 0 !important;
-	padding: 0.85rem 1rem;
-	border: 1px solid var(--sl-color-gray-5);
-	border-radius: 12px;
-	background: linear-gradient(180deg, var(--sl-color-gray-6), transparent);
-	font-size: var(--sl-text-sm);
-	color: var(--sl-color-gray-3);
-	line-height: 1.35;
-}
-.proof-strip strong {
-	display: block;
-	font-size: var(--sl-text-lg);
-	color: var(--sl-color-white);
-	letter-spacing: -0.01em;
-}
-
-/* Landing page: section headings get a little more air on the splash template */
-[data-has-hero] .sl-markdown-content > h2 {
-	margin-top: 3.5rem;
-	font-size: clamp(1.6rem, 3.2vw, 2.1rem);
-}
-
-/* Landing page: comparison teaser, last column highlighted */
-.compare-teaser {
-	overflow-x: auto;
-	border: 1px solid var(--sl-color-gray-5);
-	border-radius: 14px;
-}
-.compare-teaser table {
-	display: table;
-	width: 100%;
-	margin: 0 !important;
-	border: 0;
-}
-.compare-teaser :is(th, td) {
-	border-inline: 0;
-	vertical-align: top;
-}
-.compare-teaser :is(th, td):last-child {
-	background: var(--sl-color-accent-low);
-	color: var(--sl-color-white);
-}
-.compare-teaser th:last-child {
-	color: var(--sl-color-accent-high);
 }
 
 /* FAQ section (frontmatter `faq:`), rendered by src/components/FaqSection.astro */

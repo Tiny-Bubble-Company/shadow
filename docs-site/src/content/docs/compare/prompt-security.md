@@ -58,7 +58,7 @@ Prompt Security covers AI security broadly: shadow-AI discovery, prompt filterin
 
 ### Filter and block, or translate?
 
-Blocking or filtering a prompt prevents a leak but also stops or degrades the work. Shadow sends the request with every sensitive value translated into a realistic fake from a persistent [persona](/shadow/concepts/personas/): `Acme GmbH` becomes `Zhilan Technology Co., Ltd.`, emails and phone numbers keep their shape, card numbers stay Luhn-valid. The model answers normally and Shadow restores the real values.
+Blocking or filtering a prompt prevents a leak but also stops or degrades the work. Shadow sends the request with every sensitive value it detects translated into a realistic fake from a persistent [persona](/shadow/concepts/personas/): `Acme GmbH` becomes `Zhilan Technology Co., Ltd.`, emails and phone numbers keep their shape, card numbers stay Luhn-valid. The model answers normally and Shadow restores the real values.
 
 ### Streams and tool calls
 

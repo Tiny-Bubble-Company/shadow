@@ -17,15 +17,15 @@ No. Fakes are generated randomly from the persona. The mapping exists only in yo
 
 ### What happens if Shadow is down?
 
-In gateway mode, requests to `127.0.0.1:8877` fail. In proxy mode, tools fail to connect. Nothing silently bypasses Shadow. The background services restart on failure. To bypass Shadow on purpose, unset `HTTPS_PROXY` or the base URL.
+In gateway mode, requests to `127.0.0.1:8877` fail. In proxy mode, tools fail to connect. Shadow never falls back to sending a request direct and unmasked. (Hosts that are not on the [intercept list](/shadow/reference/providers/), and anything in `NO_PROXY`, always go direct by design.) The background services restart on failure. To bypass Shadow on purpose, unset `HTTPS_PROXY` or the base URL.
 
 ### How much latency does it add?
 
-Masking is in-process string work on the request: typically a fraction of a millisecond to a few milliseconds per request, small next to model latency. Streams are delayed by at most a few characters (the length of the longest fake). Optional detectors add their own call time: the NER sidecar is capped by `timeout_ms`, and Presidio adds a local HTTP round trip.
+Masking is in-process string work on the request: about 7.5 ms per document with the built-in rules on the [benchmark](/shadow/benchmarks/) set, small next to model latency. Streams are delayed by at most a few characters (the length of the longest fake). Optional detectors add their own call time: the NER sidecar is capped by `timeout_ms`, and Presidio adds a local HTTP round trip.
 
 ### Can I see what was replaced?
 
-`shadow run` logs one line per request with the number of values masked, never the values. `shadow scan <file>` shows what would be replaced in a file. `shadow vault export --i-understand` prints the full mapping.
+`shadow run` logs one line per request with the number of values masked, never the values. `shadow scan <file>` shows what would be replaced in a file. `shadow vault export --i-understand` prints the full mapping. The [activity dashboard](/shadow/concepts/activity-dashboard/) shows counts by data type, destination and app.
 
 ### Does it work with streaming?
 
@@ -33,7 +33,7 @@ Yes. Server-sent events and NDJSON streams are restored on the fly, including fa
 
 ### Does it work with agents and tools?
 
-Yes. Tool-call arguments are restored on your machine before your tools run. Tools hosted by the provider are handled by policy. See [Tool calls and agents](/shadow/concepts/tool-calls/).
+Yes. Tool-call arguments are restored on your machine before your tools run, so an email reaches the real address. Shadow cannot restore inside the provider, so for tools the provider runs itself (hosted MCP, web search, code execution) it keeps real, by default, the contact details, people, companies, addresses, usernames and IBANs the action needs, keeps secrets, cards and IDs masked, and logs each keep. See [Tool calls and agents](/shadow/concepts/tool-calls/).
 
 ### Does it work with images, PDFs and Office files?
 
@@ -57,7 +57,7 @@ It overlaps with DLP but behaves differently. DLP gateways usually block or reda
 
 ### Can Shadow run in a browser or on a phone?
 
-No. Shadow runs on macOS, Linux and Windows hosts, servers and containers. Browsers on those machines can use it through the system proxy or PAC file.
+No. Shadow runs on macOS, Linux and Windows hosts, servers and containers. Browsers on those machines can use it through the system proxy or PAC file, but only for requests to the [intercepted AI API hosts](/shadow/reference/providers/). What people type into chatgpt.com, claude.ai or gemini.google.com is not masked; give them an API-based client that runs through Shadow instead.
 
 ### What licence is Shadow under?
 

@@ -3,7 +3,7 @@ title: Security model
 description: "Shadow's security model: what it protects from AI providers, what it trusts, how the vault and local CA are secured, and its known limitations."
 ---
 
-Shadow's job is narrow and specific: **keep the content of AI requests away from AI providers**, and from everyone downstream of them, while keeping the tools that send those requests useful.
+Shadow's job is narrow and specific: **keep the sensitive values in AI requests away from AI providers**, and from everyone downstream of them, while keeping the tools that send those requests useful. It protects the values it detects, in traffic to the AI hosts it intercepts; the limitations below say exactly where that stops.
 
 ## What Shadow protects
 
@@ -43,7 +43,9 @@ These are inherent to the approach or not yet addressed. Read them before relyin
 - **Detection is best effort.** Regexes, checksums and dictionaries miss unusual formats and names they don't know. Add your own terms, enable the NER sidecar or Presidio, and test with `shadow scan`.
 - **Context can identify.** Masking values does not mask meaning. A prompt that describes a unique event, product or situation can identify a company even with every name replaced.
 - **Not scanned:** text inside images (no OCR), audio, WebSocket and Realtime APIs, gRPC, files above `max_bytes`, files referenced by an earlier upload id.
-- **`keep` sends real values.** By default, the target of an action executed by a provider-hosted tool is sent in clear text so the action works. Set `remote_tool_targets = "surrogate"` if that is not acceptable.
+- **`keep` sends real values.** By default, when an action runs in a provider-hosted tool (hosted MCP, web search, code execution), what it needs is sent in clear text so the action works: the contact details, people, companies, addresses, usernames and IBANs named in the instruction, and for a follow-up that names no email or phone, the email, phone and person values anywhere in the request (earlier messages, pasted documents, tool results). Each keep is logged. Secrets, cards, national IDs, hostnames and IPs stay masked. Set `remote_tool_targets = "surrogate"` if that is not acceptable.
+- **Only listed hosts are intercepted.** Traffic to hosts outside the [intercept list](/shadow/reference/providers/) and `extra_hosts` is tunnelled unmasked. That includes AI web apps in a browser (chatgpt.com, claude.ai, gemini.google.com), phone apps, and tools that talk to their vendor's own backend.
+- **Whole values, plus name parts.** Restoration replaces whole fakes and a fake person's first or last name on its own. A name part is not restored if it is under 3 characters, shared by two fake people, or itself a real name in the vault. Other fragments (the last four digits of a card, part of an email or address, a company name without its legal suffix) stay fake in the answer.
 - **Signed requests** (AWS SigV4) are forwarded unmasked with a warning.
 - **Certificate-pinning apps** reject the local CA in proxy mode.
 - **Meaning can shift.** The model reasons about the persona: a persona in Shenzhen gets answers about Chinese holidays. Pick a region that suits your work.

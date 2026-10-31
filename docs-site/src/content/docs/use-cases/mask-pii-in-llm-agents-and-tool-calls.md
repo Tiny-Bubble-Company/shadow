@@ -23,7 +23,7 @@ sidebar:
   order: 7
 ---
 
-Route the agent's model calls through Shadow and keep tool execution in your own code. The model sees realistic fakes in prompts, history and tool results; when it calls a tool, Shadow translates the arguments back to real values before your tool runs, and masks the tool's result again on the way to the model. The agent works on real data, and the provider only ever sees a consistent fake world.
+Route the agent's model calls through Shadow and keep tool execution in your own code. The model sees realistic fakes in prompts, history and tool results; when it calls a tool, Shadow translates the arguments back to real values before your tool runs, and masks the tool's result again on the way to the model. The agent works on real data, and for tools your code runs the provider only ever sees a consistent fake world. Provider-hosted tools are the one exception, covered [below](#provider-hosted-tools-keep-or-surrogate).
 
 ## Why is PII in agents harder than in chat?
 
@@ -138,7 +138,7 @@ User instruction (fictional data): *"Find Jane Doe's open tickets at Globex and 
 - Model sees: *"Find Hui Zhao's open tickets at Lanxin Trading and email her a status update."*
 - Model calls `search_tickets(customer="Lanxin Trading", contact="Hui Zhao")`; your code receives `customer="Globex", contact="Jane Doe"`.
 - Your tool returns three tickets with real names and emails; the model sees them masked with the same fakes.
-- Model calls `send_email(to="hui.zhao@zhilan.cn", ...)`; your code sends to `jane.doe@acme.example`.
+- Model calls `send_email(to="hui.zhao@zhilan.cn", body="Dear Hui Zhao, ...")`; your code sends to `jane.doe@acme.example`, and the body reads "Dear Jane Doe".
 
 For this to work for `Globex`, add it as a term (`shadow terms add "org:Globex"`): detectors can't know your customers.
 
@@ -159,6 +159,7 @@ For streams, `session.stream_unmasker()` restores text and arguments chunk by ch
 ## Practical tips
 
 - Keep tool **descriptions** free of personal data.
+- Shadow restores whole fakes, and a fake person's first or last name on its own ("Dear Hui," becomes "Dear Jane,"). Other fragments, such as the domain of a fake email or the last four digits of a fake card, stay fake, so ask for full values when the text goes to a real person.
 - When a tool must quote an exact value back (an order ID, an IBAN), surrogates still round-trip. Test with `shadow mask` and `shadow unmask`.
 - Keep the vault persistent so fakes stay stable across long-running agent sessions.
 - Not supported: Realtime and WebSocket agents (voice), and SigV4-signed Bedrock requests.

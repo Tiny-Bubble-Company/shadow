@@ -70,11 +70,11 @@ Shadow restores fakes in [server-sent event streams](/shadow/concepts/how-it-wor
 
 ### Intent-aware policy
 
-Shadow classifies each request as act, report, code or converse and picks a treatment per value: fakes for conversation, typed tokens such as `[PERSON_0007]` for bulk reports, and an explicit, logged keep for targets of provider-hosted tools. See [intent-aware policy](/shadow/concepts/intent-policy/).
+Shadow classifies each request as act, report, code or converse and picks a treatment per value: fakes for conversation, typed tokens such as `[PERSON_0007]` for bulk reports, and an explicit, logged keep for what a provider-hosted tool's action needs, such as its recipient. See [intent-aware policy](/shadow/concepts/intent-policy/).
 
 ### Interception instead of integration
 
-Private AI is an API you call. Shadow is a proxy: set `HTTPS_PROXY` or a base URL and every AI tool on the machine is covered, including tools you didn't write. See [proxy mode](/shadow/integrate/proxy-mode/) and [gateway mode](/shadow/integrate/gateway-mode/).
+Private AI is an API you call. Shadow is a proxy: set `HTTPS_PROXY` or a base URL and every tool on the machine that calls a [supported AI API](/shadow/reference/providers/) is covered, including tools you didn't write. Web chat in a browser is not. See [proxy mode](/shadow/integrate/proxy-mode/) and [gateway mode](/shadow/integrate/gateway-mode/).
 
 ## When should you choose Private AI?
 
@@ -85,7 +85,7 @@ Private AI is an API you call. Shadow is a proxy: set `HTTPS_PROXY` or a base UR
 
 ## When should you choose Shadow?
 
-- You want masking in front of AI providers with no code changes, for every tool on a machine.
+- You want masking in front of AI providers with no code changes, for every tool on a machine that calls their APIs.
 - You depend on streaming and agents with tool calls.
 - You want realistic, consistent fakes so model answers stay natural.
 - You want Office uploads (DOCX, XLSX, PPTX) masked in place.

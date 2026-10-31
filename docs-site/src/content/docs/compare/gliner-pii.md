@@ -23,7 +23,7 @@ faq:
   - q: "How do I use GLiNER with Shadow?"
     a: "Run Shadow's sidecar (ml/serve_hf.py) with the gliner or ensemble backend on 127.0.0.1:8878 and enable [model_detector]. Shadow merges GLiNER's spans with its own detectors and handles masking and restoration."
   - q: "How accurate is GLiNER for PII?"
-    a: "It varies a lot by checkpoint and dataset. NVIDIA reports strict F1 of 0.70, 0.64 and 0.87 for gliner-PII on three datasets, the last being its own training distribution. Other benchmarks report much lower figures. See the Shadow benchmarks page."
+    a: "It varies a lot by checkpoint and dataset. On Shadow's held-out benchmark, GLiNER multi PII leaked 13.28% of sensitive values and changed many public names, against 3.08% for Shadow's built-in rules and 0.08% for Shadow with the open-weight NER sidecar, which includes GLiNER. See the Shadow benchmarks page."
 ---
 
 **GLiNER PII models are small, open-weight named-entity models that detect personal data for whatever labels you ask for. Shadow is an open-source privacy layer for AI traffic that detects sensitive values, replaces them with realistic, reversible fakes, and restores them in the response.** They are complementary: Shadow's optional NER sidecar runs `urchade/gliner_multi_pii-v1` (Apache-2.0) to improve recall on names, organisations and addresses, especially outside English.
@@ -118,7 +118,7 @@ The bundled sidecar uses Apache-2.0 weights. If you swap in `nvidia/gliner-PII` 
 
 ## How do they compare on accuracy?
 
-Published GLiNER figures vary widely. NVIDIA reports strict F1 of 0.70 (Argilla PII), 0.64 (AI4Privacy) and 0.87 (Nemotron-PII, its own training distribution) for `gliner-PII`, while a vendor-run Tonic benchmark scored a generic GLiNER setup at 0.32 aggregate F1. Shadow's [benchmark](/shadow/benchmarks/) evaluates GLiNER as a baseline and as part of Shadow, and flags results on datasets a model was trained on.
+Published GLiNER figures vary widely by checkpoint and dataset, and vendor figures are often measured on a model's own training distribution. Shadow's [benchmark](/shadow/benchmarks/) evaluates GLiNER as a baseline and as part of Shadow: on the held-out set, GLiNER multi PII alone leaked 13.28% of sensitive values, Shadow's built-in rules 3.08%, and Shadow with the open-weight NER sidecar 0.08%.
 
 ## Sources
 

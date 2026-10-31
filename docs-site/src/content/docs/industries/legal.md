@@ -82,7 +82,7 @@ Shadow replaces identifiers. The facts, the legal issue and the structure of a d
 | Rule or framework | How Shadow helps |
 |---|---|
 | ABA Model Rule 1.6 and Formal Opinion 512 (2024) | Supports "reasonable efforts" to prevent unauthorised disclosure when using generative AI by keeping client identities out of prompts. The opinion's duties of competence, consent assessment, supervision and fee reasonableness still apply |
-| Model Rules 5.1 and 5.3 (supervision) | A firm-configured control that applies to every API-based tool on a machine, not just the ones lawyers remember to sanitise |
+| Model Rules 5.1 and 5.3 (supervision) | A firm-configured control that applies to every API-based tool on a machine that calls a supported provider API, not just the ones lawyers remember to sanitise |
 | GDPR Art. 5(1)(c), 25, 32 | Minimisation and pseudonymisation of personal data in matters before transfer to a processor |
 | Outside counsel guidelines and client security questionnaires | A concrete, inspectable answer to "what client data reaches your AI vendors": self-hosted, Apache-2.0, no telemetry |
 | ISO/IEC 27001 | Evidence of a technical control on AI data flows |
@@ -112,6 +112,8 @@ Seen by the provider (persona varies):
 Draft a letter before action from Zhilan Technology Co., Ltd. for Huarui Holdings to
 Tengda Ltd, attn. Hui Zhao (hui.zhao@tengda.cn), re unpaid invoices on Velora Quilent.
 ```
+
+The draft comes back with Hartley & Quinn LLP, Globex Holdings, Initech Ltd, Jane Doe, her real email and Project Lighthouse restored, so the letter you review and send goes to the real opponent.
 
 ### Chronology from an email export
 

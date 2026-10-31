@@ -16,14 +16,14 @@ faq:
   - q: "Should we just block ChatGPT and other AI tools?"
     a: "Outright bans tend to push usage onto personal devices and accounts, where you have no visibility at all. Most guidance favours offering an approved tool that is safe enough to use for real work, plus a clear policy and monitoring."
   - q: "How does Shadow reduce shadow AI?"
-    a: "It removes the main reason people go around policy: the approved tool was either blocked or too restricted to be useful. With Shadow, teams can use API-based assistants and agents on real work while names, customer data and secrets leave as reversible fakes."
+    a: "It removes the main reason people go around policy: the approved tool was either blocked or too restricted to be useful. With Shadow, teams can use API-based assistants and agents on real work while the names, customer data and secrets Shadow detects leave as reversible fakes (or redacted, for secrets, if you opt in)."
   - q: "Can Shadow show which employees sent sensitive data to AI?"
     a: "No. Shadow logs per-request intent and counts by treatment, never values, and has no central console. An optional local audit log of decisions is on the roadmap. It is a protection layer, not a monitoring tool."
 sidebar:
   order: 13
 ---
 
-Shadow AI is the use of AI tools that your organisation has not approved: personal ChatGPT accounts, unvetted browser extensions, AI features switched on inside SaaS apps. You govern it by finding out what is used, offering an approved alternative that is genuinely useful, and making that alternative safe for real data. Shadow, the open-source privacy layer documented here, helps with the third part: it masks sensitive data in AI API traffic from sanctioned tools, so saying yes to AI does not mean sending customer data to a provider.
+Shadow AI is the use of AI tools that your organisation has not approved: personal ChatGPT accounts, unvetted browser extensions, AI features switched on inside SaaS apps. You govern it by finding out what is used, offering an approved alternative that is genuinely useful, and making that alternative safe for real data. Shadow, the open-source privacy layer documented here, helps with the third part: it masks sensitive data in AI API traffic from sanctioned tools, so saying yes to AI does not mean sending detected customer data to a provider in clear.
 
 :::note[Two different things called "shadow"]
 **Shadow AI** (lower case, the phenomenon) is unsanctioned AI use. **Shadow** (the product) is a self-hosted, Apache-2.0 privacy layer that replaces sensitive values in AI requests with reversible fakes. The product does not detect or block shadow AI. It makes an approved path safe enough that people stop needing an unapproved one.
@@ -103,7 +103,7 @@ shadow status
 shadow scan sample-prompt.txt
 ```
 
-The service log shows each request's intent and treatment counts.
+The service log shows each request's intent and treatment counts, and the local [activity dashboard](/shadow/concepts/activity-dashboard/) (`shadow dashboard`) shows them by data type, provider and app.
 
 ## What Shadow does not cover
 

@@ -21,7 +21,7 @@ faq:
   - q: "How much does Strac cost?"
     a: "Strac is priced by quote; public pages we reviewed do not list prices. Shadow is free and open source under Apache-2.0."
   - q: "Does Shadow cover ChatGPT in the browser?"
-    a: "Shadow intercepts AI API hosts such as api.openai.com in proxy mode, and browsers can use it through the system proxy or a PAC file. It is designed for API traffic, not the consumer web chat UIs that browser-extension DLP tools target."
+    a: "No. Shadow intercepts AI API hosts such as api.openai.com in proxy mode. ChatGPT in the browser talks to chatgpt.com, which is not on that list, so what people type there is not masked. Shadow is designed for API traffic, not the consumer web chat UIs that browser-extension DLP tools target."
   - q: "Can Strac scan SaaS apps like Slack or Google Drive?"
     a: "Yes, Strac connects to SaaS data stores for discovery and remediation. Shadow does not scan data at rest; it only masks AI requests in flight."
 ---

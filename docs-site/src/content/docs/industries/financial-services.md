@@ -107,22 +107,22 @@ This page describes technical capabilities. Shadow does not make you PCI DSS, GL
 Sent (fictional data):
 
 ```text
-Draft a reply to Jane Doe (jane.doe@acme.example) about the disputed charge on card
-4111 1111 1111 1111. Refund goes to DE89 3704 0044 0532 0130 00.
+Draft a reply to Jane Doe (jane.doe@acme.example) about the disputed charge on her card
+ending 1111. The refund goes to DE89 3704 0044 0532 0130 00.
 ```
 
 Seen by the provider:
 
 ```text
-Draft a reply to Hui Zhao (hui.zhao@zhilan.cn) about the disputed charge on card
-4837 2191 9471 3480. Refund goes to DE44 5001 0517 5407 3249 31.
+Draft a reply to Hui Zhao (hui.zhao@zhilan.cn) about the disputed charge on her card
+ending 1111. The refund goes to DE44 5001 0517 5407 3249 31.
 ```
 
-The draft comes back addressed to Jane Doe with the real card and IBAN.
+The draft comes back addressed to Jane Doe with her real email and IBAN, ready to send. The last four digits of a card are not a card number, so they pass through as written. A full card number would be replaced with a Luhn-valid fake (or a token with `credit_card = "token"`), but a customer reply rarely needs one, and Shadow does not restore fragments of a fake card: if the model quoted just the last four digits of one, they would stay fake.
 
 ### Churn analysis over a customer export
 
-An analyst attaches a CSV of 800 customers and asks for churn drivers by segment. As a `report`, every customer becomes `[PERSON_0001]` and `[EMAIL_0001]`; product names and balances stay readable. The model ranks segments without making up facts about fake people, and the result is restored locally.
+An analyst pastes a CSV of 800 customers and asks for churn drivers by segment. As a `report`, every customer becomes `[PERSON_0001]` and `[EMAIL_0001]`; product names and balances stay readable. The model ranks segments without making up facts about fake people, and the result is restored locally.
 
 ### Payment-service debugging
 

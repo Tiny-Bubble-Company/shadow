@@ -17,7 +17,7 @@ faq:
   - q: "Is Shadow an alternative to Portkey?"
     a: "Only for data protection. Portkey is an AI gateway and control plane with routing, observability, prompt management and guardrails. Shadow does not route or observe; it masks sensitive values with reversible fakes and restores them in responses. You can run Shadow alongside Portkey."
   - q: "Does Portkey restore redacted PII in the response?"
-    a: "Portkey's PII redaction documentation describes the transformation as one-way: values are redacted before the request reaches the model and are not put back. Shadow restores every masked value in the response."
+    a: "Portkey's PII redaction documentation describes the transformation as one-way: values are redacted before the request reaches the model and are not put back. Shadow restores its fakes in the response."
   - q: "Is Portkey open source?"
     a: "The Portkey AI Gateway is open source under MIT. The PII redaction guardrails run through Portkey's cloud and partner integrations such as Pangea, AWS Bedrock Guardrails, Azure and Patronus. Shadow is fully open source under Apache-2.0."
   - q: "Was Portkey acquired by Palo Alto Networks?"
@@ -59,11 +59,11 @@ Choose Portkey for multi-provider routing, observability and a managed control p
 
 ### Can Portkey put redacted values back in the answer?
 
-Portkey's [PII redaction docs](https://portkey.ai/docs/product/guardrails/pii-redaction) describe the transformation as one-way. That is safe, but the answer then contains placeholders, and an agent cannot act on a redacted email address. Shadow keeps a real-to-fake mapping in an [encrypted local vault](/shadow/concepts/vault/) and restores every fake in JSON, [streamed responses](/shadow/concepts/how-it-works/#streaming-hold-back) and [tool-call arguments](/shadow/concepts/tool-calls/).
+Portkey's [PII redaction docs](https://portkey.ai/docs/product/guardrails/pii-redaction) describe the transformation as one-way. That is safe, but the answer then contains placeholders, and an agent cannot act on a redacted email address. Shadow keeps a real-to-fake mapping in an [encrypted local vault](/shadow/concepts/vault/) and restores its fakes in JSON, [streamed responses](/shadow/concepts/how-it-works/#streaming-hold-back) and [tool-call arguments](/shadow/concepts/tool-calls/).
 
 ### Where does the data go before it is masked?
 
-With hosted partner guardrails, the unmasked prompt is sent to a guardrail service to be checked. Shadow detects locally with built-in detectors and, optionally, local NER models or Presidio on loopback. Nothing except the masked request leaves the host. No account, no telemetry.
+With hosted partner guardrails, the unmasked prompt is sent to a guardrail service to be checked. Shadow detects locally with built-in detectors and, optionally, local NER models or Presidio on loopback. Plaintext is never sent to a guardrail service; only the masked request leaves the host, apart from the values a provider-hosted action needs, which are kept real by default and logged. No account, no telemetry.
 
 ### Realistic fakes and intent
 
@@ -87,7 +87,7 @@ Shadow masks DOCX, XLSX and PPTX uploads in place and PDF text before upload ([f
 
 ## Can you use Portkey with Shadow?
 
-Yes. Run Shadow as a sidecar or on developer machines and send traffic through Shadow before it reaches Portkey, or configure the self-hosted Portkey gateway to call providers through Shadow's HTTPS proxy. Portkey still sees request metadata, cost and latency, while prompt contents in its logs are already masked, which also keeps sensitive data out of observability storage. Disable Portkey's PII redaction guardrail on those routes so values reach Shadow intact when Shadow sits downstream. See [integration modes](/shadow/integrate/overview/).
+Yes. Run Shadow as a sidecar or on developer machines and send traffic through Shadow before it reaches Portkey, or configure the self-hosted Portkey gateway to call providers through Shadow's HTTPS proxy. Portkey still sees request metadata, cost and latency, while the values Shadow detected are already masked in its logs, which also keeps them out of observability storage. Disable Portkey's PII redaction guardrail on those routes so values reach Shadow intact when Shadow sits downstream. See [integration modes](/shadow/integrate/overview/).
 
 ## Migrating Portkey PII redaction to Shadow
 
@@ -99,7 +99,7 @@ Yes. Run Shadow as a sidecar or on developer machines and send traffic through S
 
 ## How do they compare on accuracy?
 
-Portkey's detection accuracy is whichever partner guardrail you choose. Shadow's [benchmark](/shadow/benchmarks/) publishes leak rate, over-masking and round-trip results with code, against open-source baselines.
+Portkey's detection accuracy is whichever partner guardrail you choose. Shadow's [benchmark](/shadow/benchmarks/) publishes leak rate, over-masking and round-trip results with code, against open-source baselines; Portkey and its partner guardrails are not included.
 
 ## Sources
 

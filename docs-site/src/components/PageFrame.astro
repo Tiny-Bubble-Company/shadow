@@ -1,0 +1,12 @@
+---
+// Starlight's PageFrame plus the site-wide footer after the page content.
+import Default from '@astrojs/starlight/components/PageFrame.astro';
+import SiteFooter from './SiteFooter.astro';
+---
+
+<Default>
+	<slot name="header" slot="header" />
+	<slot name="sidebar" slot="sidebar" />
+	<slot />
+	<SiteFooter />
+</Default>

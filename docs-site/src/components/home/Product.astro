@@ -1,0 +1,75 @@
+---
+import Section from './Section.astro';
+import ProductShot from '../ProductShot.astro';
+import { product } from '../../assets/product';
+
+const metrics = [
+	{ label: 'Traffic monitored', text: 'Every AI request on the machine, by destination and by the app that sent it.', tone: 'accent' },
+	{ label: 'Sensitive data masked', text: 'What was swapped for fakes, broken down by data type: people, emails, keys, IBANs.', tone: 'violet' },
+	{ label: 'Requests blocked', text: 'What your file policy refused to send at all, such as images or PDFs, and why.', tone: 'warn' },
+];
+const surfaces = [
+	{ title: 'Menu bar', text: 'A status icon on Mac and Windows with live counts and the dashboard one click away.' },
+	{ title: 'Web dashboard', text: 'Trends over time by data type, destination such as OpenAI or Anthropic, and source app.' },
+	{ title: 'shadow top', text: 'The same live view in your terminal, over SSH and on servers.' },
+];
+---
+
+<Section
+	id="activity"
+	eyebrow="Activity dashboard"
+	title="See what’s leaking"
+	lead="Find out what your AI tools actually send before anything leaves the machine: how much traffic goes to which model, what Shadow masked, and what it blocked."
+	class="hp-product"
+>
+	<ul class="hp-metrics">
+		{
+			metrics.map((m) => (
+				<li class:list={['hp-metric', `hp-metric--${m.tone}`]}>
+					<strong>{m.label}</strong>
+					<span>{m.text}</span>
+				</li>
+			))
+		}
+	</ul>
+
+	<ProductShot
+		src={product.dashboardLight}
+		srcDark={product.dashboardDark}
+		frame="browser"
+		title="127.0.0.1:8877 · Shadow activity"
+		alt="Shadow activity dashboard: traffic monitored, values masked and requests blocked, a timeline, and breakdowns by data type, destination and source app."
+		class="hp-product__main"
+	/>
+
+	<div class="hp-product__pair">
+		<ProductShot
+			src={product.tray}
+			frame="popover"
+			alt="Shadow menu-bar app showing protection status, live counts and recent masked requests."
+			caption="Menu-bar app on Mac and Windows"
+			sizes="(min-width: 50rem) 360px, 90vw"
+			class="hp-product__tray"
+		/>
+		<ProductShot
+			src={product.terminal}
+			frame="terminal"
+			title="shadow top"
+			alt="shadow top in a terminal: live counts, and masked values per destination and per source app."
+			caption="shadow top in the terminal"
+			sizes="(min-width: 50rem) 640px, 100vw"
+			class="hp-product__term"
+		/>
+	</div>
+
+	<div class="hp-grid hp-grid--3 hp-surfaces">
+		{
+			surfaces.map((s) => (
+				<div class="hp-surface">
+					<h3>{s.title === 'shadow top' ? <code>shadow top</code> : s.title}</h3>
+					<p>{s.text}</p>
+				</div>
+			))
+		}
+	</div>
+</Section>

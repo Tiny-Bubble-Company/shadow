@@ -125,11 +125,11 @@ Summarise for the GP: Ying Chen (NHS 485 771 2046), 88 Tianfu Road, Leeds,
 phone +86 28 6512 0417, admitted under Dr Tao Zhu for community-acquired pneumonia.
 ```
 
-The summary comes back with Maria Lopez, Dr Okafor and the real NHS number restored. The clinical content is unchanged, which is why the answer stays useful.
+The summary comes back with Maria Lopez, Dr Amara Okafor and the real NHS number restored. If the model shortens the fake to "Dr Zhu", Shadow restores that too, because fake surnames are restored on their own. The clinical content is unchanged, which is why the answer stays useful.
 
 ### Patient-experience report over a spreadsheet
 
-An analyst uploads an XLSX of 600 complaint records and asks for themes by department. Shadow classifies this as `report`, so names, emails and phones in the workbook become `[PERSON_0001]`, `[EMAIL_0001]` and so on. The model groups and counts them without inventing details, and the final report lists real patients only on the analyst's screen.
+An analyst uploads an XLSX of 600 complaint records and asks for an analysis of the records by department. The wording reads as a report over records, so Shadow classifies it as `report` and names, emails and phones in the workbook become `[PERSON_0001]`, `[EMAIL_0001]` and so on. The model groups and counts them without inventing details, and the final report lists real patients only on the analyst's screen.
 
 ### EHR integration debugging
 
