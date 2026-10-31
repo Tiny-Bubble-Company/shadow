@@ -1,0 +1,148 @@
+---
+title: "Shadow vs alternatives: the AI data-leak prevention landscape"
+description: Compare Shadow with Presidio, LLM Guard, LiteLLM, Nightfall, Netskope, Skyflow and 25 more tools that stop sensitive data leaking into LLM prompts.
+sidebar:
+  label: Overview
+  order: 0
+keywords:
+  - AI data leak prevention
+  - AI DLP tools
+  - PII redaction for LLM
+  - LLM privacy proxy
+  - Presidio alternative
+  - Nightfall alternative
+  - open source AI DLP
+  - prompt PII masking
+  - reversible pseudonymization LLM
+faq:
+  - q: What is the best tool to stop sensitive data leaking into ChatGPT or Claude?
+    a: "It depends on where the data flows. To block or warn users in web chat UIs across a company, enterprise GenAI DLP (Netskope, Zscaler, Purview, Nightfall, Harmonic) fits. To mask data in API and agent traffic while keeping answers useful, a reversible pseudonymisation layer such as Shadow, Skyflow or Protecto fits. To build your own pipeline, detector libraries such as Presidio, GLiNER or OpenAI Privacy Filter are the building blocks."
+  - q: What is the difference between redaction, tokenisation and reversible pseudonymisation?
+    a: "Redaction replaces a value with [REDACTED] or <PERSON> and cannot be undone. Tokenisation replaces it with an opaque token that a vault can map back. Reversible pseudonymisation, which Shadow uses by default, replaces it with a realistic fake of the same format (a valid email, a Luhn-valid card) and maps it back in the response, so the model can still reason about the data."
+  - q: Is Shadow free and open source?
+    a: Yes. Shadow is licensed under Apache-2.0, runs on your own machines or servers, needs no account and sends no telemetry.
+  - q: Does Shadow replace a DLP platform?
+    a: "Not entirely. Shadow protects the content of AI API traffic on the machines where it runs. It does not offer a central admin console, user coaching, SIEM export or coverage of devices it is not installed on. Many teams run it alongside a DLP or SASE product."
+  - q: Does Shadow make us GDPR or HIPAA compliant?
+    a: "No tool makes you compliant by itself. Shadow helps meet data-minimisation and confidentiality requirements by keeping personal data out of requests to AI providers, but compliance depends on your whole programme."
+  - q: How accurate is Shadow compared with these tools?
+    a: "Detection accuracy depends heavily on dataset and label mapping. Shadow publishes its methodology and results on the benchmarks page rather than quoting single numbers here."
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+**Shadow is an open-source (Apache-2.0) privacy layer for AI traffic.** It replaces names, emails, customers, secrets and IDs in prompts with realistic, reversible fakes before a request reaches OpenAI, Anthropic, Gemini or another provider, and restores the real values in the response, including streamed responses and tool calls. This page maps the other tools people use to stop sensitive data leaking into large language models, and links to a detailed, fair comparison with each one.
+
+:::note[How we compare]
+Every comparison is based on public documentation, checked on the review date shown on each page. Where a vendor's documentation does not say something, we say "not documented" rather than guess. Detection accuracy is compared on the [benchmarks page](/shadow/benchmarks/), with code and label mappings published, not on this page.
+:::
+
+## What kinds of tools prevent AI data leaks?
+
+Tools in this space fall into five groups. They overlap, and many teams combine two.
+
+| Category | What it does | Typical action on sensitive data | Examples |
+|---|---|---|---|
+| **Detector libraries and models** | Find PII spans in text. You build the rest | Placeholder, mask or hash, usually one way | Presidio, GLiNER-PII, OpenAI Privacy Filter, DataFog, cloud PII APIs |
+| **Guardrail frameworks and AI gateways** | Sit in front of model APIs, route traffic and run checks | Block, or redact with placeholders; a few restore | LLM Guard, NeMo Guardrails, LiteLLM, Portkey, Kong, Cloudflare, Bedrock Guardrails |
+| **Enterprise GenAI DLP** | Watch employees' use of AI apps in the browser, on the endpoint or in the SASE layer | Block, warn, coach, sometimes redact | Netskope, Zscaler, Palo Alto, Microsoft Purview, Nightfall, Harmonic, Prompt Security, Lasso, Strac |
+| **Privacy vaults and secure-AI platforms** | Tokenise or pseudonymise data and re-identify under policy | Reversible tokens, usually as SaaS | Skyflow, Protecto, Private AI, Tonic Textual, Wald.ai |
+| **Local reversible proxies** | Mask on the endpoint, restore in the response | Reversible placeholders or fakes | **Shadow**, Rehydra, a few small projects |
+
+Shadow belongs to the last group. Its distinguishing choices are realistic, format-preserving fakes drawn from a persistent [persona](/shadow/concepts/personas/), restoration in [streams and tool calls](/shadow/concepts/tool-calls/), an [intent-aware policy](/shadow/concepts/intent-policy/), [file masking](/shadow/concepts/file-masking/) for Office documents, and a local, single-binary deployment as an [HTTPS proxy](/shadow/integrate/proxy-mode/), a [gateway](/shadow/integrate/gateway-mode/) or a [Rust library](/shadow/integrate/rust/).
+
+## The comparison table
+
+Legend: **Block** = request refused; **Redact** = `[REDACTED]` or `<PERSON>` placeholder; **Token** = vault-backed token; **Fakes** = realistic synthetic values; **FPE** = format-preserving encryption. "Not documented" means public docs do not mention it, not that the feature is missing.
+
+| Tool | Open source / licence | Deployment | Protection method | Restores responses | Streaming | Tool calls | Files | Self-hosted | Price model |
+|---|---|---|---|---|---|---|---|---|---|
+| **Shadow** | Yes, Apache-2.0 | Endpoint proxy, gateway, Rust library | Reversible realistic fakes; typed tokens for reports; optional redact | Yes | Yes (SSE, NDJSON) | Yes, intent-aware | DOCX/XLSX/PPTX in place, PDF to text | Yes | Free |
+| [Presidio](/shadow/compare/presidio/) | Yes, MIT | Library, REST containers | Redact, mask, hash, encrypt, custom | Only `encrypt` → `decrypt` | No | No | Image redactor (OCR), DICOM | Yes | Free |
+| [LLM Guard](/shadow/compare/llm-guard/) | Yes, MIT | Library, API container | Placeholders, optional Faker values | Yes (Vault + Deanonymize) | Not documented | No | No | Yes | Free |
+| [NeMo Guardrails](/shadow/compare/nemo-guardrails/) | Yes, Apache-2.0 | Guardrail framework | Block or label mask | No | Output rails, no unmask | Retrieval rails | No | Yes | Free |
+| [LiteLLM](/shadow/compare/litellm/) | Core MIT, enterprise features paid | Self-hosted gateway | Block or redact via Presidio and others | Placeholders (`output_parse_pii`) | Reported issues on some paths | No | No | Yes | Free core; Enterprise paid |
+| [Portkey](/shadow/compare/portkey/) | Gateway MIT; guardrails in cloud | SaaS, hybrid, OSS gateway | Redact via partner guardrails | No (docs: one way) | Not documented | No | No | Gateway only | SaaS tiers |
+| [Kong AI Gateway](/shadow/compare/kong-ai-gateway/) | Sanitizer is Enterprise-only | Self-hosted gateway plugin | Placeholders or synthetic values | Yes (`restore`) | Not documented | No | No | Yes | Enterprise licence |
+| [Cloudflare AI Gateway](/shadow/compare/cloudflare-ai-gateway/) | No | SaaS gateway | Flag or block | No | Buffers response to scan | No | No | No | Plan-based |
+| [AWS Comprehend / Bedrock Guardrails](/shadow/compare/aws-comprehend-bedrock-guardrails/) | No | AWS service | Detect; block or `{NAME}` tags | No | Not verified | No | Async batch (Comprehend) | No | Usage-based |
+| [Azure AI Language PII](/shadow/compare/azure-ai-language-pii/) | No | Azure service | Character mask, entity mask, synthetic (preview) | No | No | No | Document PII API | Containers (not verified) | Usage-based |
+| [Google Sensitive Data Protection](/shadow/compare/google-sensitive-data-protection/) | No | GCP service | Mask, replace, FPE, deterministic encryption | Yes (`reidentifyContent`) | No | No | Images, storage jobs | No | Per GB |
+| [OpenAI Privacy Filter](/shadow/compare/openai-privacy-filter/) | Yes, Apache-2.0 (model) | Local model | Detector only | n/a | n/a | n/a | n/a | Yes | Free |
+| [GLiNER PII models](/shadow/compare/gliner-pii/) | Apache-2.0 or NVIDIA Open Model License | Local model | Detector only | n/a | n/a | n/a | n/a | Yes | Free |
+| [DataFog](/shadow/compare/datafog/) | Yes, MIT | Library, LiteLLM guardrail, hook | Redact, replace, hash, block | Not documented | Not documented | No | Not documented | Yes | Free |
+| [LangChain PIIMiddleware](/shadow/compare/langchain-pii-middleware/) | Yes, MIT | In-app agent middleware | Redact, mask, hash, block | No | n/a | Yes (tool results) | No | Yes | Free |
+| [Rehydra](/shadow/compare/rehydra/) | Yes, MIT | SDK and local proxy (Node/Bun) | Reversible placeholders | Yes | Yes (sentence-buffered) | Yes | `.env` scrubbing | Yes | Free |
+| [Private AI](/shadow/compare/private-ai/) | No | Container API, cloud | Placeholders, mask, synthetic | Yes (re-identify) | Not documented | Not documented | Many file types (vendor) | Yes (container) | Quote |
+| [Skyflow](/shadow/compare/skyflow/) | No | Vault SaaS | Vault tokens | Yes (policy-governed) | Not documented | Not documented | Images, PDF, audio, Office | No | Quote |
+| [Protecto](/shadow/compare/protecto/) | No | SaaS or VPC | Reversible tokens, FPE for databases | Yes (unmask API) | Not documented | Not documented | Not documented | VPC option | Quote |
+| [Tonic Textual](/shadow/compare/tonic-textual/) | No | SaaS or self-hosted | Redact or consistent synthesis | Not as a proxy | No | No | Files in original format | Yes (Docker, Helm) | Pay-as-you-go or quote |
+| [Wald.ai](/shadow/compare/wald-ai/) | No | SaaS chat and API | Contextual substitution | Yes | Not documented | Not documented | Not documented | No | Per user |
+| [Strac](/shadow/compare/strac/) | No | SaaS and browser extension | Alert, block, redact, pseudonymise | Not documented | Not documented | No | SaaS stores | No | Quote |
+| [Nightfall](/shadow/compare/nightfall/) | No | SaaS, browser extension, endpoint agent | Block or redact | No | n/a | No | Uploads | No | Quote |
+| [Lakera Guard](/shadow/compare/lakera/) | No | API (Check Point) | Detect and flag | No | Not documented | Agent security | No | Enterprise only | Free tier; Enterprise quote |
+| [Prompt Security](/shadow/compare/prompt-security/) | No | Extension and gateway (SentinelOne) | Block or filter | No | Not documented | Not documented | Not documented | Not documented | Quote |
+| [Harmonic Security](/shadow/compare/harmonic-security/) | No | Browser extension | Warn, block, redirect; redact (vendor) | No | n/a | n/a | Uploads | No | Quote |
+| [Lasso Security](/shadow/compare/lasso-security/) | No | Extension and gateway | Mask or alert | Not documented | Not documented | Not documented | Not documented | Not documented | Quote |
+| [Netskope One](/shadow/compare/netskope/) | No | SASE inline | Block, coach, redact (mask, FPE, hash) | No | Not for SSE | Not for MCP | Not for file content | No | Quote |
+| [Zscaler](/shadow/compare/zscaler/) | No | SASE inline | Block, isolate, allow, log | No | n/a | n/a | Uploads | No | Quote |
+| [Palo Alto AI Access](/shadow/compare/palo-alto-ai-access/) | No | SASE and Prisma Browser | Block or allow | No | n/a | n/a | Not documented | No | Licence bundle |
+| [Microsoft Purview](/shadow/compare/microsoft-purview/) | No | Microsoft 365, Edge, endpoint DLP | Block, warn, audit | No | n/a | n/a | Cannot scan files uploaded into prompts | No | Microsoft 365 E5-class licensing |
+
+The table is a summary. Each linked page explains the details and the caveats, including where the other tool is the better choice.
+
+## How do I choose an AI data-leak prevention tool?
+
+Start from three questions: **who sends the data**, **what must happen to it**, and **who has to run the tool**.
+
+1. **Employees pasting into ChatGPT, Gemini or Copilot in the browser, across a whole company?** You need visibility, policy and coaching across many managed devices. Choose an enterprise GenAI DLP or SASE product ([Netskope](/shadow/compare/netskope/), [Zscaler](/shadow/compare/zscaler/), [Microsoft Purview](/shadow/compare/microsoft-purview/), [Nightfall](/shadow/compare/nightfall/), [Harmonic](/shadow/compare/harmonic-security/)). These mostly block or warn.
+2. **Developers, agents and apps calling model APIs, where answers must stay useful?** Blocking breaks the tool and plain redaction loses meaning. Choose a reversible layer that restores values in responses and tool calls: Shadow (local, open source), or a vault service such as [Skyflow](/shadow/compare/skyflow/) or [Protecto](/shadow/compare/protecto/) if you prefer a managed service.
+3. **Building your own pipeline and only need detection?** Use a detector: [Presidio](/shadow/compare/presidio/), [GLiNER](/shadow/compare/gliner-pii/), [OpenAI Privacy Filter](/shadow/compare/openai-privacy-filter/) or a cloud PII API. Shadow can use Presidio and both open-weight models as additional detectors.
+4. **Already standardised on an AI gateway?** Check its PII features first: [LiteLLM](/shadow/compare/litellm/), [Kong](/shadow/compare/kong-ai-gateway/), [Portkey](/shadow/compare/portkey/), [Cloudflare](/shadow/compare/cloudflare-ai-gateway/). Shadow can sit in front of a gateway as a sidecar, so masking happens before traffic leaves the host.
+5. **Need de-identified datasets for training or analytics, not live traffic?** Use a batch tool such as [Tonic Textual](/shadow/compare/tonic-textual/) or [Google Sensitive Data Protection](/shadow/compare/google-sensitive-data-protection/).
+6. **Must the data never leave your network, and must the tool be auditable?** Prefer open-source, self-hosted tools: Shadow, Presidio, LLM Guard, LiteLLM, NeMo Guardrails, Rehydra.
+
+:::tip[A common combination]
+Enterprise DLP for browser chat on managed devices, plus Shadow on developer machines, CI runners and services that call model APIs. The DLP product sees what employees type into web apps; Shadow keeps API, agent and file traffic useful while masked.
+:::
+
+## What Shadow does not do
+
+Being honest about the gaps helps you choose:
+
+- **No central fleet console.** There is no admin dashboard, SIEM export or user coaching. Configuration is a file per machine or container.
+- **No OCR.** Text inside images and scanned PDFs is not detected. See [file masking](/shadow/concepts/file-masking/#limitations).
+- **Detection is best effort.** Regex, checksums, dictionaries and optional NER models miss things. Multilingual recall is being measured; see the [benchmark](/shadow/benchmarks/).
+- **It protects content, not identity.** Providers still see your IP address and the account behind your API key. See the [security model](/shadow/reference/security/).
+
+## Category guides
+
+<CardGrid>
+	<LinkCard title="Best open-source PII redaction tools for LLMs" description="Presidio, LLM Guard, GLiNER, OpenAI Privacy Filter, Rehydra, Shadow and more." href="/shadow/compare/open-source-pii-redaction-tools/" />
+	<LinkCard title="AI DLP tools compared" description="Block vs redact vs pseudonymise: Netskope, Zscaler, Purview, Nightfall, Harmonic and others." href="/shadow/compare/ai-dlp-tools/" />
+	<LinkCard title="LLM gateways with PII masking" description="LiteLLM, Portkey, Kong, Cloudflare, Bedrock Guardrails and where Shadow fits." href="/shadow/compare/llm-gateways-with-pii-masking/" />
+	<LinkCard title="Privacy vaults for LLMs" description="Skyflow, Protecto, Private AI, Tonic Textual, Wald.ai and a local alternative." href="/shadow/compare/privacy-vaults-for-llms/" />
+</CardGrid>
+
+## All comparisons
+
+**Detector libraries and models:** [Presidio](/shadow/compare/presidio/) · [OpenAI Privacy Filter](/shadow/compare/openai-privacy-filter/) · [GLiNER PII](/shadow/compare/gliner-pii/) · [DataFog](/shadow/compare/datafog/) · [AWS Comprehend and Bedrock Guardrails](/shadow/compare/aws-comprehend-bedrock-guardrails/) · [Azure AI Language PII](/shadow/compare/azure-ai-language-pii/) · [Google Sensitive Data Protection](/shadow/compare/google-sensitive-data-protection/)
+
+**Guardrails and gateways:** [LLM Guard](/shadow/compare/llm-guard/) · [NeMo Guardrails](/shadow/compare/nemo-guardrails/) · [LangChain PIIMiddleware](/shadow/compare/langchain-pii-middleware/) · [LiteLLM](/shadow/compare/litellm/) · [Portkey](/shadow/compare/portkey/) · [Kong AI Gateway](/shadow/compare/kong-ai-gateway/) · [Cloudflare AI Gateway](/shadow/compare/cloudflare-ai-gateway/) · [Lakera Guard](/shadow/compare/lakera/)
+
+**Enterprise GenAI DLP:** [Netskope](/shadow/compare/netskope/) · [Zscaler](/shadow/compare/zscaler/) · [Palo Alto AI Access](/shadow/compare/palo-alto-ai-access/) · [Microsoft Purview](/shadow/compare/microsoft-purview/) · [Nightfall](/shadow/compare/nightfall/) · [Harmonic Security](/shadow/compare/harmonic-security/) · [Prompt Security](/shadow/compare/prompt-security/) · [Lasso Security](/shadow/compare/lasso-security/) · [Strac](/shadow/compare/strac/)
+
+**Privacy vaults and secure-AI platforms:** [Skyflow](/shadow/compare/skyflow/) · [Protecto](/shadow/compare/protecto/) · [Private AI](/shadow/compare/private-ai/) · [Tonic Textual](/shadow/compare/tonic-textual/) · [Wald.ai](/shadow/compare/wald-ai/)
+
+**Local reversible proxies:** [Rehydra](/shadow/compare/rehydra/)
+
+## Try Shadow
+
+<CardGrid>
+	<LinkCard title="Quick start" description="Install Shadow and protect your first request in five minutes." href="/shadow/getting-started/quick-start/" />
+	<LinkCard title="How it works" description="Interception, detection, translation and streamed restoration." href="/shadow/concepts/how-it-works/" />
+</CardGrid>
+
+---
+
+*Last reviewed: 2026-10-31. All product names are trademarks of their respective owners. These comparisons are based on public documentation as of the review date. If something is out of date, please [open an issue](https://github.com/Tiny-Bubble-Company/shadow/issues).*

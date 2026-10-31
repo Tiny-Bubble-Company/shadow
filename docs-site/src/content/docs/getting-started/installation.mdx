@@ -1,6 +1,6 @@
 ---
 title: Installation
-description: Install Shadow on macOS, Linux or Windows, from source with Cargo, in Docker, or as a background service.
+description: "Install the Shadow binary on macOS, Linux or Windows: one-line install script, Cargo from source, Docker, or a background service that starts at login."
 ---
 
 import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
@@ -132,5 +132,5 @@ shadow status
 
 ## Optional components
 
-- **NER sidecar.** A small PyTorch model in `ml/` that finds free-text names. See [Detection](/shadow/concepts/detection/#local-ner-sidecar).
+- **NER sidecar.** Open-weight models (OpenAI Privacy Filter and GLiNER) or a small trainable PyTorch model in `ml/` that find free-text names and addresses. See [Detection](/shadow/concepts/detection/#local-ner-sidecar).
 - **Presidio.** Microsoft's PII analyzer as an extra detector. See [Detection](/shadow/concepts/detection/#presidio).

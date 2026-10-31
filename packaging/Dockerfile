@@ -10,7 +10,7 @@ RUN cargo build --release -p shadow-cli
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/* \
- && useradd --system --uid 10001 --home /data shadow && mkdir -p /data && chown shadow /data
+ && useradd --system --uid 10001 --no-user-group --gid nogroup --home /data shadow && mkdir -p /data && chown shadow /data
 COPY --from=build /src/target/release/shadow /usr/local/bin/shadow
 USER shadow
 ENV SHADOW_HOME=/data RUST_LOG=info

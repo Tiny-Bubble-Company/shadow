@@ -54,6 +54,8 @@ pub struct Vault {
     by_fake: HashMap<String, usize>,
     /// Bumped on every change (used to invalidate automata).
     pub generation: u64,
+    /// Bumped when entries are removed or reordered; between bumps, entries are only appended.
+    pub epoch: u64,
     disk_stamp: Option<(SystemTime, u64)>,
 }
 
@@ -69,6 +71,7 @@ impl Vault {
             by_real: HashMap::new(),
             by_fake: HashMap::new(),
             generation: 1,
+            epoch: 0,
             disk_stamp: None,
         };
         if path.exists() {
@@ -184,6 +187,7 @@ impl Vault {
             self.by_fake.insert(e.fake.clone(), i);
         }
         self.generation += 1;
+        self.epoch += 1;
     }
 
     /// Statistics.
@@ -270,24 +274,31 @@ fn load_or_create_key(path: &Path) -> anyhow::Result<[u8; 32]> {
     Ok(key)
 }
 
-/// Create `dir` (and parents) if missing; on Unix the leaf directory is set to mode 0700.
-pub fn create_private_dir(dir: &Path) -> anyhow::Result<()> {
-    std::fs::create_dir_all(dir).with_context(|| format!("creating {}", dir.display()))?;
+/// Create a directory (and parents) that only the current user can open. An existing directory
+/// keeps its permissions: it may be one the user chose and shares on purpose.
+pub fn create_private_dir(dir: &Path) -> std::io::Result<()> {
+    let existed = dir.exists();
+    std::fs::create_dir_all(dir)?;
     #[cfg(unix)]
-    {
+    if !existed {
         use std::os::unix::fs::PermissionsExt;
-        std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o700))
-            .with_context(|| format!("restricting {}", dir.display()))?;
+        std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o700))?;
     }
+    #[cfg(not(unix))]
+    let _ = existed;
     Ok(())
 }
 
 /// Write `data` to `path` atomically (temp file in the same dir + rename).
-/// With `private`, the file is created with mode 0600 on Unix.
+/// With `private`, the file is created with mode 0600 on Unix, in a 0700 directory if new.
 pub fn write_atomic(path: &Path, data: &[u8], private: bool) -> anyhow::Result<()> {
     use std::io::Write;
     let dir = path.parent().unwrap_or_else(|| Path::new("."));
-    std::fs::create_dir_all(dir)?;
+    if private {
+        create_private_dir(dir)?;
+    } else {
+        std::fs::create_dir_all(dir)?;
+    }
     let tmp = dir.join(format!(
         ".{}.{}.{:x}.tmp",
         path.file_name().and_then(|n| n.to_str()).unwrap_or("file"),

@@ -42,6 +42,30 @@ impl Unmasker {
         Self { ac, reals, max_len }
     }
 
+    /// The next fake in `text` at or after `from` that stands as a whole token: a fake that
+    /// starts (ends) with a letter or digit must not be glued to one. "li" is a fake only where
+    /// it is a word, never inside "Lima" or "email".
+    fn next_match(&self, text: &str, mut from: usize) -> Option<(usize, usize, usize)> {
+        let ac = self.ac.as_ref()?;
+        while from <= text.len() {
+            let m = ac.find(aho_corasick::Input::new(text).span(from..text.len()))?;
+            let (s, e) = (m.start(), m.end());
+            let fake = &text[s..e];
+            let glued_before = fake.chars().next().is_some_and(char::is_alphanumeric)
+                && text[..s]
+                    .chars()
+                    .next_back()
+                    .is_some_and(char::is_alphanumeric);
+            let glued_after = fake.chars().next_back().is_some_and(char::is_alphanumeric)
+                && text[e..].chars().next().is_some_and(char::is_alphanumeric);
+            if !glued_before && !glued_after {
+                return Some((s, e, m.pattern().as_usize()));
+            }
+            from = s + text[s..].chars().next().map_or(1, char::len_utf8);
+        }
+        None
+    }
+
     /// Replace every fake in `text` with its real value.
     pub fn apply(&self, text: &str) -> String {
         self.apply_counted(text).0
@@ -49,25 +73,25 @@ impl Unmasker {
 
     /// Like [`Unmasker::apply`], also returning how many values were restored.
     pub fn apply_counted(&self, text: &str) -> (String, usize) {
-        let Some(ac) = &self.ac else {
+        if self.ac.is_none() {
             return (text.to_string(), 0);
-        };
+        }
         let mut out = String::with_capacity(text.len());
         let mut last = 0;
         let mut n = 0;
-        for m in ac.find_iter(text) {
-            out.push_str(&text[last..m.start()]);
-            out.push_str(&self.reals[m.pattern().as_usize()]);
-            last = m.end();
+        while let Some((s, e, i)) = self.next_match(text, last) {
+            out.push_str(&text[last..s]);
+            out.push_str(&self.reals[i]);
+            last = e;
             n += 1;
         }
         out.push_str(&text[last..]);
         (out, n)
     }
 
-    /// True if `text` contains any fake.
+    /// True if `text` contains any fake (as a whole token).
     pub fn contains_fake(&self, text: &str) -> bool {
-        self.ac.as_ref().is_some_and(|ac| ac.is_match(text))
+        self.next_match(text, 0).is_some()
     }
 }
 
@@ -93,10 +117,12 @@ impl StreamUnmasker {
     /// Feed a chunk; returns the text that is safe to emit now.
     pub fn push(&mut self, chunk: &str) -> String {
         self.buf.push_str(chunk);
-        let Some(ac) = &self.un.ac else {
+        if self.un.ac.is_none() {
             return std::mem::take(&mut self.buf);
-        };
-        let hold = self.un.max_len.saturating_sub(1);
+        }
+        // Hold back enough to finish a fake split across chunks, plus the character after it
+        // (to know whether the fake stands alone).
+        let hold = self.un.max_len + 3;
         if self.buf.len() <= hold {
             return String::new();
         }
@@ -106,13 +132,13 @@ impl StreamUnmasker {
         }
         let mut out = String::new();
         let mut last = 0;
-        for m in ac.find_iter(&self.buf) {
-            if m.start() >= cut {
+        while let Some((s, e, i)) = self.un.next_match(&self.buf, last) {
+            if s >= cut {
                 break;
             }
-            out.push_str(&self.buf[last..m.start()]);
-            out.push_str(&self.un.reals[m.pattern().as_usize()]);
-            last = m.end();
+            out.push_str(&self.buf[last..s]);
+            out.push_str(&self.un.reals[i]);
+            last = e;
             self.restored += 1;
         }
         if last < cut {
@@ -225,6 +251,25 @@ mod tests {
                 assert_eq!(out, expected, "split at {i},{j}");
             }
         }
+    }
+
+    #[test]
+    fn fakes_only_match_whole_tokens() {
+        let un = Unmasker::new(vec![
+            ("li".into(), "email".into()),
+            ("Wei".into(), "Bob".into()),
+        ]);
+        assert_eq!(
+            un.apply("li wrote; Lima, email, olive"),
+            "email wrote; Lima, email, olive"
+        );
+        assert_eq!(un.apply("Wei's car, Weimar"), "Bob's car, Weimar");
+        let mut s = StreamUnmasker::new(Arc::new(un));
+        let mut out = s.push("Lim");
+        out += &s.push("a and li");
+        out += &s.push(" too");
+        out += &s.finish();
+        assert_eq!(out, "Lima and email too");
     }
 
     #[test]

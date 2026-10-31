@@ -1,6 +1,6 @@
 ---
 title: Changelog
-description: Notable changes to Shadow, following Keep a Changelog.
+description: "Release notes for Shadow: notable changes, new features and fixes in each version, following Keep a Changelog and Semantic Versioning."
 ---
 
 All notable changes to Shadow are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/). The source of truth is [`CHANGELOG.md`](https://github.com/Tiny-Bubble-Company/shadow/blob/main/CHANGELOG.md).

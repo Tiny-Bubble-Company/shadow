@@ -8,6 +8,22 @@ Shadow's built-in regex and dictionary detectors miss. Shadow's Rust
 `ModelDetector` calls it over localhost HTTP. The Rust build never needs
 Python. If you don't enable the sidecar, nothing here runs.
 
+## Open-weight models (recommended)
+
+`serve_hf.py` serves the same HTTP contract with open-weight, Apache-2.0 models
+from Hugging Face: OpenAI Privacy Filter (`openai/privacy-filter`) and GLiNER
+(`urchade/gliner_multi_pii-v1`), alone or as an ensemble (default). They find
+people, addresses, organisations, private dates, account numbers and secrets in
+many languages, and need no training.
+
+```sh
+pip install -r requirements-hf.txt
+python serve_hf.py --backend ensemble --host 127.0.0.1 --port 8878   # add --device cpu if MPS crashes
+```
+
+The rest of this file covers the small from-scratch model in `serve.py`, which
+needs no downloads and suits air-gapped machines.
+
 ## When to use it
 
 The built-in detectors handle structured PII well: emails, phone numbers, cards,

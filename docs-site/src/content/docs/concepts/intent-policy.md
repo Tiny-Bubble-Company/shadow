@@ -1,6 +1,6 @@
 ---
 title: Intent-aware policy
-description: How Shadow classifies each request as act, report, code or converse, and picks a surrogate, token, keep or redact treatment for every value.
+description: "Shadow classifies each AI request as act, report, code or converse and picks a fake, token, real value or redaction for every sensitive value."
 ---
 
 One treatment does not fit every request. A chat about a customer works best with realistic fakes. A report over a thousand customer rows works best with opaque IDs. An agent that sends an email has to reach the real address. Shadow's policy looks at what a request is *for*, then picks a treatment for each detected value.

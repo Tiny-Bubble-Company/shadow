@@ -1,6 +1,6 @@
 ---
 title: FAQ
-description: Common questions about Shadow.
+description: "Answers to common questions about Shadow: latency, streaming, agents, files, answer quality, Presidio, DLP, telemetry and licensing."
 ---
 
 ### Does Shadow send anything anywhere?

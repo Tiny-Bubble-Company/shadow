@@ -18,6 +18,10 @@
   <a href="#quick-start"><b>Quick start</b></a> ·
   <a href="#how-it-works"><b>How it works</b></a> ·
   <a href="#use-it-from-your-app"><b>Integrations</b></a> ·
+  <a href="https://tiny-bubble-company.github.io/shadow/benchmarks/"><b>Benchmarks</b></a> ·
+  <a href="https://tiny-bubble-company.github.io/shadow/compare/"><b>Compare</b></a> ·
+  <a href="https://tiny-bubble-company.github.io/shadow/use-cases/"><b>Use cases</b></a> ·
+  <a href="https://tiny-bubble-company.github.io/shadow/industries/"><b>Industries</b></a> ·
   <a href="CONTRIBUTING.md"><b>Contributing</b></a>
 </p>
 
@@ -279,11 +283,14 @@ Read the full [security model](https://tiny-bubble-company.github.io/shadow/refe
 
 ## Documentation
 
+Full documentation: **[tiny-bubble-company.github.io/shadow](https://tiny-bubble-company.github.io/shadow/)**
+
+- [Benchmarks](https://tiny-bubble-company.github.io/shadow/benchmarks/) · [Compare with alternatives](https://tiny-bubble-company.github.io/shadow/compare/) · [Use cases](https://tiny-bubble-company.github.io/shadow/use-cases/) · [Industries](https://tiny-bubble-company.github.io/shadow/industries/) · [By company size](https://tiny-bubble-company.github.io/shadow/company-size/)
 - [Introduction](https://tiny-bubble-company.github.io/shadow/getting-started/introduction/) · [Installation](https://tiny-bubble-company.github.io/shadow/getting-started/installation/)
 - [Proxy mode](https://tiny-bubble-company.github.io/shadow/integrate/proxy-mode/) · [Gateway mode](https://tiny-bubble-company.github.io/shadow/integrate/gateway-mode/) · [Embed in Rust](https://tiny-bubble-company.github.io/shadow/integrate/rust/) · [Docker and Kubernetes](https://tiny-bubble-company.github.io/shadow/integrate/docker-kubernetes/)
 - [Configuration](https://tiny-bubble-company.github.io/shadow/reference/configuration/) · [CLI](https://tiny-bubble-company.github.io/shadow/reference/cli/) · [Providers](https://tiny-bubble-company.github.io/shadow/reference/providers/) · [FAQ](https://tiny-bubble-company.github.io/shadow/reference/faq/)
 
-The source of the docs is in [`docs-site/`](docs-site/).
+The source of the docs is in [`docs-site/`](docs-site/). For LLMs and answer engines, the docs are also published as [`llms.txt`](https://tiny-bubble-company.github.io/shadow/llms.txt) and [`llms-full.txt`](https://tiny-bubble-company.github.io/shadow/llms-full.txt).
 
 ## Roadmap
 

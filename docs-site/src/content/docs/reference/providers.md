@@ -1,6 +1,6 @@
 ---
 title: Supported providers and hosts
-description: The AI hosts Shadow intercepts in proxy mode, the built-in gateway routes, and the API formats it understands.
+description: "AI providers Shadow supports: OpenAI, Anthropic, Gemini, Azure OpenAI, Bedrock, Mistral and more. Intercepted hosts, gateway routes and API formats."
 ---
 
 ## Intercepted hosts (proxy mode)

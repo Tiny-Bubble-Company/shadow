@@ -1,0 +1,14 @@
+---
+// Wraps Starlight's MarkdownContent to append a visible FAQ section when the page's
+// frontmatter has `faq:`. The same questions are emitted as FAQPage JSON-LD by
+// src/seo/middleware.ts, and search engines expect the Q&A to be visible on the page.
+import Default from '@astrojs/starlight/components/MarkdownContent.astro';
+import FaqSection from './FaqSection.astro';
+
+const { faq } = Astro.locals.starlightRoute.entry.data as { faq?: { q: string; a: string }[] };
+---
+
+<Default>
+	<slot />
+	{faq && faq.length > 0 && <FaqSection items={faq} />}
+</Default>

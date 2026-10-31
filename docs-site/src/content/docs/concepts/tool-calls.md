@@ -1,6 +1,6 @@
 ---
 title: Tool calls and agents
-description: How Shadow keeps agents working with masked data, restoring tool-call arguments locally and handling provider-hosted tools.
+description: "How Shadow keeps AI agents working on masked data: tool-call arguments are restored locally before tools run, and provider-hosted tools follow policy."
 ---
 
 Agents turn model output into actions: sending email, querying databases, creating tickets, running shell commands. That raises a question plain masking cannot answer: if the model only ever sees fakes, how does the action reach the real target?

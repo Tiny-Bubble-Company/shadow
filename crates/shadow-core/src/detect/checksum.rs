@@ -87,6 +87,26 @@ fn mod97(rearranged: &str) -> Option<u32> {
     Some(rem)
 }
 
+/// Mod-97 check only (any length 15-34), for values explicitly labelled "IBAN" whose
+/// length does not match the country's registered format.
+pub fn iban_checksum_ok(s: &str) -> bool {
+    let compact: String = s
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect::<String>()
+        .to_ascii_uppercase();
+    if compact.len() < 15 || compact.len() > 34 || !compact.is_ascii() {
+        return false;
+    }
+    let rearranged = format!("{}{}", &compact[4..], &compact[..4]);
+    mod97(&rearranged) == Some(1)
+}
+
+/// True if `cc` is a country code that issues IBANs.
+pub fn iban_country(cc: &str) -> bool {
+    iban_len(&cc.to_ascii_uppercase()).is_some()
+}
+
 /// Validate an IBAN (spaces allowed).
 pub fn iban_valid(s: &str) -> bool {
     let compact: String = s
@@ -236,9 +256,288 @@ pub fn btc_bech32_valid(s: &str) -> bool {
     }
 }
 
+/// US Social Security Number structure: area not 000/666/9xx, group not 00, serial not 0000.
+pub fn ssn_valid(s: &str) -> bool {
+    let d: String = s.chars().filter(char::is_ascii_digit).collect();
+    if d.len() != 9 {
+        return false;
+    }
+    let (area, group, serial) = (&d[..3], &d[3..5], &d[5..]);
+    area != "000" && area != "666" && !area.starts_with('9') && group != "00" && serial != "0000"
+}
+
+/// UK National Insurance number prefix/suffix rules (separators ignored).
+pub fn nino_valid(s: &str) -> bool {
+    let c: Vec<char> = s.chars().filter(|c| !c.is_whitespace()).collect();
+    if c.len() != 9 {
+        return false;
+    }
+    let (a, b) = (c[0], c[1]);
+    let ok_first = a.is_ascii_uppercase() && !"DFIQUV".contains(a);
+    let ok_second = b.is_ascii_uppercase() && !"DFIOQUV".contains(b);
+    let prefix: String = [a, b].iter().collect();
+    ok_first
+        && ok_second
+        && !["BG", "GB", "NK", "KN", "TN", "NT", "ZZ"].contains(&prefix.as_str())
+        && c[2..8].iter().all(char::is_ascii_digit)
+        && "ABCD".contains(c[8])
+}
+
+const VERHOEFF_D: [[u8; 10]; 10] = [
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    [1, 2, 3, 4, 0, 6, 7, 8, 9, 5],
+    [2, 3, 4, 0, 1, 7, 8, 9, 5, 6],
+    [3, 4, 0, 1, 2, 8, 9, 5, 6, 7],
+    [4, 0, 1, 2, 3, 9, 5, 6, 7, 8],
+    [5, 9, 8, 7, 6, 0, 4, 3, 2, 1],
+    [6, 5, 9, 8, 7, 1, 0, 4, 3, 2],
+    [7, 6, 5, 9, 8, 2, 1, 0, 4, 3],
+    [8, 7, 6, 5, 9, 3, 2, 1, 0, 4],
+    [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+];
+const VERHOEFF_P: [[u8; 10]; 8] = [
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    [1, 5, 7, 6, 2, 8, 3, 0, 9, 4],
+    [5, 8, 0, 3, 7, 9, 6, 1, 4, 2],
+    [8, 9, 1, 6, 0, 4, 3, 5, 2, 7],
+    [9, 4, 5, 3, 1, 2, 8, 7, 6, 0],
+    [4, 2, 8, 6, 5, 7, 3, 9, 0, 1],
+    [2, 7, 9, 3, 8, 0, 6, 4, 1, 5],
+    [7, 0, 4, 6, 9, 1, 3, 2, 5, 8],
+];
+const VERHOEFF_INV: [u8; 10] = [0, 4, 3, 2, 1, 5, 6, 7, 8, 9];
+
+fn verhoeff_c(digits: &[u32], offset: usize) -> u8 {
+    let mut c = 0u8;
+    for (i, &d) in digits.iter().rev().enumerate() {
+        c = VERHOEFF_D[c as usize][VERHOEFF_P[(i + offset) % 8][d as usize] as usize];
+    }
+    c
+}
+
+/// Verhoeff check digit for `payload`.
+pub fn verhoeff_check_digit(payload: &[u32]) -> u32 {
+    VERHOEFF_INV[verhoeff_c(payload, 1) as usize] as u32
+}
+
+/// India Aadhaar: 12 digits, first digit 2-9, Verhoeff checksum (separators ignored).
+pub fn aadhaar_valid(s: &str) -> bool {
+    let d = digits_of(s);
+    d.len() == 12 && d[0] >= 2 && verhoeff_c(&d, 0) == 0
+}
+
+/// The two CPF check digits for the first nine digits.
+pub fn cpf_check_digits(d9: &[u32]) -> (u32, u32) {
+    let s1: u32 = d9.iter().zip((2..=10).rev()).map(|(x, w)| x * w).sum();
+    let c1 = (s1 * 10) % 11 % 10;
+    let s2: u32 = d9
+        .iter()
+        .chain(std::iter::once(&c1))
+        .zip((2..=11).rev())
+        .map(|(x, w)| x * w)
+        .sum();
+    (c1, (s2 * 10) % 11 % 10)
+}
+
+/// Brazil CPF: 11 digits with two mod-11 check digits (separators ignored).
+pub fn cpf_valid(s: &str) -> bool {
+    let d = digits_of(s);
+    if d.len() != 11 || d.iter().all(|&x| x == d[0]) {
+        return false;
+    }
+    cpf_check_digits(&d[..9]) == (d[9], d[10])
+}
+
+/// Netherlands BSN: 9 digits passing the "11-proef" (last digit weighted -1).
+pub fn bsn_valid(s: &str) -> bool {
+    let d = digits_of(s);
+    if d.len() != 9 || d.iter().all(|&x| x == 0) {
+        return false;
+    }
+    let sum: i64 = d[..8]
+        .iter()
+        .zip((2..=9).rev())
+        .map(|(x, w)| (*x as i64) * w)
+        .sum::<i64>()
+        - d[8] as i64;
+    sum % 11 == 0
+}
+
+const NIF_LETTERS: &[u8] = b"TRWAGMYFPDXBNJZSQVHLCKE";
+
+/// Spanish NIF/DNI (8 digits + letter) or NIE (X/Y/Z + 7 digits + letter) check letter.
+pub fn nif_letter(number: u32) -> char {
+    NIF_LETTERS[(number % 23) as usize] as char
+}
+
+/// Spain NIF/DNI or NIE with a valid control letter (a `-` or space before the letter is allowed).
+pub fn nif_valid(s: &str) -> bool {
+    let c: String = s
+        .chars()
+        .filter(|c| !matches!(c, '-' | ' '))
+        .collect::<String>()
+        .to_ascii_uppercase();
+    if c.len() != 9 {
+        return false;
+    }
+    let (body, letter) = c.split_at(8);
+    let body = match body.as_bytes()[0] {
+        b'X' => format!("0{}", &body[1..]),
+        b'Y' => format!("1{}", &body[1..]),
+        b'Z' => format!("2{}", &body[1..]),
+        _ => body.to_string(),
+    };
+    match body.parse::<u32>() {
+        Ok(n) if body.chars().all(|c| c.is_ascii_digit()) => letter.starts_with(nif_letter(n)),
+        _ => false,
+    }
+}
+
+/// Italian codice fiscale check character for the first 15 characters.
+pub fn codice_fiscale_check(first15: &str) -> Option<char> {
+    const ODD: [u32; 26] = [
+        1, 0, 5, 7, 9, 13, 15, 17, 19, 21, 2, 4, 18, 20, 11, 3, 6, 8, 12, 14, 16, 10, 22, 25, 24,
+        23,
+    ];
+    let mut sum = 0;
+    for (i, c) in first15.chars().enumerate() {
+        let idx = match c {
+            '0'..='9' => c as u32 - '0' as u32,
+            'A'..='Z' => c as u32 - 'A' as u32,
+            _ => return None,
+        };
+        sum += if i % 2 == 0 { ODD[idx as usize] } else { idx };
+    }
+    char::from_u32('A' as u32 + sum % 26)
+}
+
+/// Italy codice fiscale: 16 characters, valid structure and check character.
+pub fn codice_fiscale_valid(s: &str) -> bool {
+    let s = s.to_ascii_uppercase();
+    let b = s.as_bytes();
+    if b.len() != 16 {
+        return false;
+    }
+    // Digits may be replaced by LMNPQRSTUV ("omocodia") when codes collide.
+    let num = |c: u8| c.is_ascii_digit() || b"LMNPQRSTUV".contains(&c);
+    let shape = b[..6].iter().all(u8::is_ascii_alphabetic)
+        && num(b[6])
+        && num(b[7])
+        && b"ABCDEHLMPRST".contains(&b[8])
+        && num(b[9])
+        && num(b[10])
+        && b[11].is_ascii_alphabetic()
+        && b[12..15].iter().all(|c| num(*c))
+        && b[15].is_ascii_alphabetic();
+    shape && codice_fiscale_check(&s[..15]) == Some(b[15] as char)
+}
+
+/// France INSEE/NIR: 13 characters (Corsica `2A`/`2B` allowed) + 2-digit key = 97 - n mod 97.
+pub fn insee_valid(s: &str) -> bool {
+    let c: String = s.chars().filter(|c| !c.is_whitespace()).collect();
+    if c.len() != 15 {
+        return false;
+    }
+    let (body, key) = c.split_at(13);
+    insee_key(body).is_some_and(|k| key.parse::<u64>().ok() == Some(k))
+}
+
+/// The INSEE control key for a 13-character body.
+pub fn insee_key(body: &str) -> Option<u64> {
+    let up = body.to_ascii_uppercase();
+    if up.len() != 13 || !matches!(up.as_bytes()[0], b'1' | b'2' | b'3' | b'7' | b'8') {
+        return None;
+    }
+    // Corsica: departments 2A / 2B count as 19 / 18 in the key computation.
+    let n = match &up[5..7] {
+        "2A" => format!("{}19{}", &up[..5], &up[7..]),
+        "2B" => format!("{}18{}", &up[..5], &up[7..]),
+        _ => up.clone(),
+    };
+    let v: u64 = n.parse().ok()?;
+    let month: u32 = up[3..5].parse().ok()?;
+    if !(1..=12).contains(&month) && !(20..=42).contains(&month) && !(50..=99).contains(&month) {
+        return None;
+    }
+    Some(97 - v % 97)
+}
+
+/// Germany Steuer-ID check digit (ISO 7064 MOD 11,10) for the first ten digits.
+pub fn steuer_id_check_digit(d10: &[u32]) -> u32 {
+    let mut product = 10;
+    for &d in d10 {
+        let mut sum = (d + product) % 10;
+        if sum == 0 {
+            sum = 10;
+        }
+        product = (sum * 2) % 11;
+    }
+    let c = 11 - product;
+    if c == 10 {
+        0
+    } else {
+        c
+    }
+}
+
+/// Germany Steuerliche Identifikationsnummer: 11 digits, no leading zero, exactly one digit
+/// repeated (2-3 times) in the first ten, valid check digit.
+pub fn steuer_id_valid(s: &str) -> bool {
+    let d = digits_of(s);
+    if d.len() != 11 || d[0] == 0 {
+        return false;
+    }
+    let mut counts = [0u8; 10];
+    d[..10].iter().for_each(|&x| counts[x as usize] += 1);
+    let repeated: Vec<u8> = counts.iter().copied().filter(|&c| c >= 2).collect();
+    repeated.len() == 1 && repeated[0] <= 3 && steuer_id_check_digit(&d[..10]) == d[10]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn national_ids() {
+        assert!(ssn_valid("123-45-6789"));
+        assert!(!ssn_valid("666-45-6789"));
+        assert!(!ssn_valid("923-45-6789"));
+        assert!(!ssn_valid("123-00-6789"));
+        assert!(nino_valid("AB 12 34 56 C"));
+        assert!(nino_valid("JG103759A"));
+        assert!(!nino_valid("ZZ123456A"));
+        assert!(!nino_valid("DA123456A"));
+        assert!(!nino_valid("AB123456E"));
+        assert!(aadhaar_valid("2341 2341 2346"));
+        assert!(!aadhaar_valid("2341 2341 2347"));
+        assert!(!aadhaar_valid("1341 2341 2346"));
+        let mut p = vec![4, 9, 9, 1, 1, 8, 6, 6, 5, 2, 3];
+        p.push(verhoeff_check_digit(&p));
+        assert!(aadhaar_valid(
+            &p.iter().map(|d| d.to_string()).collect::<String>()
+        ));
+        assert!(cpf_valid("529.982.247-25"));
+        assert!(!cpf_valid("529.982.247-26"));
+        assert!(!cpf_valid("111.111.111-11"));
+        assert!(bsn_valid("111222333"));
+        assert!(bsn_valid("123456782"));
+        assert!(!bsn_valid("123456789"));
+        assert!(nif_valid("12345678Z"));
+        assert!(nif_valid("12345678-Z"));
+        assert!(!nif_valid("12345678A"));
+        assert!(nif_valid("X1234567L"));
+        assert!(!nif_valid("X1234567A"));
+        assert!(codice_fiscale_valid("RSSMRA85T10A562S"));
+        assert!(!codice_fiscale_valid("RSSMRA85T10A562T"));
+        assert!(!codice_fiscale_valid("RSSMRA85X10A562S"));
+        assert!(insee_valid("1 84 12 76 451 089 46"));
+        assert!(insee_valid("184127645108946"));
+        assert!(!insee_valid("184127645108947"));
+        assert!(!insee_valid("484127645108946"));
+        assert!(steuer_id_valid("86095742719"));
+        assert!(!steuer_id_valid("86095742718"));
+        assert!(!steuer_id_valid("06095742719"));
+    }
 
     #[test]
     fn nhs_tfn_abn() {
