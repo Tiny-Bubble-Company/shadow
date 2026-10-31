@@ -3,6 +3,8 @@
 use std::io::Read;
 use std::sync::Arc;
 
+use shadow_core::activity::Action;
+
 use bytes::Bytes;
 use futures_util::StreamExt;
 use http::header::{self, HeaderMap, HeaderName, HeaderValue};
@@ -13,6 +15,7 @@ use serde_json::Value;
 use shadow_core::files::{self, FileError};
 use shadow_core::{RequestContext, Session};
 
+use crate::activity::{Pending, Via};
 use crate::sse::{EventStreamUnmasker, Framing, Translator};
 use crate::{Body, Proxy};
 
@@ -112,7 +115,7 @@ impl Proxy {
         &self,
         headers: &mut HeaderMap,
         body: &Bytes,
-    ) -> Result<Option<(Bytes, usize, Arc<Session>)>, String> {
+    ) -> Result<Option<(Bytes, usize, Arc<Session>)>, FileError> {
         if body.is_empty() {
             return Ok(None);
         }
@@ -140,7 +143,6 @@ impl Proxy {
             .to_string();
         let ct = ct_raw.to_ascii_lowercase();
         let files_cfg = &self.shadow.config().files;
-        let blocked = |e: FileError| e.to_string();
         let (out, n, session) = if is_json(&ct, &plain) {
             match serde_json::from_slice::<Value>(&plain) {
                 Ok(mut v) => {
@@ -153,7 +155,7 @@ impl Proxy {
                     let stash = files::stash_binary(&mut v);
                     let mut n = session.mask_json(&mut v);
                     files::unstash_binary(&mut v, stash);
-                    n += files::mask_json_files(&mask, files_cfg, &mut v).map_err(blocked)?;
+                    n += files::mask_json_files(&mask, files_cfg, &mut v)?;
                     n += self.shadow.scrub_identifiers(&mut v);
                     let Ok(bytes) = serde_json::to_vec(&v) else {
                         return Ok(None);
@@ -175,8 +177,7 @@ impl Proxy {
                 let m = session.mask(t);
                 (m.text, m.replacements)
             };
-            let (out, n) =
-                files::mask_multipart(&mask, files_cfg, &ct_raw, &plain).map_err(blocked)?;
+            let (out, n) = files::mask_multipart(&mask, files_cfg, &ct_raw, &plain)?;
             (out, n, session)
         } else if ct.starts_with("text/") || ct.contains("x-www-form-urlencoded") {
             let Ok(text) = std::str::from_utf8(&plain) else {
@@ -210,6 +211,18 @@ impl Proxy {
         url: String,
         translate: bool,
     ) -> Response<Body> {
+        self.forward_via(req, url, translate, Via::Proxy(None))
+            .await
+    }
+
+    /// [`Proxy::forward`], telling the activity feed how the request arrived.
+    pub(crate) async fn forward_via(
+        &self,
+        req: Request<Incoming>,
+        url: String,
+        translate: bool,
+        via: Via<'_>,
+    ) -> Response<Body> {
         let (parts, body) = req.into_parts();
         let body = match body.collect().await {
             Ok(b) => b.to_bytes(),
@@ -223,17 +236,47 @@ impl Proxy {
         let mut headers = parts.headers.clone();
         let mut out_body = body.clone();
         let mut translator: Translator = self.shadow.clone().into();
+        let mut pending = if translate {
+            self.pending(&url, via, parts.method.as_str(), &parts.headers, body.len())
+        } else {
+            None
+        };
         if translate {
             headers = self.outbound_headers(headers);
             match self.mask_body(&mut headers, &body) {
                 Ok(Some((b, n, session))) => {
                     tracing::info!(target: "shadow::proxy", "{} {} masked {n} value(s)", parts.method, url);
+                    if let Some(p) = pending.as_mut() {
+                        let s = session.summary();
+                        let mut kinds: std::collections::BTreeMap<String, u32> = s
+                            .kinds
+                            .iter()
+                            .map(|(k, v)| (k.clone(), *v as u32))
+                            .collect();
+                        let identifiers = n.saturating_sub(s.kinds.values().sum());
+                        if identifiers > 0 {
+                            kinds.insert("identifier".into(), identifiers as u32);
+                        }
+                        p.ev.action = if kinds.is_empty() {
+                            Action::Clean
+                        } else {
+                            Action::Masked
+                        };
+                        p.ev.kinds = kinds;
+                        p.ev.detectors = s.detectors.into_iter().collect();
+                        p.ev.intent = Some(session.classification().intent.as_str().to_string());
+                    }
                     out_body = b;
                     translator = session.into();
                 }
                 Ok(None) => {}
                 Err(reason) => {
                     tracing::warn!(target: "shadow::proxy", "{} {} blocked: {reason}", parts.method, url);
+                    if let Some(p) = pending.as_mut() {
+                        p.ev.action = Action::Blocked;
+                        p.ev.block_reason = Some(reason.category().to_string());
+                        p.ev.status = StatusCode::FORBIDDEN.as_u16();
+                    }
                     return error_response(
                         StatusCode::FORBIDDEN,
                         &format!("Shadow blocked this request: {reason}"),
@@ -255,13 +298,17 @@ impl Proxy {
         {
             Ok(r) => r,
             Err(e) => {
+                if let Some(p) = pending.as_mut() {
+                    p.ev.status = StatusCode::BAD_GATEWAY.as_u16();
+                }
                 return error_response(
                     StatusCode::BAD_GATEWAY,
                     &format!("upstream request failed: {e}"),
-                )
+                );
             }
         };
-        self.translate_response(resp, translate, translator).await
+        self.translate_response(resp, translate, translator, pending)
+            .await
     }
 
     async fn translate_response(
@@ -269,8 +316,12 @@ impl Proxy {
         resp: reqwest::Response,
         translate: bool,
         translator: Translator,
+        mut pending: Option<Pending>,
     ) -> Response<Body> {
         let status = resp.status();
+        if let Some(p) = pending.as_mut() {
+            p.ev.status = status.as_u16();
+        }
         let mut headers = resp.headers().clone();
         for name in HOP_BY_HOP {
             headers.remove(*name);
@@ -292,10 +343,16 @@ impl Proxy {
         if let Some(h) = builder.headers_mut() {
             *h = headers;
         }
+        if let Some(p) = pending.as_mut() {
+            p.ev.streamed = framing.is_some();
+        }
         if !translate || encoded {
-            let stream = resp
-                .bytes_stream()
-                .map(|r| r.map(Frame::data).map_err(std::io::Error::other));
+            let stream = resp.bytes_stream().map(move |r| {
+                if let (Ok(b), Some(p)) = (&r, pending.as_mut()) {
+                    p.ev.bytes_out += b.len() as u64;
+                }
+                r.map(Frame::data).map_err(std::io::Error::other)
+            });
             return builder
                 .body(BodyExt::boxed_unsync(StreamBody::new(stream)))
                 .expect("valid response");
@@ -304,8 +361,8 @@ impl Proxy {
             let unmasker = EventStreamUnmasker::new(translator, framing);
             let upstream = resp.bytes_stream().boxed();
             let stream = futures_util::stream::unfold(
-                (upstream, unmasker, false),
-                |(mut up, mut un, done)| async move {
+                (upstream, unmasker, false, pending),
+                |(mut up, mut un, done, mut pending)| async move {
                     if done {
                         return None;
                     }
@@ -313,21 +370,33 @@ impl Proxy {
                         match up.next().await {
                             Some(Ok(chunk)) => {
                                 let out = un.push(&chunk);
+                                if let Some(p) = pending.as_mut() {
+                                    p.ev.bytes_out += out.len() as u64;
+                                    p.ev.restored = un.restored() as u32;
+                                }
                                 if !out.is_empty() {
                                     return Some((
                                         Ok(Frame::data(Bytes::from(out))),
-                                        (up, un, false),
+                                        (up, un, false, pending),
                                     ));
                                 }
                             }
                             Some(Err(e)) => {
-                                return Some((Err(std::io::Error::other(e)), (up, un, true)))
+                                return Some((
+                                    Err(std::io::Error::other(e)),
+                                    (up, un, true, pending),
+                                ))
                             }
                             None => {
+                                let out = un.finish();
+                                if let Some(p) = pending.as_mut() {
+                                    p.ev.bytes_out += out.len() as u64;
+                                    p.ev.restored = un.restored() as u32;
+                                }
                                 return Some((
-                                    Ok(Frame::data(Bytes::from(un.finish()))),
-                                    (up, un, true),
-                                ))
+                                    Ok(Frame::data(Bytes::from(out))),
+                                    (up, un, true, pending),
+                                ));
                             }
                         }
                     }
@@ -346,25 +415,34 @@ impl Proxy {
                 )
             }
         };
+        let mut restored = 0;
         let out = match std::str::from_utf8(&bytes) {
             Ok(text) => {
-                let un = translator.unmask(text);
+                let (un, n) = translator.unmask_counted(text);
                 if un == text {
                     bytes
                 } else if is_json(&ct, &bytes) {
                     match serde_json::from_str::<Value>(text) {
                         Ok(mut v) => {
-                            translator.unmask_json(&mut v);
+                            restored = translator.unmask_json(&mut v);
                             Bytes::from(serde_json::to_vec(&v).unwrap_or_default())
                         }
-                        Err(_) => Bytes::from(un),
+                        Err(_) => {
+                            restored = n;
+                            Bytes::from(un)
+                        }
                     }
                 } else {
+                    restored = n;
                     Bytes::from(un)
                 }
             }
             _ => bytes,
         };
+        if let Some(mut p) = pending {
+            p.ev.restored = restored as u32;
+            p.ev.bytes_out = out.len() as u64;
+        }
         builder.body(full(out)).expect("valid response")
     }
 }

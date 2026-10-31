@@ -10,7 +10,11 @@
 //!
 //! Requests are masked (JSON-aware), identifying headers/fields are replaced with persona
 //! values, and responses (including SSE streams) are unmasked before reaching the caller.
+//!
+//! Each translated request also produces a privacy-safe [`shadow_core::activity::Event`]
+//! (counts only), served on loopback at `/shadow/activity*` and visualised at `/shadow/ui`.
 
+mod activity;
 pub mod ca;
 mod forward;
 pub mod hosts;
@@ -27,11 +31,13 @@ use http_body_util::combinators::UnsyncBoxBody;
 use hyper::body::Incoming;
 use hyper::service::service_fn;
 use hyper_util::rt::TokioIo;
+use shadow_core::activity::ActivityLog;
 use shadow_core::config::ProxyConfig;
 use shadow_core::Shadow;
 use tokio::net::{TcpListener, TcpStream};
 use tokio_rustls::TlsAcceptor;
 
+pub use activity::{is_loopback, UI_CSP};
 pub use ca::CertAuthority;
 pub use forward::{error_response, full};
 pub use hosts::{HostMatcher, AI_HOSTS};
@@ -48,6 +54,7 @@ pub struct Proxy {
     routes: BTreeMap<String, String>,
     overrides: HashMap<String, String>,
     cfg: ProxyConfig,
+    activity: Option<Arc<ActivityLog>>,
 }
 
 impl Proxy {
@@ -65,7 +72,20 @@ impl Proxy {
             Some(up) if !up.trim().is_empty() => builder.proxy(reqwest::Proxy::all(up.as_str())?),
             _ => builder.no_proxy(),
         };
+        let act = &shadow.config().activity;
+        let activity = if act.enabled {
+            match ActivityLog::open(act, &shadow.config().activity_dir()) {
+                Ok(log) => Some(Arc::new(log)),
+                Err(e) => {
+                    tracing::warn!("activity log unavailable, keeping it in memory: {e:#}");
+                    Some(Arc::new(ActivityLog::in_memory(act.retention_days)))
+                }
+            }
+        } else {
+            None
+        };
         Ok(Self {
+            activity,
             hosts: HostMatcher::new(&cfg.extra_hosts, &cfg.bypass_hosts),
             routes: hosts::routes(&cfg.routes),
             shadow,
@@ -84,6 +104,11 @@ impl Proxy {
             base_url.trim_end_matches('/').to_string(),
         );
         self
+    }
+
+    /// The activity log (`None` when `activity.enabled = false`).
+    pub fn activity(&self) -> Option<&Arc<ActivityLog>> {
+        self.activity.as_ref()
     }
 
     /// The local CA.
@@ -113,14 +138,18 @@ impl Proxy {
             let (stream, peer) = listener.accept().await?;
             let me = self.clone();
             tokio::spawn(async move {
-                if let Err(e) = me.serve_conn(stream).await {
+                if let Err(e) = me.serve_conn(stream, peer).await {
                     tracing::debug!("connection from {peer}: {e}");
                 }
             });
         }
     }
 
-    async fn serve_conn(self: Arc<Self>, stream: TcpStream) -> Result<(), hyper::Error> {
+    async fn serve_conn(
+        self: Arc<Self>,
+        stream: TcpStream,
+        peer: SocketAddr,
+    ) -> Result<(), hyper::Error> {
         let _ = stream.set_nodelay(true);
         let me = self.clone();
         hyper::server::conn::http1::Builder::new()
@@ -128,13 +157,17 @@ impl Proxy {
             .title_case_headers(true)
             .serve_connection(
                 TokioIo::new(stream),
-                service_fn(move |req| me.clone().handle(req)),
+                service_fn(move |req| me.clone().handle(req, peer)),
             )
             .with_upgrades()
             .await
     }
 
-    async fn handle(self: Arc<Self>, req: Request<Incoming>) -> Result<Response<Body>, Infallible> {
+    async fn handle(
+        self: Arc<Self>,
+        req: Request<Incoming>,
+        peer: SocketAddr,
+    ) -> Result<Response<Body>, Infallible> {
         if req.method() == Method::CONNECT {
             return Ok(self.connect(req));
         }
@@ -148,6 +181,13 @@ impl Proxy {
         let path = req.uri().path().to_string();
         if let Some(rest) = path.strip_prefix("/gw/") {
             return Ok(self.gateway(req, rest.to_string()).await);
+        }
+        if path == "/shadow/ui"
+            || path.starts_with("/shadow/ui/")
+            || path == "/shadow/activity"
+            || path.starts_with("/shadow/activity/")
+        {
+            return Ok(self.dashboard(peer, req.headers(), &path, req.uri().query()));
         }
         Ok(match path.as_str() {
             "/" | "/shadow/status" => self.status(),
@@ -183,6 +223,7 @@ impl Proxy {
             "vault": self.shadow.stats(),
             "routes": self.routes,
             "ca_fingerprint": self.ca.fingerprint(),
+            "activity": {"enabled": self.activity.is_some(), "dashboard": "/shadow/ui"},
         });
         Response::builder()
             .header(header::CONTENT_TYPE, "application/json")
@@ -204,7 +245,8 @@ impl Proxy {
             url.push('?');
             url.push_str(q);
         }
-        self.forward(req, url, true).await
+        self.forward_via(req, url, true, activity::Via::Gateway(name))
+            .await
     }
 
     fn connect(self: Arc<Self>, req: Request<Incoming>) -> Response<Body> {
@@ -267,13 +309,17 @@ impl Proxy {
                 service_fn(move |req: Request<Incoming>| {
                     let me = me.clone();
                     let base = base.clone();
+                    let host = host.clone();
                     async move {
                         let pq = req
                             .uri()
                             .path_and_query()
                             .map(|p| p.as_str().to_string())
                             .unwrap_or_else(|| "/".into());
-                        Ok::<_, Infallible>(me.forward(req, format!("{base}{pq}"), true).await)
+                        let via = activity::Via::Proxy(Some(&host));
+                        Ok::<_, Infallible>(
+                            me.forward_via(req, format!("{base}{pq}"), true, via).await,
+                        )
                     }
                 }),
             )

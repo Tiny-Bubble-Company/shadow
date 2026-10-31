@@ -42,7 +42,16 @@ impl Translator {
         }
     }
 
-    pub fn unmask_json(&self, v: &mut Value) {
+    /// Like [`Translator::unmask`], also returning how many values were restored.
+    pub fn unmask_counted(&self, text: &str) -> (String, usize) {
+        match self {
+            Translator::Shadow(s) => s.unmask_counted(text),
+            Translator::Session(s) => s.unmask_counted(text),
+        }
+    }
+
+    /// Unmask every string leaf in place; returns values restored.
+    pub fn unmask_json(&self, v: &mut Value) -> usize {
         match self {
             Translator::Shadow(s) => s.unmask_json(v),
             Translator::Session(s) => s.unmask_json(v),
@@ -87,6 +96,8 @@ pub struct EventStreamUnmasker {
     fields: Vec<String>,
     data: Vec<String>,
     channels: BTreeMap<String, Channel>,
+    /// Values restored by finished channels and direct unmasking.
+    restored: usize,
 }
 
 fn get_mut<'a>(v: &'a mut Value, path: &[Seg]) -> Option<&'a mut Value> {
@@ -265,7 +276,18 @@ impl EventStreamUnmasker {
             fields: vec![],
             data: vec![],
             channels: BTreeMap::new(),
+            restored: 0,
         }
+    }
+
+    /// Values restored so far (counts only).
+    pub fn restored(&self) -> usize {
+        self.restored
+            + self
+                .channels
+                .values()
+                .map(|c| c.un.restored())
+                .sum::<usize>()
     }
 
     /// Feed raw bytes; returns translated bytes ready to send.
@@ -352,6 +374,7 @@ impl EventStreamUnmasker {
                 continue;
             };
             let tail = ch.un.finish();
+            self.restored += ch.un.restored();
             if tail.is_empty() {
                 continue;
             }
@@ -382,7 +405,8 @@ impl EventStreamUnmasker {
             return;
         }
         let Ok(mut v) = serde_json::from_str::<Value>(&data) else {
-            let un = self.shadow.unmask(&data);
+            let (un, n) = self.shadow.unmask_counted(&data);
+            self.restored += n;
             self.emit(&fields, &un, out);
             return;
         };
@@ -401,7 +425,7 @@ impl EventStreamUnmasker {
                 .unwrap_or_default();
             texts.push(t);
         }
-        self.shadow.unmask_json(&mut v);
+        self.restored += self.shadow.unmask_json(&mut v);
         let template = v.clone();
         for ((key, path), text) in found.iter().zip(texts) {
             let shadow = &self.shadow;
@@ -436,7 +460,9 @@ impl EventStreamUnmasker {
         }
         for (key, _) in &found {
             if ends.iter().any(|p| key.starts_with(p.as_str())) {
-                self.channels.remove(key);
+                if let Some(ch) = self.channels.remove(key) {
+                    self.restored += ch.un.restored();
+                }
             }
         }
         if v == original {

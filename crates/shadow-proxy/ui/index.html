@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="referrer" content="no-referrer">
+<title>Shadow · Activity</title>
+<link rel="icon" href="/shadow/ui/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/shadow/ui/app.css">
+<script src="/shadow/ui/app.js" defer></script>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <img src="/shadow/ui/logo.svg" alt="" width="30" height="30">
+    <div class="brand-text">
+      <span class="wordmark">Shadow</span>
+      <span class="tagline">Privacy activity</span>
+    </div>
+  </div>
+  <div class="top-right">
+    <span class="pill demo" id="demo-badge" hidden>Demo data</span>
+    <span class="pill status" id="status" data-state="pending"><span class="dot"></span><span id="status-text">Connecting</span></span>
+    <nav class="seg" id="windows" aria-label="Time window">
+      <button type="button" data-w="1h">1h</button>
+      <button type="button" data-w="24h">24h</button>
+      <button type="button" data-w="7d">7d</button>
+      <button type="button" data-w="30d">30d</button>
+    </nav>
+  </div>
+</header>
+
+<div class="banner" id="offline" hidden>
+  <strong>Shadow isn't answering.</strong>
+  <span>Start it with <code>shadow run</code> (or <code>shadow install --apply</code>). This page retries automatically.</span>
+</div>
+<div class="banner muted" id="disabled" hidden>
+  <strong>Activity recording is off.</strong>
+  <span>Set <code>[activity] enabled = true</code> in shadow.toml and restart Shadow.</span>
+</div>
+
+<main>
+  <section class="stats">
+    <article class="stat" id="stat-requests">
+      <div class="stat-label">Requests monitored</div>
+      <div class="stat-value" data-v>0</div>
+      <div class="stat-foot" data-f>&nbsp;</div>
+      <svg class="spark" data-s viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true"></svg>
+    </article>
+    <article class="stat accent" id="stat-values">
+      <div class="stat-label">Values protected</div>
+      <div class="stat-value" data-v>0</div>
+      <div class="stat-foot" data-f>&nbsp;</div>
+      <svg class="spark" data-s viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true"></svg>
+    </article>
+    <article class="stat danger" id="stat-blocked">
+      <div class="stat-label">Requests blocked</div>
+      <div class="stat-value" data-v>0</div>
+      <div class="stat-foot" data-f>&nbsp;</div>
+      <svg class="spark" data-s viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true"></svg>
+    </article>
+    <article class="stat" id="stat-dest">
+      <div class="stat-label">AI destinations</div>
+      <div class="stat-value" data-v>0</div>
+      <div class="stat-foot" data-f>&nbsp;</div>
+      <div class="chips" data-c></div>
+    </article>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Traffic</h2>
+      <div class="legend">
+        <span><i class="sw masked"></i>Masked</span>
+        <span><i class="sw clean"></i>Clean</span>
+        <span><i class="sw blocked"></i>Blocked</span>
+      </div>
+    </div>
+    <div class="timeline" id="timeline"></div>
+  </section>
+
+  <section class="grid3">
+    <article class="card">
+      <div class="card-head"><h2>What was protected</h2><span class="hint" id="kinds-hint"></span></div>
+      <div class="bars" id="kinds"></div>
+    </article>
+    <article class="card">
+      <div class="card-head"><h2>Where it was going</h2><span class="hint" id="providers-hint"></span></div>
+      <div class="donut" id="providers"></div>
+    </article>
+    <article class="card">
+      <div class="card-head"><h2>Which apps sent it</h2><span class="hint" id="clients-hint"></span></div>
+      <div class="bars" id="clients"></div>
+    </article>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Recent incidents</h2>
+      <span class="hint">Requests where Shadow masked or blocked data</span>
+    </div>
+    <div id="incidents" class="incidents"></div>
+  </section>
+</main>
+
+<footer class="foot">
+  <img src="/shadow/ui/logo.svg" alt="" width="16" height="16">
+  <span>Shadow records counts and categories only. Real values, fakes, prompts and file names are never stored.</span>
+  <a href="https://tiny-bubble-company.github.io/shadow/concepts/activity-dashboard/" target="_blank" rel="noopener noreferrer">How this works</a>
+</footer>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheet-head">
+      <h3 id="sheet-title">Incident</h3>
+      <button type="button" class="close" id="sheet-close" aria-label="Close">×</button>
+    </div>
+    <div id="sheet-body"></div>
+  </div>
+</div>
+<div class="tip" id="tip" hidden></div>
+<noscript><p class="noscript">The Shadow dashboard needs JavaScript. Try <code>shadow top</code> in a terminal.</p></noscript>
+</body>
+</html>
