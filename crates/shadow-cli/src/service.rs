@@ -279,12 +279,17 @@ pub fn execute(plan: &[Action], apply: bool) -> anyhow::Result<()> {
                     .join(" ");
                 ui::step(&format!("run   {shown}"));
                 if apply {
-                    let status = Command::new(&argv[0]).args(&argv[1..]).status();
+                    let mut cmd = Command::new(&argv[0]);
+                    cmd.args(&argv[1..]);
+                    if *allow_fail {
+                        // Clean-up steps that may find nothing to do ("not loaded"): keep quiet.
+                        cmd.stdout(std::process::Stdio::null())
+                            .stderr(std::process::Stdio::null());
+                    }
+                    let status = cmd.status();
                     match status {
                         Ok(st) if st.success() => {}
-                        Ok(st) if *allow_fail => {
-                            ui::warn(&format!("{} exited with {st} (ignored)", argv[0]))
-                        }
+                        Ok(_) if *allow_fail => {}
                         Ok(st) => anyhow::bail!("{shown} failed with {st}"),
                         Err(e) if *allow_fail => ui::warn(&format!("{}: {e} (ignored)", argv[0])),
                         Err(e) => return Err(e).with_context(|| format!("running {}", argv[0])),
