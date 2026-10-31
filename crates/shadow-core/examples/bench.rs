@@ -66,11 +66,11 @@ fn main() -> anyhow::Result<()> {
             .iter()
             .map(|f| json!({ "start": char_offset(text, f.start), "end": char_offset(text, f.end), "label": f.kind.as_str(), "detector": f.detector }))
             .collect();
-        writeln!(
-            out,
-            "{}",
-            json!({ "id": v["id"], "spans": spans, "masked": masked, "roundtrip": restored == text, "micros": micros })
-        )?;
+        let mut row = json!({ "id": v["id"], "spans": spans, "masked": masked, "roundtrip": restored == text, "micros": micros });
+        if restored != text {
+            row["restored"] = restored.into();
+        }
+        writeln!(out, "{row}")?;
     }
     Ok(())
 }

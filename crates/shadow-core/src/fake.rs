@@ -50,7 +50,22 @@ pub(crate) struct Faker<'a> {
     pub vault: &'a mut Vault,
     /// Primary organisation (full legal name, stem) mapped to the persona company.
     pub primary_org: Option<(String, String)>,
+    /// Text being masked: a fake that already appears in it as a whole token would be
+    /// unmasked there too, so such candidates are skipped.
+    text: &'a str,
     rng: ThreadRng,
+}
+
+/// Whether `needle` occurs in `text` as a whole token (not glued to letters or digits), the
+/// way the unmasker matches fakes.
+fn occurs_as_token(text: &str, needle: &str) -> bool {
+    let alnum = |c: Option<char>| c.is_some_and(char::is_alphanumeric);
+    let (first, last) = (needle.chars().next(), needle.chars().next_back());
+    text.match_indices(needle).any(|(i, m)| {
+        let glued_before = alnum(first) && alnum(text[..i].chars().next_back());
+        let glued_after = alnum(last) && alnum(text[i + m.len()..].chars().next());
+        !glued_before && !glued_after
+    })
 }
 
 /// Re-case `fake` like `real` (UPPER, lower, or as generated).
@@ -75,8 +90,19 @@ impl<'a> Faker<'a> {
             persona,
             vault,
             primary_org,
+            text: "",
             rng: rand::thread_rng(),
         }
+    }
+
+    /// Avoid fakes that already appear in `text`.
+    pub fn avoiding(mut self, text: &'a str) -> Self {
+        self.text = text;
+        self
+    }
+
+    fn is_free(&self, fake: &str, real: &str) -> bool {
+        fake != real && !self.vault.is_taken(fake) && !occurs_as_token(self.text, fake)
     }
 
     /// Fake for `real`, creating and storing one if needed.
@@ -93,7 +119,7 @@ impl<'a> Faker<'a> {
             .map(|e| e.fake.clone());
         let mut fake = canonical
             .map(|f| case_like(real, &f))
-            .filter(|f| !self.vault.is_taken(f) && f != real)
+            .filter(|f| self.is_free(f, real))
             .unwrap_or_default();
         if fake.is_empty() {
             fake = self.generate_unique(kind, real);
@@ -104,13 +130,13 @@ impl<'a> Faker<'a> {
 
     fn generate_unique(&mut self, kind: Kind, real: &str) -> String {
         if let Some(p) = self.preferred(kind, real) {
-            if !self.vault.is_taken(&p) && p != real {
+            if self.is_free(&p, real) {
                 return p;
             }
         }
         for _ in 0..64 {
             let c = self.generate(kind, real);
-            if !self.vault.is_taken(&c) && c != real {
+            if self.is_free(&c, real) {
                 return c;
             }
         }
@@ -119,7 +145,7 @@ impl<'a> Faker<'a> {
         if kind == Kind::Person {
             for _ in 0..256 {
                 let c = case_like(real, &self.compound_name(real.split_whitespace().count()));
-                if !self.vault.is_taken(&c) && c != real {
+                if self.is_free(&c, real) {
                     return c;
                 }
             }
@@ -130,7 +156,7 @@ impl<'a> Faker<'a> {
                 self.generate(kind, real),
                 self.rng.gen_range(10..9999)
             );
-            if !self.vault.is_taken(&c) {
+            if self.is_free(&c, real) {
                 return c;
             }
         }
@@ -567,6 +593,10 @@ impl<'a> Faker<'a> {
                 .collect();
         }
         let o: Vec<u8> = real.split('.').filter_map(|p| p.parse().ok()).collect();
+        if o.len() != 4 {
+            // An ML detector called something an IP that isn't dotted IPv4: keep its shape only.
+            return self.scramble(real);
+        }
         let r = |rng: &mut ThreadRng, lo: u8, hi: u8| rng.gen_range(lo..=hi);
         let rng = &mut self.rng;
         let (a, b) = match (o[0], o[1]) {
@@ -662,6 +692,17 @@ mod tests {
             assert_ne!(fake, "jane.roe@example.com");
             let private = f.fake_for(Kind::Email, "jane.roe@roe-family.net");
             assert!(!private.ends_with("@roe-family.net"), "{private}");
+        });
+    }
+
+    #[test]
+    fn ip_fakes_survive_odd_input() {
+        // ML detectors sometimes label things that are not IPs as IP.
+        with_faker(|f| {
+            for real in ["1.2.3", "Rua XV", "300.1.1.1", "10.0.0.1"] {
+                let fake = f.fake_for(Kind::Ip, real);
+                assert!(!fake.is_empty() && fake != real, "{real} -> {fake}");
+            }
         });
     }
 

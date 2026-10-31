@@ -96,10 +96,24 @@ fn refine_ml_findings(mut all: Vec<Finding>, text: &str) -> Vec<Finding> {
                 .len();
         if lead + trail >= span.len() {
             f.end = f.start;
-        } else {
-            f.start += lead;
-            f.end -= trail;
+            continue;
         }
+        f.start += lead;
+        f.end -= trail;
+        // Models sometimes tag part of a token ("ST6134035" inside "CUST61340357"). Mask the
+        // whole token: the rest of it may be identifying, and a fake glued to other letters
+        // or digits could not be found again when unmasking.
+        f.start -= text[..f.start]
+            .chars()
+            .rev()
+            .take_while(|c| c.is_alphanumeric())
+            .map(char::len_utf8)
+            .sum::<usize>();
+        f.end += text[f.end..]
+            .chars()
+            .take_while(|c| c.is_alphanumeric())
+            .map(char::len_utf8)
+            .sum::<usize>();
     }
     let precise: Vec<(usize, usize)> = all
         .iter()
@@ -113,7 +127,19 @@ fn refine_ml_findings(mut all: Vec<Finding>, text: &str) -> Vec<Finding> {
         .map(|f| (f.start, f.end))
         .collect();
     all.retain(|f| {
-        f.start < f.end && !(is_ml(f) && precise.iter().any(|&(s, e)| f.start < e && s < f.end))
+        if f.start >= f.end {
+            return false;
+        }
+        if !is_ml(f) {
+            return true;
+        }
+        let span = &text[f.start..f.end];
+        // Models tag currency codes, short words and bare numbers ("USD", "Sie", "62" as an
+        // IP). Masking them garbles the prompt, and a short fake is likely to occur in later
+        // text, where unmasking would wrongly replace it.
+        span.chars().filter(|c| c.is_alphanumeric()).count() >= 4
+            && (f.kind != Kind::Ip || span.parse::<std::net::IpAddr>().is_ok())
+            && !precise.iter().any(|&(s, e)| f.start < e && s < f.end)
     });
     all
 }
@@ -464,7 +490,8 @@ impl Shadow {
                 &self.inner.persona,
                 &mut st.vault,
                 self.inner.primary_org.clone(),
-            );
+            )
+            .avoiding(text);
             for f in &findings {
                 let real = &text[f.start..f.end];
                 out.push_str(&text[last..f.start]);
@@ -800,5 +827,42 @@ mod tests {
     fn shadow_is_send_sync_clone() {
         fn assert_traits<T: Send + Sync + Clone>() {}
         assert_traits::<Shadow>();
+    }
+
+    #[test]
+    fn ml_spans_cover_whole_tokens() {
+        let text = "<id>CUST61340357</id> <who>Jane Roe</who>";
+        let at = |s: &str| text.find(s).unwrap();
+        let ml = |start, end, kind| Finding {
+            start,
+            end,
+            kind,
+            score: 0.6,
+            detector: "presidio",
+        };
+        let out = refine_ml_findings(
+            vec![
+                ml(at("ST61"), at("ST61") + 9, Kind::NationalId),
+                ml(at("Jane") - 1, at("</who>") + 2, Kind::Person),
+                ml(at("id>"), at("id>") + 2, Kind::Person),
+                ml(at("6134"), at("6134") + 4, Kind::Ip),
+            ],
+            text,
+        );
+        let spans: Vec<&str> = out.iter().map(|f| &text[f.start..f.end]).collect();
+        assert_eq!(spans, ["CUST61340357", "Jane Roe"]);
+    }
+
+    #[test]
+    fn masking_round_trips_around_short_numbers() {
+        // A short fake that equals a number already in the text would be unmasked there too.
+        let dir = tempfile::tempdir().unwrap();
+        let mut cfg = ShadowConfig::from_dir(dir.path()).with_terms(vec!["42".into()]);
+        cfg.detectors.local_facts = false;
+        let shadow = Shadow::open(cfg).unwrap();
+        let nums: String = (10..100).map(|n| format!("{n}|")).collect();
+        let text = format!("code 42 then {nums}");
+        let masked = shadow.mask(&text).text;
+        assert_eq!(shadow.unmask(&masked), text);
     }
 }

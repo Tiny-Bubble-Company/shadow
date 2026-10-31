@@ -2,18 +2,11 @@ name: Docs
 
 # Builds docs-site/ (Astro Starlight) and deploys it to GitHub Pages at
 # https://tiny-bubble-company.github.io/shadow
-#
-# The repository is private for now, so this runs only on manual dispatch.
-# When the repository goes public and Pages is enabled (Settings -> Pages -> Source:
-# "GitHub Actions"), switch the trigger to deploy on every push to main:
-#
-#   on:
-#     push:
-#       branches: [main]
-#       paths: ["docs-site/**", ".github/workflows/docs.yml"]
-#     workflow_dispatch:
 
 on:
+  push:
+    branches: [main]
+    paths: ["docs-site/**", ".github/workflows/docs.yml"]
   workflow_dispatch:
 
 permissions:
