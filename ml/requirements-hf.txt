@@ -1,0 +1,9 @@
+# Shadow's open-weight NER sidecar (serve_hf.py). Models are downloaded on first run.
+#   openai/privacy-filter          Apache-2.0
+#   urchade/gliner_multi_pii-v1    Apache-2.0
+torch>=2.4
+transformers>=4.57
+gliner>=0.2.21
+sentencepiece>=0.2
+tiktoken>=0.7
+protobuf>=4

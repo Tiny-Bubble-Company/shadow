@@ -1,0 +1,27 @@
+---
+import { inlineMarkdownToHtml } from '../seo/inline-md';
+
+interface Props {
+	items: { q: string; a: string }[];
+	title?: string;
+}
+const { items, title = 'Frequently asked questions' } = Astro.props;
+---
+
+<section class="faq" aria-labelledby="faq">
+	<h2 id="faq">{title}</h2>
+	<div class="faq-list">
+		{
+			items.map(({ q, a }) => (
+				<div class="faq-item">
+					<h3 set:html={inlineMarkdownToHtml(q)} />
+					<div class="faq-answer">
+						{a
+							.split(/\n\s*\n/)
+							.map((para) => <p set:html={inlineMarkdownToHtml(para.trim())} />)}
+					</div>
+				</div>
+			))
+		}
+	</div>
+</section>

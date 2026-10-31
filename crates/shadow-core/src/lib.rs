@@ -66,10 +66,77 @@ struct State {
     vault: Vault,
     terms: Vec<(String, Kind)>,
     terms_gen: u64,
-    dict: Arc<DictionaryDetector>,
+    /// Dictionary over terms and the vault up to `dict_base_len` entries, rebuilt rarely...
+    dict_base: Arc<DictionaryDetector>,
+    dict_base_key: (u64, u64),
+    dict_base_len: usize,
+    /// ...plus a small one over entries appended since, rebuilt on every vault change.
+    dict_recent: Arc<DictionaryDetector>,
     dict_key: (u64, u64),
     unmasker: Arc<Unmasker>,
     unmasker_gen: u64,
+}
+
+/// Model and Presidio spans are coarse: they can carry punctuation ("Garrett Hernandez <") or
+/// swallow a value the rules already found precisely (an email, a key). Trim them to word
+/// characters and let precise structured findings win; the models only fill gaps.
+fn refine_ml_findings(mut all: Vec<Finding>, text: &str) -> Vec<Finding> {
+    let is_ml = |f: &Finding| detect::public::ML_DETECTORS.contains(&f.detector);
+    for f in all.iter_mut().filter(|f| is_ml(f)) {
+        let span = &text[f.start..f.end];
+        let lead = span.len()
+            - span
+                .trim_start_matches(|c: char| !c.is_alphanumeric())
+                .len();
+        // Organisations keep a final full stop ("Acme Inc.").
+        let keep_dot = f.kind == Kind::Org;
+        let trail = span.len()
+            - span
+                .trim_end_matches(|c: char| !(c.is_alphanumeric() || keep_dot && c == '.'))
+                .len();
+        if lead + trail >= span.len() {
+            f.end = f.start;
+        } else {
+            f.start += lead;
+            f.end -= trail;
+        }
+    }
+    let precise: Vec<(usize, usize)> = all
+        .iter()
+        .filter(|f| {
+            !is_ml(f)
+                && !matches!(
+                    f.kind,
+                    Kind::Person | Kind::Org | Kind::Address | Kind::Term
+                )
+        })
+        .map(|f| (f.start, f.end))
+        .collect();
+    all.retain(|f| {
+        f.start < f.end && !(is_ml(f) && precise.iter().any(|&(s, e)| f.start < e && s < f.end))
+    });
+    all
+}
+
+/// Dictionary terms for vault entries: each real value, and each fake too, because real text
+/// that happens to equal a fake (a real "Carvalho" when "Carvalho" is someone else's stand-in)
+/// must be masked as well, or unmasking would turn it into the wrong person.
+fn vault_terms(entries: &[vault::VaultEntry]) -> Vec<(String, Kind)> {
+    let mut out = vec![];
+    for e in entries {
+        if let Some(k) = Kind::parse(&e.kind) {
+            if k == Kind::Secret {
+                continue;
+            }
+            if e.real.len() >= 4 {
+                out.push((e.real.clone(), k));
+            }
+            if e.fake.len() >= 3 {
+                out.push((e.fake.clone(), k));
+            }
+        }
+    }
+    out
 }
 
 /// Parse `kind:value` term syntax (`person:Jane Doe`, `org:Globex`); otherwise infer.
@@ -107,7 +174,7 @@ impl Shadow {
         config: ShadowConfig,
         extra: Vec<Box<dyn Detector>>,
     ) -> anyhow::Result<Shadow> {
-        std::fs::create_dir_all(&config.data_dir)
+        vault::create_private_dir(&config.data_dir)
             .with_context(|| format!("creating data dir {}", config.data_dir.display()))?;
         let persona = load_or_create_persona(&config)?;
         let mut vault = Vault::open(&config.vault_path(), &config.key_path())?;
@@ -197,12 +264,15 @@ impl Shadow {
             vault,
             terms,
             terms_gen: 1,
-            dict: Arc::new(DictionaryDetector::new(vec![])),
+            dict_base: Arc::new(DictionaryDetector::new(vec![])),
+            dict_base_key: (u64::MAX, 0),
+            dict_base_len: 0,
+            dict_recent: Arc::new(DictionaryDetector::new(vec![])),
             dict_key: (0, 0),
             unmasker: Arc::new(Unmasker::new(vec![])),
             unmasker_gen: 0,
         };
-        Ok(Shadow {
+        let shadow = Shadow {
             inner: Arc::new(Inner {
                 config,
                 persona,
@@ -212,7 +282,23 @@ impl Shadow {
                 state: RwLock::new(state),
                 last_refresh: Mutex::new(Instant::now()),
             }),
-        })
+        };
+        // Compile the rule detectors' patterns in the background rather than on the first request.
+        let warm = shadow.clone();
+        std::thread::spawn(move || {
+            const SAMPLE: &str = "Dear Dr. Jane Doe, born 01/02/1980, SSN 078-05-1120, Name: Ana \
+                Silva, Tel. +44 20 7946 0958, 12 Elm Street, Leeds. Acme GmbH, IBAN \
+                DE89370400440532013000, ssh root@db-1.corp, password=hunter2x, fe80::1:2:3";
+            for d in warm.inner.detectors.iter() {
+                if !detect::public::ML_DETECTORS.contains(&d.name()) {
+                    let fs = d.detect(SAMPLE);
+                    for f in &fs {
+                        detect::public::suppress(f, &SAMPLE[f.start..f.end]);
+                    }
+                }
+            }
+        });
+        Ok(shadow)
     }
 
     /// The persistent persona.
@@ -250,28 +336,40 @@ impl Shadow {
         self.inner.state.write().unwrap_or_else(|e| e.into_inner())
     }
 
-    fn dictionary(&self) -> Arc<DictionaryDetector> {
+    /// The dictionary detectors (base, recent). Rebuilding one automaton over the whole vault on
+    /// every new value costs O(vault) per request, so new entries go to a small second automaton
+    /// that is folded into the base once it grows past `RECENT_MAX`.
+    fn dictionary(&self) -> (Arc<DictionaryDetector>, Arc<DictionaryDetector>) {
+        const RECENT_MAX: usize = 512;
         {
             let st = self.read();
             if st.dict_key == (st.vault.generation, st.terms_gen) {
-                return st.dict.clone();
+                return (st.dict_base.clone(), st.dict_recent.clone());
             }
         }
         let mut st = self.write();
         let key = (st.vault.generation, st.terms_gen);
         if st.dict_key != key {
-            let mut all = st.terms.clone();
-            for e in st.vault.entries() {
-                if let Some(k) = Kind::parse(&e.kind) {
-                    if e.real.len() >= 4 && k != Kind::Secret {
-                        all.push((e.real.clone(), k));
-                    }
-                }
+            let entries = st.vault.entries();
+            let base_key = (st.vault.epoch, st.terms_gen);
+            if st.dict_base_key != base_key
+                || entries.len() < st.dict_base_len
+                || entries.len() - st.dict_base_len > RECENT_MAX
+            {
+                let mut all = st.terms.clone();
+                all.extend(vault_terms(entries));
+                let len = entries.len();
+                st.dict_base = Arc::new(DictionaryDetector::new(all));
+                st.dict_base_key = base_key;
+                st.dict_base_len = len;
+                st.dict_recent = Arc::new(DictionaryDetector::new(vec![]));
+            } else {
+                let recent = vault_terms(&entries[st.dict_base_len..]);
+                st.dict_recent = Arc::new(DictionaryDetector::new(recent));
             }
-            st.dict = Arc::new(DictionaryDetector::new(all));
             st.dict_key = key;
         }
-        st.dict.clone()
+        (st.dict_base.clone(), st.dict_recent.clone())
     }
 
     fn unmasker(&self) -> Arc<Unmasker> {
@@ -298,17 +396,20 @@ impl Shadow {
 
     /// Detect sensitive spans without changing anything (used by `shadow scan`).
     pub fn scan(&self, text: &str) -> Vec<Finding> {
-        let dict = self.dictionary();
-        let mut all = dict.detect(text);
+        let (base, recent) = self.dictionary();
+        let mut all = base.detect(text);
+        all.extend(recent.detect(text));
         for d in &self.inner.detectors {
             all.extend(d.detect(text));
         }
+        let mut all = refine_ml_findings(all, text);
         let st = self.read();
+        let public_allowlist = self.inner.config.detectors.public_allowlist;
         all.retain(|f| {
             let v = &text[f.start..f.end];
             !self.inner.allow.contains(&v.to_lowercase())
-                && !st.vault.is_fake(v)
-                && !v.trim().is_empty()
+                && v.trim().chars().count() >= 2
+                && !(public_allowlist && detect::public::suppress(f, v))
         });
         drop(st);
         detect::resolve_overlaps(all, text.len())

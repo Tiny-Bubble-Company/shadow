@@ -1,6 +1,6 @@
 ---
 title: Integration modes
-description: Proxy, gateway or embedded library. How each mode works and when to use it.
+description: "Choose how to run Shadow: HTTPS proxy for every tool, gateway base URL for SDKs, or the embedded Rust library. How each mode works and when to use it."
 ---
 
 Shadow runs the same masking engine in three ways. You can mix them on one machine: the proxy and the gateway are served from the same port, and they share the persona and vault.

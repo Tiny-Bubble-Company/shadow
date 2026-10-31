@@ -5,7 +5,8 @@ use rand::seq::SliceRandom;
 use rand::Rng;
 
 use crate::detect::checksum::{iban_check_digits, luhn_check_digit};
-use crate::detect::dictionary::is_org_name;
+use crate::detect::dictionary::{is_org_name, strip_legal_suffix};
+use crate::detect::fields::{month_lookup, parse_date, MONTHS};
 use crate::detect::Kind;
 use crate::persona::{codeword, Persona};
 use crate::vault::Vault;
@@ -113,6 +114,16 @@ impl<'a> Faker<'a> {
                 return c;
             }
         }
+        // The plain first x last combinations are used up: double-barrelled surnames
+        // ("Almeida-Rocha") multiply the space while still looking like a name.
+        if kind == Kind::Person {
+            for _ in 0..256 {
+                let c = case_like(real, &self.compound_name(real.split_whitespace().count()));
+                if !self.vault.is_taken(&c) && c != real {
+                    return c;
+                }
+            }
+        }
         loop {
             let c = format!(
                 "{}{}",
@@ -174,6 +185,18 @@ impl<'a> Faker<'a> {
         }
     }
 
+    /// A name with a double-barrelled surname.
+    fn compound_name(&mut self, words: usize) -> String {
+        let r = self.persona.region_data();
+        let mut two = r.last.choose_multiple(&mut self.rng, 2);
+        let (a, b) = (two.next().unwrap(), two.next().unwrap_or(&"Lee"));
+        if words <= 1 {
+            format!("{a}-{b}")
+        } else {
+            format!("{} {a}-{b}", r.first.choose(&mut self.rng).unwrap())
+        }
+    }
+
     fn generate(&mut self, kind: Kind, real: &str) -> String {
         match kind {
             Kind::Email => self.email(real),
@@ -185,7 +208,11 @@ impl<'a> Faker<'a> {
             Kind::Org => {
                 let stem = codeword(&mut self.rng);
                 if is_org_name(real) {
-                    format!("{stem} {}", self.persona.region_data().company_suffix)
+                    // Keep the real legal form ("Globex Ltd" -> "Zephyr Ltd"): the text around it
+                    // was written for that suffix, so a different one ("Co., Ltd.") can collide
+                    // with a following full stop.
+                    let t = real.trim();
+                    format!("{stem}{}", &t[strip_legal_suffix(t).len()..])
                 } else {
                     case_like(real, &stem)
                 }
@@ -231,17 +258,21 @@ impl<'a> Faker<'a> {
                 })
                 .collect(),
             Kind::Secret => self.secret(real),
+            Kind::Date => self.date(real),
         }
     }
 
     fn email(&mut self, real: &str) -> String {
         let (local, domain) = real.rsplit_once('@').unwrap_or((real, "example.com"));
         let dl = domain.to_ascii_lowercase();
-        let fake_domain = if crate::detect::names_webmail(&dl) {
-            dl
-        } else {
-            self.fake_for(Kind::Hostname, domain)
-        };
+        // Webmail and public domains (`gmail.com`, `example.com`) identify nobody: keeping
+        // them also keeps them out of the vault, so they are not masked elsewhere.
+        let fake_domain =
+            if crate::detect::names_webmail(&dl) || crate::detect::names_public_domain(&dl) {
+                dl
+            } else {
+                self.fake_for(Kind::Hostname, domain)
+            };
         let sep = local.chars().find(|c| matches!(c, '.' | '_' | '-'));
         let r = self.persona.region_data();
         let f = r.first.choose(&mut self.rng).unwrap().to_ascii_lowercase();
@@ -410,6 +441,117 @@ impl<'a> Faker<'a> {
         }
     }
 
+    /// A different, plausible date in the same format: year shifted by 1-3, new month and
+    /// day, same separators, zero-padding, order and month-name language/case.
+    fn date(&mut self, real: &str) -> String {
+        let Some((y, m, d)) = parse_date(real) else {
+            return self.scramble(real);
+        };
+        // Runs of digits / letters / other, with their roles.
+        let mut runs: Vec<(String, u8)> = vec![]; // 0 digit, 1 alpha, 2 other
+        for c in real.chars() {
+            let class = if c.is_ascii_digit() {
+                0
+            } else if c.is_alphabetic() {
+                1
+            } else {
+                2
+            };
+            match runs.last_mut() {
+                Some((s, k)) if *k == class => s.push(c),
+                _ => runs.push((c.to_string(), class)),
+            }
+        }
+        let month_word = runs
+            .iter()
+            .position(|(s, k)| *k == 1 && month_lookup(s).is_some());
+        let nums: Vec<usize> = (0..runs.len()).filter(|i| runs[*i].1 == 0).collect();
+        // Role per numeric run: 'y', 'm' or 'd' (mirrors parse_date).
+        let mut roles = vec![' '; runs.len()];
+        match (month_word, nums.as_slice()) {
+            (Some(_), [a, b]) if runs[*a].0.len() == 4 => (roles[*a], roles[*b]) = ('y', 'd'),
+            (Some(_), [a, b]) => (roles[*a], roles[*b]) = ('d', 'y'),
+            (None, [a, b, c]) if runs[*a].0.len() == 4 => {
+                (roles[*a], roles[*b], roles[*c]) = ('y', 'm', 'd')
+            }
+            (None, [a, b, c]) => {
+                let first: u32 = runs[*a].0.parse().unwrap_or(0);
+                if first > 12 {
+                    (roles[*a], roles[*b], roles[*c]) = ('d', 'm', 'y');
+                } else {
+                    (roles[*a], roles[*b], roles[*c]) = ('m', 'd', 'y');
+                }
+            }
+            _ => return self.scramble(real),
+        }
+        // Day/month order is ambiguous when both are <= 12: keep the fake ambiguous too.
+        let ambiguous = month_word.is_none() && roles.first() != Some(&'y') && d <= 12;
+        let shift = self.rng.gen_range(1..=3) * if self.rng.gen_bool(0.5) { 1 } else { -1 };
+        let ny = y + shift;
+        let nm = loop {
+            let x = self.rng.gen_range(1..=12);
+            if x != m {
+                break x;
+            }
+        };
+        // ...and an unambiguous numeric date (31/12) stays unambiguous (day above 12).
+        let numeric = month_word.is_none() && roles.first() != Some(&'y');
+        let days = if ambiguous {
+            1..=12
+        } else if numeric {
+            13..=28
+        } else {
+            1..=28
+        };
+        let nd = loop {
+            let x = self.rng.gen_range(days.clone());
+            if x != d {
+                break x;
+            }
+        };
+        let mut out = String::new();
+        for (i, (s, k)) in runs.iter().enumerate() {
+            let pad = |v: u32| {
+                if s.len() >= 2 {
+                    format!("{v:02}")
+                } else {
+                    v.to_string()
+                }
+            };
+            match (k, roles[i]) {
+                (0, 'y') if s.len() == 2 => out.push_str(&format!("{:02}", ny.rem_euclid(100))),
+                (0, 'y') => out.push_str(&ny.to_string()),
+                (0, 'm') => out.push_str(&pad(nm)),
+                (0, 'd') => out.push_str(&pad(nd)),
+                (1, _) if Some(i) == month_word => {
+                    let (row, _) = month_lookup(s).unwrap();
+                    let name = MONTHS[row][nm as usize - 1];
+                    let name = if s.chars().next().is_some_and(char::is_uppercase)
+                        && !s.chars().all(char::is_uppercase)
+                    {
+                        let mut c = name.chars();
+                        c.next()
+                            .map(|f| f.to_uppercase().collect::<String>() + c.as_str())
+                            .unwrap_or_default()
+                    } else {
+                        case_like(s, name)
+                    };
+                    out.push_str(&name);
+                }
+                (1, _) if matches!(s.as_str(), "st" | "nd" | "rd" | "th") => {
+                    out.push_str(match nd {
+                        1 | 21 | 31 => "st",
+                        2 | 22 => "nd",
+                        3 | 23 => "rd",
+                        _ => "th",
+                    })
+                }
+                _ => out.push_str(s),
+            }
+        }
+        out
+    }
+
     fn ip(&mut self, real: &str) -> String {
         if real.contains(':') {
             return self
@@ -497,5 +639,77 @@ impl<'a> Faker<'a> {
             .copied()
             .unwrap_or("");
         format!("{prefix}{}", self.scramble(&real[prefix.len()..]))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn with_faker(f: impl FnOnce(&mut Faker<'_>)) {
+        let dir = tempfile::tempdir().unwrap();
+        let persona = Persona::generate(Some("US"), &mut rand::thread_rng());
+        let mut vault = Vault::open(&dir.path().join("v"), &dir.path().join("k")).unwrap();
+        let mut faker = Faker::new(&persona, &mut vault, None);
+        f(&mut faker);
+    }
+
+    #[test]
+    fn email_fakes_keep_public_domains() {
+        with_faker(|f| {
+            let fake = f.fake_for(Kind::Email, "jane.roe@example.com");
+            assert!(fake.ends_with("@example.com"), "{fake}");
+            assert_ne!(fake, "jane.roe@example.com");
+            let private = f.fake_for(Kind::Email, "jane.roe@roe-family.net");
+            assert!(!private.ends_with("@roe-family.net"), "{private}");
+        });
+    }
+
+    #[test]
+    fn date_fakes_keep_format() {
+        with_faker(|f| {
+            for real in [
+                "1987-03-04",
+                "04/03/1987",
+                "31/12/1990",
+                "12.05.1975",
+                "March 4, 1987",
+                "4 March 1987",
+                "4. März 1987",
+                "4 de marzo de 1987",
+                "June 1st, 1990",
+            ] {
+                let fake = f.fake_for(Kind::Date, real);
+                assert_ne!(fake, real);
+                let (y, m, d) = parse_date(real).unwrap();
+                let (fy, fm, fd) = parse_date(&fake).unwrap_or_else(|| panic!("{real} -> {fake}"));
+                assert!((1..=3).contains(&(fy - y).abs()), "{real} -> {fake}");
+                assert!(fm != m && fd != d, "{real} -> {fake}");
+                // Same shape: digits stay digits, separators and words stay in place.
+                let shape = |s: &str| {
+                    s.chars()
+                        .map(|c| {
+                            if c.is_ascii_digit() {
+                                '9'
+                            } else if c.is_alphabetic() {
+                                'a'
+                            } else {
+                                c
+                            }
+                        })
+                        .collect::<String>()
+                        .split('a')
+                        .filter(|p| !p.is_empty())
+                        .map(|p| p.replace('9', ""))
+                        .collect::<Vec<_>>()
+                };
+                assert_eq!(shape(real), shape(&fake), "{real} -> {fake}");
+                // Persisted: same real, same fake.
+                assert_eq!(f.fake_for(Kind::Date, real), fake);
+            }
+            let iso = f.fake_for(Kind::Date, "2001-09-11");
+            assert_eq!(iso.len(), 10);
+            assert_eq!(&iso[4..5], "-");
+        });
     }
 }

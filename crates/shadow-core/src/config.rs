@@ -70,6 +70,17 @@ pub struct DetectorToggles {
     pub hostname: bool,
     pub secret: bool,
     pub path: bool,
+    /// Organisation names with a legal form (GmbH, Ltd, S.A., ...).
+    pub org: bool,
+    /// Usernames from context (`ssh user@host`, `username=`, basic-auth tuples, URL userinfo).
+    pub username: bool,
+    /// Dates in a birth context ("born", "DOB", "Geburtsdatum", ...).
+    pub date_of_birth: bool,
+    /// Labelled fields (`Name:`, `Address:`, `Tel:`), CSV columns and signature names.
+    pub fields: bool,
+    /// Keep well-known public names (companies, places, public figures, standards) that
+    /// name-like detectors (ML sidecars, rule-based names) would otherwise mask.
+    pub public_allowlist: bool,
     /// Protect local machine facts (OS user, hostname, git identity, local domain).
     pub local_facts: bool,
 }
@@ -89,6 +100,11 @@ impl Default for DetectorToggles {
             hostname: true,
             secret: true,
             path: true,
+            org: true,
+            username: true,
+            date_of_birth: true,
+            fields: true,
+            public_allowlist: true,
             local_facts: true,
         }
     }
@@ -175,6 +191,7 @@ impl Default for PolicyConfig {
             "national_id",
             "iban",
             "credit_card",
+            "date",
         ]
         .iter()
         .map(|k| (k.to_string(), Treatment::Token))

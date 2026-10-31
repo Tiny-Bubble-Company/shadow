@@ -1,6 +1,6 @@
 ---
 title: CLI
-description: Every shadow command, subcommand and flag.
+description: "Reference for the shadow command line: init, run, install, status, mask, unmask, scan, vault, terms and hosts, with every subcommand and flag."
 ---
 
 ```text

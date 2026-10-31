@@ -123,15 +123,26 @@ fn dechunk(mut b: &[u8]) -> Vec<u8> {
     out
 }
 
-fn label_kind(label: &str) -> Kind {
-    match label.to_ascii_uppercase().as_str() {
+/// The Shadow kind for a sidecar label; `None` for labels Shadow leaves to its own detectors
+/// (URLs), plain dates, or labels it doesn't handle.
+fn label_kind(label: &str) -> Option<Kind> {
+    Some(match label.to_ascii_uppercase().as_str() {
         "PERSON" | "PER" => Kind::Person,
         "ORG" | "ORGANIZATION" => Kind::Org,
         "LOC" | "LOCATION" | "ADDRESS" | "GPE" => Kind::Address,
         "EMAIL" => Kind::Email,
         "PHONE" => Kind::Phone,
-        _ => Kind::Term,
-    }
+        "SECRET" | "PASSWORD" | "API_KEY" => Kind::Secret,
+        "USERNAME" => Kind::Username,
+        "IP" | "IP_ADDRESS" => Kind::Ip,
+        "IBAN" => Kind::Iban,
+        "CREDIT_CARD" => Kind::CreditCard,
+        "NATIONAL_ID" | "SSN" | "ACCOUNT" | "ACCOUNT_NUMBER" => Kind::NationalId,
+        // Only birth dates: other dates ("the meeting on 3 May") carry meaning, not identity.
+        "DOB" | "DATE_OF_BIRTH" => Kind::Date,
+        "PROJECT" | "TERM" | "MISC" => Kind::Term,
+        _ => return None,
+    })
 }
 
 impl Detector for ModelDetector {
@@ -153,12 +164,14 @@ impl Detector for ModelDetector {
         idx.push(text.len());
         ents.into_iter()
             .filter(|e| e.score >= self.min_score && e.start < e.end && e.end < idx.len())
-            .map(|e| Finding {
-                start: idx[e.start],
-                end: idx[e.end],
-                kind: label_kind(&e.label),
-                score: e.score,
-                detector: "model",
+            .filter_map(|e| {
+                Some(Finding {
+                    start: idx[e.start],
+                    end: idx[e.end],
+                    kind: label_kind(&e.label)?,
+                    score: e.score,
+                    detector: "model",
+                })
             })
             .collect()
     }

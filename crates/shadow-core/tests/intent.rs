@@ -146,3 +146,19 @@ fn ids_and_wallets_keep_their_shape_without_leaking() {
     );
     assert_eq!(shadow.unmask(&m.text), eth);
 }
+
+#[test]
+fn real_text_equal_to_a_fake_survives_the_round_trip() {
+    let (shadow, _d) = shadow();
+    // Make "fake_of_jane" exist, then send a prompt that contains that fake as real text.
+    let first = shadow.mask("Email jane.doe@acme.com");
+    let fake = first.text.trim_start_matches("Email ").to_string();
+    let text = format!("Forward {fake}'s note to jane.doe@acme.com");
+    let m = shadow.mask(&text);
+    assert!(
+        !m.text.starts_with(&format!("Forward {fake}")),
+        "the colliding real value gets its own fake: {}",
+        m.text
+    );
+    assert_eq!(shadow.unmask(&m.text), text);
+}

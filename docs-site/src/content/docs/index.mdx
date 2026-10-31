@@ -1,47 +1,155 @@
 ---
-title: Shadow
-description: Privacy layer for AI traffic. Your data leaves under a different name.
+title: "Shadow: open-source PII redaction for ChatGPT, Claude and every LLM"
+description: Stop sensitive data leaking to ChatGPT, Claude and any LLM. Shadow swaps PII and secrets for realistic, reversible fakes on your machine. Free, Apache-2.0.
 template: splash
 editUrl: false
+keywords:
+  - PII redaction for LLM
+  - AI data loss prevention
+  - DLP for ChatGPT
+  - ChatGPT data leak prevention
+  - Claude data privacy
+  - LLM privacy proxy
+  - open source Presidio alternative
+  - reversible pseudonymisation
+  - prompt anonymization
+  - mask PII before sending to OpenAI
 hero:
   title: Shadow
-  tagline: The privacy layer for AI traffic. Shadow swaps names, emails, customers and secrets for realistic, reversible fakes before a request leaves your machine, and restores them in the answer.
+  tagline: The open-source privacy layer for AI. Shadow swaps names, emails, customers and secrets for realistic, reversible fakes before a request leaves your machine, and restores them in the answer.
   image:
     file: ../../assets/logo.svg
     alt: Shadow logo, a crescent partly covered by a shadow
   actions:
     - text: Get started
-      link: /shadow/getting-started/quick-start/
+      link: getting-started/quick-start/
       icon: right-arrow
     - text: How it works
-      link: /shadow/concepts/how-it-works/
+      link: concepts/how-it-works/
       variant: minimal
     - text: GitHub
       link: https://github.com/Tiny-Bubble-Company/shadow
       icon: external
       variant: minimal
+faq:
+  - q: How do I stop employees pasting customer data into ChatGPT?
+    a: "Give people an AI tool that is safe to paste into instead of one they have to avoid. Route your API-based AI clients (internal chat apps, SDK-based tools, coding assistants, agents) through Shadow, and customer names, emails, IDs and secrets are replaced with fakes before the request leaves the machine, while the answer still comes back with the real values. Shadow intercepts provider APIs such as `api.openai.com` and `api.anthropic.com`, not consumer web apps like chatgpt.com, so pair it with a policy that points staff at an approved API-backed client. See [use cases](/shadow/use-cases/)."
+  - q: Is Shadow a Presidio alternative?
+    a: "It is a complement more than a replacement. Microsoft Presidio is a detector and anonymizer library that replaces values with placeholders or hashes. Shadow adds what sits around detection: consistent, format-preserving fakes from one persona, an encrypted mapping, restoration of responses, streams and tool calls, and a ready-made HTTPS proxy and gateway. Shadow can call Presidio as an extra detector. See [Shadow vs Presidio](/shadow/compare/presidio/)."
+  - q: Does Shadow work with Claude Code, Cursor or GitHub Copilot?
+    a: "Claude Code and other tools that accept a base URL (`ANTHROPIC_BASE_URL`, `OPENAI_BASE_URL`) or honour `HTTPS_PROXY` work through [gateway mode](/shadow/integrate/gateway-mode/) or [proxy mode](/shadow/integrate/proxy-mode/), and the `code` intent keeps identifiers readable. Cursor and GitHub Copilot send traffic to their vendors' own backends, which are not on Shadow's built-in host list; you can add hosts with `extra_hosts`, but check the request log before relying on it, and clients that pin certificates cannot be intercepted. See [integrating any endpoint](/shadow/integrate/any-endpoint/)."
+  - q: Is Shadow GDPR or HIPAA compliant?
+    a: "No tool makes an organisation compliant on its own. Shadow helps you meet data-minimisation, confidentiality and transfer requirements under GDPR and HIPAA by keeping personal data and PHI out of requests to AI providers, and its mapping never leaves your machine. Whether you are compliant still depends on your whole programme: contracts, policies, access control and what else you send. See [industries](/shadow/industries/)."
+  - q: Does Shadow work offline and self-hosted?
+    a: "Yes. Shadow is a single binary that runs on your laptops, servers or containers, with no cloud service, account or telemetry. Detection, the persona and the encrypted vault are all local, and optional detectors (a NER model, Presidio) run on addresses you choose. The only outbound traffic is the masked request you were already sending, and you can point it at a self-hosted model endpoint instead of a cloud provider."
+  - q: Can Shadow unmask responses and tool calls?
+    a: "Yes. Every fake in the response is turned back into the real value, including streamed SSE and NDJSON responses where a fake is split across events. Tool-call arguments are restored on your machine before your tools run, so an agent's email reaches the real address. Tools hosted in the provider's cloud are handled by an explicit policy. See [tool calls and agents](/shadow/concepts/tool-calls/)."
+  - q: What does Shadow cost?
+    a: "Nothing. Shadow is free and open source under the Apache-2.0 licence, with no account, licence key or usage fees. You keep paying your AI provider as before."
+  - q: How accurate is Shadow's PII detection?
+    a: "Detection combines checksummed patterns (cards, IBANs, national IDs), secrets and machine identifiers, your own dictionary of names and codenames, and an optional local NER model or Presidio for free-text names. Results depend on your data, so Shadow publishes its methodology and measurements on the [benchmarks](/shadow/benchmarks/) page, and `shadow scan` shows what would be masked in your own files before you rely on it."
+  - q: Will masking make the AI's answers worse?
+    a: "Usually not, because the model still sees coherent data: a fake email is still an email, two different people stay two different people, and a fake card still passes Luhn. That is the main difference from placeholder redaction, which breaks the model's ability to reason about the values. For bulk reports Shadow switches to typed tokens such as `[PERSON_0001]`, which are restored in the answer."
+  - q: Which AI providers does Shadow support?
+    a: "OpenAI, Anthropic, Google Gemini and Vertex AI, Azure OpenAI, AWS Bedrock, OpenRouter, Mistral, Groq, Together AI, DeepSeek, xAI, Cohere, Perplexity and more, plus any custom or self-hosted HTTPS model API you add. See [supported providers](/shadow/reference/providers/)."
 ---
 
-import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import { Card, CardGrid, LinkCard, Tabs, TabItem, Steps } from '@astrojs/starlight/components';
 
-<div class="translation" aria-label="Example translation">
-	<span class="head">You write</span><span></span><span class="head">The provider sees</span>
-	<span>{'jane@acme.com'}</span><span class="arrow">→</span><span class="fake">{'hui.zhao@zhilan.cn'}</span>
-	<span>Acme GmbH</span><span class="arrow">→</span><span class="fake">Zhilan Technology Co., Ltd.</span>
-	<span>Project Falcon</span><span class="arrow">→</span><span class="fake">Velora Quilent</span>
-	<span>4111 1111 1111 1111</span><span class="arrow">→</span><span class="fake">4837 2191 9471 3480</span>
-	<span>/Users/jdoe/src/billing</span><span class="arrow">→</span><span class="fake">/Users/huizhao/src/billing</span>
+<div class="translation" role="table" aria-label="Example: what you write and what the AI provider sees">
+	<span class="head" role="columnheader">You write</span><span aria-hidden="true"></span><span class="head" role="columnheader">The provider sees</span>
+	<span>{'jane@acme.com'}</span><span class="arrow" aria-hidden="true">→</span><span class="fake">{'hui.zhao@zhilan.cn'}</span>
+	<span>Acme GmbH</span><span class="arrow" aria-hidden="true">→</span><span class="fake">Zhilan Technology Co., Ltd.</span>
+	<span>Project Falcon</span><span class="arrow" aria-hidden="true">→</span><span class="fake">Velora Quilent</span>
+	<span>4111 1111 1111 1111</span><span class="arrow" aria-hidden="true">→</span><span class="fake">4837 2191 9471 3480</span>
+	<span>/Users/jdoe/src/billing</span><span class="arrow" aria-hidden="true">→</span><span class="fake">/Users/huizhao/src/billing</span>
 </div>
 
 The answer comes back with every fake turned back into the real value, streamed responses included. Your tools never notice. The provider never sees the original.
 
-## Why Shadow
+<ul class="proof-strip" aria-label="Key facts">
+	<li><strong>Apache-2.0</strong> free and open source</li>
+	<li><strong>Single binary</strong> macOS, Linux, Windows</li>
+	<li><strong>No cloud</strong> no account, no telemetry</li>
+	<li><strong>15+ providers</strong> OpenAI, Anthropic, Gemini…</li>
+</ul>
+
+## What is Shadow?
+
+**Shadow is an open-source privacy layer that sits between your apps and AI providers such as OpenAI, Anthropic and Google Gemini.** It finds personal data, customer names, credentials and internal identifiers in every outbound prompt, replaces them with realistic, format-preserving fakes, and translates the fakes back in the response. It is PII redaction and AI data loss prevention that keeps ChatGPT-style assistants, Claude, coding agents and your own LLM apps useful.
+
+Shadow runs where your data is: as a local HTTPS proxy for every tool on a machine, as a gateway base URL for SDKs and services, or inside your Rust service as the `shadow-core` library. The mapping between real and fake values lives in an encrypted vault on that machine and never leaves it.
+
+## How does Shadow stop data leaks to AI?
+
+<Steps>
+
+1. **Intercept.** Your tool sends its request through Shadow, via `HTTPS_PROXY`, a base URL such as `/gw/openai/v1`, or the Rust API. Only known AI hosts are decrypted; everything else is tunnelled untouched.
+
+2. **Detect.** Checksummed patterns (cards, IBANs, national IDs), emails, phones, secrets and API keys, hostnames, IPs and paths, your own dictionary of customers and codenames, and optionally a local NER model or Presidio find the sensitive spans, including inside uploaded DOCX, XLSX, PPTX and PDF files.
+
+3. **Translate.** An intent-aware policy picks a treatment per value: a consistent fake from your machine's persona, a typed token for bulk reports, the real value for an action target, or, if you opt in, irreversible redaction for secrets.
+
+4. **Restore.** The provider answers about a company that does not exist. Shadow turns every fake back into the real value, in full responses, streamed tokens and tool-call arguments, before your tool sees it.
+
+</Steps>
+
+Read the full walkthrough in [How it works](/shadow/concepts/how-it-works/).
+
+## How is Shadow different from DLP that blocks?
+
+Most data loss prevention for AI either **blocks** the request or **redacts** values with placeholders such as `<PERSON>`. Blocking breaks the tool, so people route around it. Placeholders keep the request flowing but destroy meaning: the model cannot tell two people apart, write to the right address or keep a table consistent. Shadow **translates** instead, so the request goes through, the model reasons about coherent data, and you get a useful answer about your real data.
+
+<div class="compare-teaser">
+
+| | Block (typical DLP gateway) | Redact with placeholders | **Shadow: reversible, realistic pseudonymisation** |
+|---|---|---|---|
+| Request still reaches the model | No | Yes | **Yes** |
+| Model sees coherent, realistic data | n/a | No, `<PERSON>` tags | **Yes, format-valid fakes from one persona** |
+| Answer refers to your real data | n/a | No | **Yes, restored on your machine** |
+| Streaming responses | n/a | Often not handled | **Restored on the fly** |
+| Agents and tool calls | Blocked | Arguments contain placeholders | **Arguments restored before tools run** |
+| Uploaded files | Blocked or ignored | Varies | **DOCX, XLSX, PPTX masked in place; PDF text masked** |
+| Where it runs | Network edge or cloud | Library or service | **On the endpoint, or in-process** |
+
+</div>
+
+See how Shadow compares with specific tools, including Presidio, Netskope and Private AI, in [Compare](/shadow/compare/).
+
+## Who is Shadow for?
+
+<Tabs>
+	<TabItem label="Developers">
+		You use Claude Code, the OpenAI or Anthropic SDKs, or agents that read your repository and
+		terminal. Shadow masks usernames in paths, internal hostnames, IPs, customer data in fixtures
+		and pasted API keys, while keeping code identifiers readable.
+		Start with the [quick start](/shadow/getting-started/quick-start/).
+	</TabItem>
+	<TabItem label="Security and privacy teams">
+		You need people to use AI without customer data, PHI or secrets reaching a third party, and
+		blocking has not worked. Shadow gives you a control that keeps tools useful, with a local
+		encrypted vault and no new cloud processor. Read the [security model](/shadow/reference/security/).
+	</TabItem>
+	<TabItem label="Platform and product teams">
+		You build LLM features, RAG pipelines or internal copilots. Run Shadow as a sidecar or gateway
+		in front of your model client, or embed `shadow-core` in Rust, and keep personal data out of
+		prompts, logs and provider retention. See [integration modes](/shadow/integrate/overview/).
+	</TabItem>
+</Tabs>
+
+<CardGrid>
+	<LinkCard title="Use cases" description="Coding agents, support tools, RAG pipelines and internal chat apps that stay useful with masked data." href="/shadow/use-cases/" />
+	<LinkCard title="Industries" description="Healthcare, financial services, legal and other regulated sectors using LLMs without exposing personal data." href="/shadow/industries/" />
+	<LinkCard title="Company size" description="From one developer laptop to a startup team to an enterprise fleet." href="/shadow/company-size/" />
+	<LinkCard title="Benchmarks" description="How well Shadow detects and masks sensitive data, measured on public datasets." href="/shadow/benchmarks/" />
+</CardGrid>
+
+## What you get
 
 <CardGrid>
 	<Card title="Translate, don't block" icon="random">
-		DLP gateways block requests, and people route around them. Shadow keeps the prompt
-		coherent: a fake email is still an email and a fake IBAN still passes mod-97, so the
-		model still gives a useful answer.
+		A fake email is still an email and a fake IBAN still passes mod-97, so the model still
+		gives a useful answer and people have no reason to route around the control.
 	</Card>
 	<Card title="Runs on the endpoint" icon="laptop">
 		A single Rust binary on macOS, Linux or Windows, or a library inside your service.
@@ -58,7 +166,7 @@ The answer comes back with every fake turned back into the real value, streamed 
 	</Card>
 	<Card title="Intent-aware policy" icon="setting">
 		Each request is classified as act, report, code or converse. Reports get typed
-		tokens, actions keep working through local tools, and secrets are always redacted.
+		tokens, actions keep working through local tools, and secrets can always be redacted.
 	</Card>
 	<Card title="Files too" icon="document">
 		Uploaded text, CSV, JSON, DOCX, XLSX, PPTX and PDF content is masked before it leaves,

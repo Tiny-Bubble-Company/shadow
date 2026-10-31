@@ -351,6 +351,7 @@ pub fn personal(findings: &[Finding]) -> usize {
                     | Kind::NationalId
                     | Kind::Iban
                     | Kind::CreditCard
+                    | Kind::Date
             )
         })
         .count()

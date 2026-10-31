@@ -1,6 +1,6 @@
 ---
 title: How it works
-description: The architecture of Shadow and the life of a request, from interception to streamed restoration.
+description: "How Shadow masks AI traffic end to end: interception, detection, intent policy, reversible translation and restoration of streamed responses."
 ---
 
 ![Shadow architecture: apps send requests through Shadow on the endpoint, which detects, applies policy and translates before the provider; responses are restored on the way back; other hosts are tunnelled untouched.](../../../assets/architecture.svg)

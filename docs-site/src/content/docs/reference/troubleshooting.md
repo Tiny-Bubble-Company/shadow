@@ -1,6 +1,6 @@
 ---
 title: Troubleshooting
-description: Fixes for common problems with certificates, proxies, gateways, detection and streaming.
+description: "Fix common Shadow problems: untrusted certificates, connection refused, gateway 404s, values not masked, fakes left in answers, streaming and vault errors."
 ---
 
 Start with:

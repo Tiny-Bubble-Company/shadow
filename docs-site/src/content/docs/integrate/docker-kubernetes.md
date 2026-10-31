@@ -1,6 +1,6 @@
 ---
 title: Docker and Kubernetes
-description: Run Shadow as a sidecar container next to your application, with persistent state and controlled egress.
+description: "Run Shadow as a sidecar container in Docker or Kubernetes to mask PII in your service's LLM calls, with persistent state and controlled egress."
 ---
 
 In containers, Shadow works best as a **sidecar**: one Shadow instance next to each application, reachable on `localhost`, using [gateway mode](/shadow/integrate/gateway-mode/). No CA has to be installed in the application image.
@@ -92,7 +92,7 @@ If the application cannot set a base URL, use proxy mode inside the pod: set `HT
 
 ## Egress control
 
-The sidecar is the only component that needs to reach AI providers. Pair it with a `NetworkPolicy` or egress firewall so that the application container cannot reach provider hosts directly, and set `[proxy] upstream_proxy` if outbound traffic must go through a corporate proxy or a relay.
+The sidecar is the only component that needs to reach AI providers. A `NetworkPolicy` applies to the whole pod, so it cannot stop the application container from bypassing a sidecar in the same pod. To enforce that, route egress through a proxy or firewall that only accepts provider traffic from Shadow (point Shadow at it with `upstream_proxy`), or run Shadow as a separate gateway deployment and allow provider egress only from its pods. Set `[proxy] upstream_proxy` too if outbound traffic must go through a corporate proxy or a relay.
 
 ## Without containers
 

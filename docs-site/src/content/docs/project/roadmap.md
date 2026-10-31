@@ -1,6 +1,6 @@
 ---
 title: Roadmap
-description: What is planned for Shadow. Directions, not promises.
+description: "What is planned for Shadow, the open-source privacy layer for AI: shipped features and upcoming directions. Directions, not promises."
 ---
 
 Shadow is young. This page lists what we intend to work on next, roughly in priority order. It is a statement of direction, not a commitment to dates. Suggestions and pull requests are welcome: open an issue to discuss before starting on anything large.

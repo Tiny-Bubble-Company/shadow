@@ -4,12 +4,15 @@
 //! checksum and dictionary detectors, plus an optional [`model::ModelDetector`] that
 //! queries a local NER sidecar.
 
+pub mod address;
 pub mod checksum;
 pub mod dictionary;
+pub mod fields;
 pub mod model;
 mod names;
 pub mod patterns;
 pub mod presidio;
+pub mod public;
 
 use serde::{Deserialize, Serialize};
 
@@ -31,6 +34,8 @@ pub enum Kind {
     Hostname,
     Secret,
     Username,
+    /// A date in a personal context (date of birth).
+    Date,
 }
 
 impl Kind {
@@ -51,6 +56,7 @@ impl Kind {
             Kind::Hostname => "hostname",
             Kind::Secret => "secret",
             Kind::Username => "username",
+            Kind::Date => "date",
         }
     }
 
@@ -65,7 +71,7 @@ impl Kind {
             Kind::Secret => 9,
             Kind::Org | Kind::Term | Kind::Username => 8,
             Kind::Email => 7,
-            Kind::Iban | Kind::CreditCard | Kind::NationalId => 6,
+            Kind::Iban | Kind::CreditCard | Kind::NationalId | Kind::Date => 6,
             Kind::Person => 5,
             _ => 3,
         }
@@ -88,6 +94,7 @@ pub const ALL_KINDS: &[Kind] = &[
     Kind::Hostname,
     Kind::Secret,
     Kind::Username,
+    Kind::Date,
 ];
 
 /// A detected sensitive span (byte offsets into the scanned text, end exclusive).
@@ -156,6 +163,12 @@ pub fn resolve_overlaps(mut findings: Vec<Finding>, text_len: usize) -> Vec<Find
 
 pub(crate) fn names_webmail(domain: &str) -> bool {
     names::WEBMAIL.contains(&domain)
+}
+/// True if `domain` is (under) a well-known public service domain, such as `example.com`.
+pub(crate) fn names_public_domain(domain: &str) -> bool {
+    names::PUBLIC_DOMAINS
+        .iter()
+        .any(|p| domain == *p || domain.strip_suffix(p).is_some_and(|r| r.ends_with('.')))
 }
 pub(crate) fn names_generic_label(label: &str) -> bool {
     names::GENERIC_LABELS.contains(&label)

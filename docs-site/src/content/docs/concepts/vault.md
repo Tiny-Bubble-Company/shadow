@@ -1,6 +1,6 @@
 ---
 title: The vault
-description: How Shadow stores the real-to-fake mapping, encrypts it at rest, shares it between processes, and forgets values.
+description: "How Shadow's local vault stores the real-to-fake mapping: ChaCha20-Poly1305 encryption at rest, multi-process sharing, export and forgetting values."
 ---
 
 The vault is the table of real↔fake pairs. It is what makes translation reversible, and it never leaves your machine.

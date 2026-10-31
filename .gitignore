@@ -11,3 +11,18 @@ vault.bin
 docs-site/node_modules/
 docs-site/dist/
 docs-site/.astro/
+
+# Secrets and Shadow runtime state: never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+ca/
+persona.json
+terms.json
+*.safetensors
+.DS_Store
+
+# Per-sample benchmark outputs (summaries are committed)
+bench/results*/*.jsonl

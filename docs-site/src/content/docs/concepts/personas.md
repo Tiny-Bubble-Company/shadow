@@ -1,6 +1,6 @@
 ---
 title: Personas
-description: The persistent fake identity that Shadow presents to AI providers, and how fakes are drawn from it.
+description: "Personas give Shadow one coherent fake identity per machine (company, people, domain, hostnames) so masked prompts stay realistic and consistent."
 ---
 
 A persona is a coherent fake identity for one machine: a company, its domain, a city, a primary person, colleagues, a username, a user id and a hostname. Shadow creates it once, on `shadow init` or the first `Shadow::open`, stores it in `persona.json`, and draws every fake from it.

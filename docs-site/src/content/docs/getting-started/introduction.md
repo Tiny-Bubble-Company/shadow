@@ -1,6 +1,6 @@
 ---
 title: Introduction
-description: What Shadow is, the problem it solves, and how it differs from blocking DLP and plain redaction.
+description: "What Shadow is: an open-source privacy layer that masks PII and secrets in prompts to ChatGPT, Claude and other LLMs with reversible fakes, unlike blocking DLP."
 ---
 
 Shadow is an endpoint privacy layer for AI traffic. It sits between your apps and AI providers such as OpenAI, Anthropic, Google Gemini, Azure OpenAI, OpenRouter, Mistral and Groq. On the way out, it finds sensitive values in each request and replaces them with realistic, format-preserving fakes. On the way back, it turns the fakes into the real values again, streamed responses and tool calls included.

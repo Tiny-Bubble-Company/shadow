@@ -1,6 +1,6 @@
 ---
 title: Integrating any endpoint
-description: Put Shadow in front of anything that talks to an LLM, including custom HTTP APIs, agents, IDEs, desktop apps and self-hosted gateways.
+description: "Put Shadow in front of anything that calls an LLM: Claude Code and coding assistants, IDEs, agents, desktop apps, custom APIs and self-hosted gateways."
 ---
 
 Shadow is not tied to a list of applications. If something sends HTTP requests to a model API, Shadow can sit in front of it. This page shows how to decide where to plug it in.

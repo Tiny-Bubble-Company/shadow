@@ -1,6 +1,6 @@
 ---
 title: File masking
-description: How Shadow masks uploaded files (multipart uploads, base64 payloads, data URIs) in text, Office and PDF formats before they leave.
+description: "How Shadow masks PII in files sent to LLMs: multipart uploads, base64 and data URIs in text, CSV, JSON, DOCX, XLSX, PPTX and PDF formats."
 ---
 
 Prompts are not the only way data reaches a model. Files uploaded for retrieval, attached to a message or embedded as base64 often carry far more sensitive content than the prompt itself. Shadow masks them before they leave the machine.

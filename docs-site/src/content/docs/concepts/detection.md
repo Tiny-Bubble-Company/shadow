@@ -1,6 +1,6 @@
 ---
 title: Detection
-description: The built-in detectors, dictionary terms, local machine facts, the optional NER sidecar and Microsoft Presidio.
+description: "How Shadow detects PII and secrets: checksummed patterns, secrets, dictionary terms, local machine facts, an optional NER model and Microsoft Presidio."
 ---
 
 Detection decides *what* is sensitive. Shadow layers several sources and merges their findings into one set of non-overlapping spans.
@@ -25,7 +25,7 @@ All built-in detectors are on by default. Turn individual ones off under `[detec
 | `address` | Street addresses in English (`221 Baker Street`) and German (`Hauptstraße 5`) styles | Pattern |
 | `iban` | IBANs | Pattern + **mod-97** check |
 | `credit_card` | Payment card numbers, 13 to 19 digits with optional separators | Pattern + **Luhn** check |
-| `national_id` | US SSN, UK National Insurance number, Indian Aadhaar | Pattern |
+| `national_id` | US SSN and ITIN, UK National Insurance and NHS numbers, Indian Aadhaar and PAN, Australian TFN and ABN | Pattern and checksum |
 | `ip` | IPv4 and full IPv6 addresses | Pattern |
 | `mac` | MAC addresses | Pattern |
 | `hostname` | Hostnames in URLs and bare domains that are not well-known public services; anything under `internal_domains` or an internal TLD (`.internal`, `.corp`, `.lan`, `.local`) | Pattern + allow list |
@@ -63,25 +63,50 @@ allow_terms = ["Jane Austen"]                  # never masked, whatever detects 
 
 ## Local NER sidecar
 
-Regex and dictionaries are precise for structured values but miss free-text names they have not seen. The `ml/` directory contains an optional, pure-PyTorch named-entity model (a BiLSTM with a character CNN, no downloaded weights) and a standard-library HTTP server. It recognises `PERSON`, `ORG`, `LOC` and `PROJECT` entities.
+Regex and dictionaries are precise for structured values but miss free-text names, addresses and organisations they have not seen. The `ml/` directory contains an optional sidecar that adds a named-entity model. It is a standard-library HTTP server on loopback, and there are two ways to run it.
+
+### Open-weight models (recommended)
+
+`serve_hf.py` runs open-weight models, all Apache-2.0, downloaded from Hugging Face on first start:
+
+| Backend | Model | Finds |
+| --- | --- | --- |
+| `privacy-filter` | [OpenAI Privacy Filter](https://huggingface.co/openai/privacy-filter) | people, addresses, private dates, emails, phones, URLs, account numbers, secrets |
+| `gliner` | [GLiNER multi PII](https://huggingface.co/urchade/gliner_multi_pii-v1) | multilingual names, organisations, addresses, IDs, usernames |
+| `ensemble` (default) | both, merged | the union of the two |
 
 ```sh
 cd ml
 python -m venv .venv && . .venv/bin/activate
+pip install -r requirements-hf.txt
+python serve_hf.py --backend ensemble --host 127.0.0.1 --port 8878
+```
+
+It uses CUDA or Apple MPS when available. If MPS crashes on your macOS version, pass `--device cpu`. On CPU the ensemble takes roughly a second per prompt, so raise `timeout_ms` to match. Shadow applies its public-name allowlist to whatever the model returns, so "London" or "Microsoft" stay readable.
+
+### Small from-scratch model
+
+`serve.py` runs a tiny pure-PyTorch model (a BiLSTM with a character CNN, no downloaded weights) that you train yourself. It recognises `PERSON`, `ORG`, `LOC` and `PROJECT`, is fast on CPU, and suits air-gapped machines:
+
+```sh
 pip install -r requirements.txt
 python train.py --out model.pt --epochs 8 --synthetic 20000
 python serve.py --model model.pt --host 127.0.0.1 --port 8878
 ```
 
+You can fine-tune it on your own JSONL data with `--data`.
+
+### Enable it in Shadow
+
 ```toml
 [model_detector]
 enabled = true
 url = "http://127.0.0.1:8878/detect"   # must be loopback
-timeout_ms = 300
+timeout_ms = 300                         # raise to ~2000 for the open-weight models on CPU
 min_score = 0.6
 ```
 
-You can fine-tune it on your own JSONL data with `--data`. The sidecar refuses to bind a non-loopback address unless forced, never logs request bodies, and loads checkpoints with `weights_only=True`. Shadow **fails open** on it: if it is down or slow, the built-in detectors still run. See `ml/README.md` for the HTTP contract.
+Both servers refuse to bind a non-loopback address unless you pass `--allow-remote`, and they never log request bodies. Shadow **fails open** on the sidecar: if it is down or slow, the built-in detectors still run. See `ml/README.md` for the HTTP contract, and the [benchmarks](/shadow/benchmarks/) for what each option adds.
 
 ## Presidio
 

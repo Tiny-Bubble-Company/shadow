@@ -146,3 +146,110 @@
 	letter-spacing: 0.08em;
 	color: var(--sl-color-gray-3);
 }
+
+/* Hero image: reserve space so the logo never shifts layout while loading */
+.hero img {
+	aspect-ratio: 1 / 1;
+	height: auto;
+}
+
+/* Landing page: key facts strip */
+.proof-strip {
+	list-style: none;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
+	gap: 0.75rem;
+	padding: 0 !important;
+	margin-block: 1.5rem 0.5rem;
+}
+.proof-strip li {
+	margin: 0 !important;
+	padding: 0.85rem 1rem;
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 12px;
+	background: linear-gradient(180deg, var(--sl-color-gray-6), transparent);
+	font-size: var(--sl-text-sm);
+	color: var(--sl-color-gray-3);
+	line-height: 1.35;
+}
+.proof-strip strong {
+	display: block;
+	font-size: var(--sl-text-lg);
+	color: var(--sl-color-white);
+	letter-spacing: -0.01em;
+}
+
+/* Landing page: section headings get a little more air on the splash template */
+[data-has-hero] .sl-markdown-content > h2 {
+	margin-top: 3.5rem;
+	font-size: clamp(1.6rem, 3.2vw, 2.1rem);
+}
+
+/* Landing page: comparison teaser, last column highlighted */
+.compare-teaser {
+	overflow-x: auto;
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 14px;
+}
+.compare-teaser table {
+	display: table;
+	width: 100%;
+	margin: 0 !important;
+	border: 0;
+}
+.compare-teaser :is(th, td) {
+	border-inline: 0;
+	vertical-align: top;
+}
+.compare-teaser :is(th, td):last-child {
+	background: var(--sl-color-accent-low);
+	color: var(--sl-color-white);
+}
+.compare-teaser th:last-child {
+	color: var(--sl-color-accent-high);
+}
+
+/* FAQ section (frontmatter `faq:`), rendered by src/components/FaqSection.astro */
+.faq {
+	margin-top: 3.5rem;
+	padding-top: 0.5rem;
+}
+.faq-list {
+	display: grid;
+	gap: 0.75rem;
+	margin-top: 1.25rem;
+}
+.sl-markdown-content .faq-item {
+	margin: 0;
+	padding: 1rem 1.25rem;
+	border: 1px solid var(--sl-color-gray-5);
+	border-left: 3px solid var(--sl-color-accent);
+	border-radius: 12px;
+	background: var(--sl-color-gray-6);
+}
+.sl-markdown-content .faq-item h3 {
+	margin: 0;
+	font-size: var(--sl-text-lg);
+	line-height: 1.35;
+}
+.sl-markdown-content .faq-answer {
+	margin-top: 0.5rem;
+	color: var(--sl-color-gray-2);
+}
+.sl-markdown-content .faq-answer > p {
+	margin: 0.5rem 0 0;
+}
+.sl-markdown-content .faq-answer > p:first-child {
+	margin-top: 0;
+}
+:root[data-theme='light'] .sl-markdown-content .faq-item {
+	background: var(--sl-color-gray-7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.card,
+	.card:hover {
+		transition: none;
+		transform: none;
+	}
+}

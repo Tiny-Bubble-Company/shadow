@@ -1,6 +1,6 @@
 ---
 title: Configuration
-description: Every key in shadow.toml, with types, defaults and examples.
+description: "Reference for every shadow.toml setting: persona, detectors, NER model, Presidio, policy, files, proxy and gateway routes, with defaults and examples."
 ---
 
 Shadow reads `shadow.toml` from the data directory, or from the path given by `--config` or `SHADOW_CONFIG`. **Every key is optional**: an empty file, or no file at all, is a valid configuration. `shadow init` writes a minimal one. [`shadow.example.toml`](https://github.com/Tiny-Bubble-Company/shadow/blob/main/shadow.example.toml) in the repository is an annotated template.
@@ -16,6 +16,10 @@ Shadow reads `shadow.toml` from the data directory, or from the path given by `-
 | Windows default | `%APPDATA%\shadow` |
 
 When the config file has no `data_dir`, the data directory is the folder that contains the file. A relative `data_dir` is resolved against that folder.
+
+:::caution
+If you point `--config` or `SHADOW_CONFIG` at a shared file, for example one checked into a repository, set `data_dir` in it or pass `--data-dir`. Otherwise Shadow creates `vault.key` and the vault next to that file.
+:::
 
 ## Top level
 
@@ -137,6 +141,7 @@ secret = "redact"   # never send secrets in any form; irreversible [REDACTED_SEC
 | `pdf` | `text` \| `block` \| `pass` | `"text"` | Send extracted, masked text; refuse PDFs; or pass them unmasked |
 | `images` | `pass` \| `block` | `"pass"` | Images are not OCR'd. `block` refuses requests that carry images |
 | `max_bytes` | integer | `52428800` | Largest file Shadow will process (50 MiB) |
+| `block_oversize` | bool | `false` | Refuse requests with files over `max_bytes` instead of forwarding them unmasked with a warning |
 
 ## `[proxy]`
 

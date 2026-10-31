@@ -225,7 +225,7 @@ fn real_main(cli: Cli) -> anyhow::Result<()> {
 
 fn init(cli: &Cli, region: Option<String>, orgs: Vec<String>, force: bool) -> anyhow::Result<()> {
     let mut cfg = load_config(cli)?;
-    std::fs::create_dir_all(&cfg.data_dir)?;
+    shadow_core::vault::create_private_dir(&cfg.data_dir)?;
     let toml_path = cli
         .config
         .clone()

@@ -1,6 +1,6 @@
 ---
 title: Security model
-description: What Shadow protects, from whom, what it trusts, and its known limitations.
+description: "Shadow's security model: what it protects from AI providers, what it trusts, how the vault and local CA are secured, and its known limitations."
 ---
 
 Shadow's job is narrow and specific: **keep the content of AI requests away from AI providers**, and from everyone downstream of them, while keeping the tools that send those requests useful.

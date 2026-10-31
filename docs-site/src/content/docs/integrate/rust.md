@@ -1,6 +1,6 @@
 ---
 title: Embed in Rust
-description: Use the shadow-core crate to mask and restore model calls in-process, with sessions, intent policy, JSON and streaming helpers.
+description: "Embed the shadow-core Rust crate to mask and restore LLM calls in-process: sessions, intent policy, JSON and streaming helpers, no proxy hop."
 ---
 
 `shadow-core` is the engine behind the `shadow` binary: detection, persona, vault, policy and translation. Embed it when your own Rust service calls models and you want masking in-process, with no proxy hop. Meridian, a compliance platform, uses it this way so that every model call it makes is masked before it leaves.

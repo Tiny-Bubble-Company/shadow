@@ -1,4 +1,12 @@
-//! Static word lists used by the built-in detectors.
+//! Word lists used by the built-in detectors, and rule-based person-name detection.
+
+use std::collections::HashSet;
+use std::sync::LazyLock;
+
+use regex::Regex;
+
+use super::dictionary::is_org_name;
+use super::{Finding, Kind};
 
 /// Common given names (international mix). Used to spot "Firstname Lastname".
 pub const FIRST_NAMES: &[&str] = &[
@@ -248,6 +256,1400 @@ pub const FIRST_NAMES: &[&str] = &[
     "Zoe",
 ];
 
+/// More given names, by locale. Matched accent-insensitively together with [`FIRST_NAMES`].
+pub const MORE_FIRST_NAMES: &[&str] = &[
+    // English (US)
+    "Abigail",
+    "Addison",
+    "Albert",
+    "Alexis",
+    "Alfred",
+    "Alison",
+    "Allison",
+    "Alyssa",
+    "Amber",
+    "Andre",
+    "Andy",
+    "Angel",
+    "Angelica",
+    "Ann",
+    "Annie",
+    "Antoinette",
+    "Arthur",
+    "Audrey",
+    "Ava",
+    "Bailey",
+    "Barry",
+    "Becky",
+    "Benny",
+    "Bernard",
+    "Bethany",
+    "Betty",
+    "Beverly",
+    "Bianca",
+    "Billy",
+    "Blake",
+    "Bonnie",
+    "Brad",
+    "Bradley",
+    "Brenda",
+    "Brent",
+    "Brett",
+    "Brianna",
+    "Bridget",
+    "Brittany",
+    "Brooke",
+    "Bryan",
+    "Caleb",
+    "Calvin",
+    "Cameron",
+    "Candice",
+    "Carol",
+    "Carolyn",
+    "Carrie",
+    "Casey",
+    "Cassandra",
+    "Cathy",
+    "Cecilia",
+    "Chad",
+    "Chelsea",
+    "Cheryl",
+    "Chloe",
+    "Christy",
+    "Cindy",
+    "Clara",
+    "Clarence",
+    "Clifford",
+    "Cody",
+    "Colin",
+    "Colleen",
+    "Connor",
+    "Corey",
+    "Courtney",
+    "Craig",
+    "Crystal",
+    "Curtis",
+    "Cynthia",
+    "Dale",
+    "Dana",
+    "Danielle",
+    "Danny",
+    "Darlene",
+    "Darren",
+    "Dave",
+    "Dawn",
+    "Deborah",
+    "Debra",
+    "Denise",
+    "Dennis",
+    "Derek",
+    "Destiny",
+    "Devin",
+    "Diane",
+    "Dominic",
+    "Don",
+    "Donna",
+    "Doris",
+    "Douglas",
+    "Dustin",
+    "Dylan",
+    "Earl",
+    "Eddie",
+    "Edith",
+    "Edwin",
+    "Eileen",
+    "Elaine",
+    "Eleanor",
+    "Eli",
+    "Elijah",
+    "Elise",
+    "Ella",
+    "Ellie",
+    "Emilia",
+    "Emmanuel",
+    "Erica",
+    "Erin",
+    "Ernest",
+    "Ethan",
+    "Eugene",
+    "Evan",
+    "Evelyn",
+    "Faith",
+    "Frances",
+    "Francis",
+    "Frederick",
+    "Gabriella",
+    "Gabrielle",
+    "Gail",
+    "Garrett",
+    "Gavin",
+    "Gemma",
+    "Geoffrey",
+    "Gerald",
+    "Gina",
+    "Glen",
+    "Glenn",
+    "Gloria",
+    "Gordon",
+    "Graham",
+    "Greg",
+    "Gregory",
+    "Haley",
+    "Hailey",
+    "Harold",
+    "Harriet",
+    "Harvey",
+    "Hayley",
+    "Hazel",
+    "Heidi",
+    "Herbert",
+    "Holly",
+    "Howard",
+    "Hugh",
+    "Hunter",
+    "Isaac",
+    "Isabella",
+    "Isaiah",
+    "Jackie",
+    "Jackson",
+    "Jacqueline",
+    "Jade",
+    "Jake",
+    "Jamie",
+    "Janice",
+    "Jared",
+    "Jasmine",
+    "Jay",
+    "Jeffrey",
+    "Jenna",
+    "Jenny",
+    "Jeremy",
+    "Jerry",
+    "Jesse",
+    "Jill",
+    "Jim",
+    "Jimmy",
+    "Joanna",
+    "Joanne",
+    "Jodi",
+    "Joel",
+    "Johnny",
+    "Jon",
+    "Jonah",
+    "Josephine",
+    "Joy",
+    "Joyce",
+    "Judith",
+    "Judy",
+    "Justin",
+    "Kaitlyn",
+    "Katelyn",
+    "Katherine",
+    "Kathryn",
+    "Katie",
+    "Kayla",
+    "Keith",
+    "Kelly",
+    "Kelsey",
+    "Ken",
+    "Kendra",
+    "Kenneth",
+    "Kerry",
+    "Kim",
+    "Kimberly",
+    "Kirsty",
+    "Kristen",
+    "Kristin",
+    "Kyle",
+    "Lance",
+    "Larry",
+    "Leah",
+    "Lee",
+    "Leonard",
+    "Leslie",
+    "Liam",
+    "Lillian",
+    "Lily",
+    "Linda",
+    "Lindsay",
+    "Lindsey",
+    "Logan",
+    "Lori",
+    "Louis",
+    "Louise",
+    "Lucy",
+    "Luke",
+    "Lydia",
+    "Lynn",
+    "Mackenzie",
+    "Madeline",
+    "Madison",
+    "Marcus",
+    "Margaret",
+    "Marian",
+    "Marilyn",
+    "Marion",
+    "Marjorie",
+    "Martha",
+    "Marvin",
+    "Matt",
+    "Maureen",
+    "Melissa",
+    "Melvin",
+    "Mia",
+    "Micheal",
+    "Mike",
+    "Mildred",
+    "Mitchell",
+    "Molly",
+    "Morgan",
+    "Nancy",
+    "Natalie",
+    "Nathaniel",
+    "Neil",
+    "Nicola",
+    "Noel",
+    "Norma",
+    "Norman",
+    "Oliver",
+    "Paige",
+    "Pamela",
+    "Parker",
+    "Penny",
+    "Phil",
+    "Philip",
+    "Phillip",
+    "Phyllis",
+    "Rachael",
+    "Ralph",
+    "Randall",
+    "Randy",
+    "Ray",
+    "Raymond",
+    "Reginald",
+    "Rhonda",
+    "Ricky",
+    "Riley",
+    "Rita",
+    "Rob",
+    "Robin",
+    "Roger",
+    "Ronald",
+    "Ronnie",
+    "Rosemary",
+    "Ross",
+    "Roy",
+    "Ruby",
+    "Russell",
+    "Ruth",
+    "Sally",
+    "Scott",
+    "Sean",
+    "Seth",
+    "Shane",
+    "Shannon",
+    "Sharon",
+    "Shaun",
+    "Shawn",
+    "Sheila",
+    "Shelby",
+    "Shirley",
+    "Sidney",
+    "Spencer",
+    "Stacey",
+    "Stacy",
+    "Stanley",
+    "Stuart",
+    "Sylvia",
+    "Tamara",
+    "Tammy",
+    "Tanya",
+    "Tara",
+    "Taylor",
+    "Teresa",
+    "Terry",
+    "Theodore",
+    "Theresa",
+    "Tiffany",
+    "Tina",
+    "Todd",
+    "Toni",
+    "Tony",
+    "Tracy",
+    "Travis",
+    "Trevor",
+    "Troy",
+    "Tyler",
+    "Valerie",
+    "Vernon",
+    "Veronica",
+    "Vicki",
+    "Wade",
+    "Walter",
+    "Wanda",
+    "Warren",
+    "Wayne",
+    "Wendy",
+    "Wesley",
+    "Whitney",
+    "Willie",
+    "Willow",
+    "Yvonne",
+    "Zachary",
+    "Zoey",
+    // English (UK)
+    "Alfie",
+    "Archie",
+    "Ashleigh",
+    "Beatrice",
+    "Callum",
+    "Charlotte",
+    "Ciaran",
+    "Declan",
+    "Eloise",
+    "Elliot",
+    "Elliott",
+    "Esme",
+    "Freddie",
+    "Freya",
+    "Gareth",
+    "Georgina",
+    "Graeme",
+    "Hamish",
+    "Harley",
+    "Harrison",
+    "Hollie",
+    "Imogen",
+    "Iain",
+    "Jodie",
+    "Kieran",
+    "Leigh",
+    "Lewis",
+    "Lorna",
+    "Lucinda",
+    "Maisie",
+    "Mohammad",
+    "Nigel",
+    "Niamh",
+    "Owen",
+    "Phoebe",
+    "Poppy",
+    "Reece",
+    "Rhys",
+    "Rory",
+    "Rosie",
+    "Sian",
+    "Toby",
+    "Yasmin",
+    // German
+    "Achim",
+    "Adelheid",
+    "Agnes",
+    "Alfons",
+    "Alois",
+    "Angelika",
+    "Anke",
+    "Annemarie",
+    "Annette",
+    "Antje",
+    "Armin",
+    "Arne",
+    "Astrid",
+    "Axel",
+    "Bärbel",
+    "Beate",
+    "Benedikt",
+    "Bernhard",
+    "Berthold",
+    "Bettina",
+    "Birgit",
+    "Björn",
+    "Brigitte",
+    "Bruno",
+    "Burkhard",
+    "Carina",
+    "Carsten",
+    "Christa",
+    "Christel",
+    "Christoph",
+    "Cornelia",
+    "Dagmar",
+    "Detlef",
+    "Dietmar",
+    "Dirk",
+    "Dorothea",
+    "Edeltraud",
+    "Egon",
+    "Elfriede",
+    "Elke",
+    "Elisabeth",
+    "Emil",
+    "Erika",
+    "Erna",
+    "Ernst",
+    "Erwin",
+    "Esther",
+    "Eugen",
+    "Ewald",
+    "Fabian",
+    "Falk",
+    "Ferdinand",
+    "Frieda",
+    "Friedrich",
+    "Friedhelm",
+    "Fritz",
+    "Gabriele",
+    "Georg",
+    "Gerda",
+    "Gerd",
+    "Gert",
+    "Gertrud",
+    "Gisela",
+    "Gottfried",
+    "Gudrun",
+    "Günter",
+    "Günther",
+    "Gustav",
+    "Hanna",
+    "Hannelore",
+    "Hannes",
+    "Harald",
+    "Hartmut",
+    "Hedwig",
+    "Heide",
+    "Heidrun",
+    "Heike",
+    "Heinrich",
+    "Helga",
+    "Helmut",
+    "Henning",
+    "Hermann",
+    "Hildegard",
+    "Holger",
+    "Horst",
+    "Hubert",
+    "Ilse",
+    "Ina",
+    "Inge",
+    "Ingeborg",
+    "Ingo",
+    "Irene",
+    "Irmgard",
+    "Jakob",
+    "Janina",
+    "Joachim",
+    "Jochen",
+    "Jörg",
+    "Josef",
+    "Jürgen",
+    "Jutta",
+    "Kai",
+    "Karl-Heinz",
+    "Karsten",
+    "Kerstin",
+    "Konrad",
+    "Kurt",
+    "Leni",
+    "Leonie",
+    "Liane",
+    "Lieselotte",
+    "Lothar",
+    "Ludwig",
+    "Lutz",
+    "Magdalena",
+    "Manfred",
+    "Manuela",
+    "Marcel",
+    "Margarete",
+    "Margot",
+    "Marianne",
+    "Marko",
+    "Marlene",
+    "Mathias",
+    "Mehmet",
+    "Michaela",
+    "Mirko",
+    "Nadine",
+    "Niklas",
+    "Nils",
+    "Norbert",
+    "Olaf",
+    "Ortrud",
+    "Oskar",
+    "Otto",
+    "Pascal",
+    "Peggy",
+    "Rainer",
+    "Reinhard",
+    "Reinhold",
+    "Renate",
+    "Roland",
+    "Rolf",
+    "Rosemarie",
+    "Rudolf",
+    "Rüdiger",
+    "Sabrina",
+    "Silke",
+    "Simone",
+    "Siegfried",
+    "Sieglinde",
+    "Sigrid",
+    "Susanne",
+    "Svenja",
+    "Swen",
+    "Theo",
+    "Theodor",
+    "Thorsten",
+    "Till",
+    "Torsten",
+    "Udo",
+    "Ulrich",
+    "Ulrike",
+    "Ursula",
+    "Ute",
+    "Valentin",
+    "Verena",
+    "Volker",
+    "Waldemar",
+    "Werner",
+    "Wilfried",
+    "Wilhelm",
+    "Willi",
+    "Wiebke",
+    // French
+    "Adèle",
+    "Adrien",
+    "Agathe",
+    "Aimé",
+    "Alain",
+    "Albane",
+    "Alexandre",
+    "Alix",
+    "Alphonse",
+    "Amandine",
+    "Amélie",
+    "Anaïs",
+    "André",
+    "Anne-Marie",
+    "Annick",
+    "Antoine",
+    "Arnaud",
+    "Aurélie",
+    "Aurélien",
+    "Baptiste",
+    "Bastien",
+    "Benoît",
+    "Bernadette",
+    "Bertrand",
+    "Camille",
+    "Capucine",
+    "Céline",
+    "Chantal",
+    "Christelle",
+    "Christophe",
+    "Clarisse",
+    "Claude",
+    "Claudine",
+    "Clément",
+    "Colette",
+    "Corinne",
+    "Cyril",
+    "Damien",
+    "Delphine",
+    "Denis",
+    "Didier",
+    "Dominique",
+    "Édouard",
+    "Éléonore",
+    "Éloïse",
+    "Émile",
+    "Émilie",
+    "Éric",
+    "Étienne",
+    "Fabien",
+    "Fabrice",
+    "Franck",
+    "François",
+    "Françoise",
+    "Frédéric",
+    "Frédérique",
+    "Gaël",
+    "Gaëlle",
+    "Gaston",
+    "Geneviève",
+    "Georges",
+    "Gérard",
+    "Germaine",
+    "Gilbert",
+    "Gilles",
+    "Grégoire",
+    "Guillaume",
+    "Guy",
+    "Hélène",
+    "Henri",
+    "Hervé",
+    "Hortense",
+    "Hugo",
+    "Hugues",
+    "Inès",
+    "Isabelle",
+    "Jacques",
+    "Jeanne",
+    "Jérôme",
+    "Joël",
+    "Josette",
+    "Josiane",
+    "Jules",
+    "Julien",
+    "Juliette",
+    "Justine",
+    "Laetitia",
+    "Laure",
+    "Laurence",
+    "Laurent",
+    "Léa",
+    "Léon",
+    "Léonie",
+    "Lucie",
+    "Lucien",
+    "Ludovic",
+    "Luc",
+    "Madeleine",
+    "Manon",
+    "Marc",
+    "Margaux",
+    "Marguerite",
+    "Marine",
+    "Martine",
+    "Mathieu",
+    "Mathilde",
+    "Maurice",
+    "Maxime",
+    "Michel",
+    "Michèle",
+    "Mireille",
+    "Monique",
+    "Nathalie",
+    "Nicolas",
+    "Noël",
+    "Noëlle",
+    "Océane",
+    "Odette",
+    "Olivier",
+    "Pascale",
+    "Patrice",
+    "Philippe",
+    "Régis",
+    "Rémy",
+    "Renée",
+    "Romain",
+    "Rose",
+    "Sébastien",
+    "Serge",
+    "Solange",
+    "Stéphane",
+    "Stéphanie",
+    "Suzanne",
+    "Sylvain",
+    "Sylvie",
+    "Théo",
+    "Théodore",
+    "Thibault",
+    "Thibaut",
+    "Thierry",
+    "Valérie",
+    "Victor",
+    "Victoire",
+    "Virginie",
+    "Xavier",
+    "Yves",
+    "Yvette",
+    "Zoé",
+    // Spanish
+    "Adolfo",
+    "Agustín",
+    "Alberto",
+    "Alejandra",
+    "Alejandro",
+    "Alfonso",
+    "Álvaro",
+    "Amparo",
+    "Andrés",
+    "Ángel",
+    "Ángela",
+    "Ángeles",
+    "Antonia",
+    "Araceli",
+    "Arturo",
+    "Asunción",
+    "Aurora",
+    "Beatriz",
+    "Benito",
+    "Blanca",
+    "Borja",
+    "Candela",
+    "Carolina",
+    "Catalina",
+    "Celia",
+    "Concepción",
+    "Consuelo",
+    "Cristian",
+    "Cristina",
+    "Dolores",
+    "Domingo",
+    "Eduardo",
+    "Elisa",
+    "Emilio",
+    "Encarnación",
+    "Enrique",
+    "Esperanza",
+    "Esteban",
+    "Eugenia",
+    "Federico",
+    "Felipe",
+    "Fernanda",
+    "Francisca",
+    "Francisco",
+    "Gonzalo",
+    "Guadalupe",
+    "Guillermo",
+    "Gustavo",
+    "Ignacio",
+    "Inés",
+    "Inmaculada",
+    "Ismael",
+    "Jaime",
+    "Jesús",
+    "Joaquín",
+    "Jordi",
+    "Josefa",
+    "Josep",
+    "Juana",
+    "Julio",
+    "Leonor",
+    "Lorena",
+    "Lorenzo",
+    "Lourdes",
+    "Lucía",
+    "Luisa",
+    "Manuel",
+    "Marcos",
+    "Margarita",
+    "Mariano",
+    "Marina",
+    "Marta",
+    "Martín",
+    "Mateo",
+    "Mercedes",
+    "Milagros",
+    "Miriam",
+    "Montserrat",
+    "Natividad",
+    "Nerea",
+    "Nicolás",
+    "Nieves",
+    "Noelia",
+    "Nuria",
+    "Óscar",
+    "Paco",
+    "Paz",
+    "Pedro",
+    "Pilar",
+    "Purificación",
+    "Rafael",
+    "Ramón",
+    "Raquel",
+    "Raúl",
+    "Remedios",
+    "Ricardo",
+    "Roberto",
+    "Rocío",
+    "Rodrigo",
+    "Rosa",
+    "Rosario",
+    "Rubén",
+    "Salvador",
+    "Santiago",
+    "Sergio",
+    "Silvia",
+    "Sofía",
+    "Soledad",
+    "Susana",
+    "Tomás",
+    "Valentín",
+    "Vanesa",
+    "Verónica",
+    "Vicente",
+    "Víctor",
+    "Yolanda",
+    // Italian
+    "Achille",
+    "Adriana",
+    "Agnese",
+    "Alessandra",
+    "Alessandro",
+    "Alessio",
+    "Alfredo",
+    "Aldo",
+    "Amedeo",
+    "Angelo",
+    "Annalisa",
+    "Antonella",
+    "Arianna",
+    "Armando",
+    "Benedetta",
+    "Camilla",
+    "Carlo",
+    "Caterina",
+    "Cesare",
+    "Chiara",
+    "Claudio",
+    "Corrado",
+    "Damiano",
+    "Daniele",
+    "Dario",
+    "Davide",
+    "Debora",
+    "Domenico",
+    "Donatella",
+    "Edoardo",
+    "Emanuele",
+    "Enrico",
+    "Enzo",
+    "Ernesto",
+    "Ettore",
+    "Fabio",
+    "Fabrizio",
+    "Federica",
+    "Filippo",
+    "Fiorella",
+    "Flavio",
+    "Francesca",
+    "Francesco",
+    "Franco",
+    "Gaetano",
+    "Giacomo",
+    "Gianfranco",
+    "Gianluca",
+    "Gianni",
+    "Gino",
+    "Giorgia",
+    "Giorgio",
+    "Giovanna",
+    "Giovanni",
+    "Giuliana",
+    "Giuliano",
+    "Giulio",
+    "Graziella",
+    "Guido",
+    "Ilaria",
+    "Leonardo",
+    "Letizia",
+    "Lidia",
+    "Liliana",
+    "Loredana",
+    "Luciano",
+    "Lucia",
+    "Luigi",
+    "Marcello",
+    "Marco",
+    "Margherita",
+    "Marisa",
+    "Martina",
+    "Massimo",
+    "Matteo",
+    "Mattia",
+    "Maurizio",
+    "Michela",
+    "Michele",
+    "Mirella",
+    "Monica",
+    "Nicoletta",
+    "Ornella",
+    "Paola",
+    "Paolo",
+    "Patrizia",
+    "Piero",
+    "Pietro",
+    "Raffaele",
+    "Raffaella",
+    "Renato",
+    "Riccardo",
+    "Roberta",
+    "Rocco",
+    "Romano",
+    "Rosalba",
+    "Rossella",
+    "Salvatore",
+    "Sandro",
+    "Serena",
+    "Silvana",
+    "Silvio",
+    "Simona",
+    "Stefania",
+    "Stefano",
+    "Tiziana",
+    "Tommaso",
+    "Umberto",
+    "Valerio",
+    "Vincenzo",
+    "Vittoria",
+    "Vittorio",
+    // Dutch
+    "Aad",
+    "Adriaan",
+    "Anneke",
+    "Anouk",
+    "Arend",
+    "Arie",
+    "Bart",
+    "Bas",
+    "Bastiaan",
+    "Berend",
+    "Bert",
+    "Bo",
+    "Bram",
+    "Brecht",
+    "Casper",
+    "Cees",
+    "Daan",
+    "Dewi",
+    "Eline",
+    "Els",
+    "Esmée",
+    "Evert",
+    "Femke",
+    "Fenna",
+    "Floor",
+    "Floris",
+    "Frederik",
+    "Freek",
+    "Frits",
+    "Gerrit",
+    "Gijs",
+    "Guus",
+    "Hendrik",
+    "Henk",
+    "Iris",
+    "Jaap",
+    "Jacobus",
+    "Jan-Willem",
+    "Janneke",
+    "Jasper",
+    "Jelle",
+    "Jeroen",
+    "Johan",
+    "Johanna",
+    "Joost",
+    "Jop",
+    "Joris",
+    "Jos",
+    "Kees",
+    "Klaas",
+    "Koen",
+    "Lars",
+    "Lieke",
+    "Lisanne",
+    "Lotte",
+    "Luuk",
+    "Maarten",
+    "Marieke",
+    "Marijke",
+    "Marit",
+    "Marloes",
+    "Martijn",
+    "Mats",
+    "Maud",
+    "Meike",
+    "Merel",
+    "Milan",
+    "Mirjam",
+    "Niels",
+    "Noor",
+    "Pieter",
+    "Puck",
+    "Rik",
+    "Roel",
+    "Roos",
+    "Ruben",
+    "Rutger",
+    "Saskia",
+    "Sander",
+    "Sanne",
+    "Sem",
+    "Sjoerd",
+    "Stijn",
+    "Teun",
+    "Thijs",
+    "Tijn",
+    "Tygo",
+    "Vera",
+    "Wouter",
+    "Willem",
+    "Yara",
+    "Zara",
+    // Portuguese (Brazil)
+    "Adriano",
+    "Aline",
+    "Júlia",
+    "Antônio",
+    "Augusto",
+    "Benedito",
+    "Bernardo",
+    "Bruna",
+    "Caio",
+    "Camila",
+    "Cauã",
+    "Cecília",
+    "Cláudia",
+    "Cristiano",
+    "Davi",
+    "Débora",
+    "Diego",
+    "Eduarda",
+    "Emanuel",
+    "Erick",
+    "Fábio",
+    "Flávia",
+    "Gabriela",
+    "Guilherme",
+    "Heitor",
+    "Heloísa",
+    "Henrique",
+    "Isabela",
+    "Isadora",
+    "Ítalo",
+    "Joana",
+    "João",
+    "José",
+    "Juliana",
+    "Kamila",
+    "Larissa",
+    "Lavínia",
+    "Leandro",
+    "Letícia",
+    "Lívia",
+    "Luana",
+    "Luiz",
+    "Luíza",
+    "Luiza",
+    "Marcela",
+    "Marcelo",
+    "Márcia",
+    "Mariana",
+    "Mateus",
+    "Matheus",
+    "Murilo",
+    "Natália",
+    "Otávio",
+    "Paulo",
+    "Rafaela",
+    "Rebeca",
+    "Renan",
+    "Renata",
+    "Rogério",
+    "Sebastião",
+    "Sérgio",
+    "Tatiane",
+    "Thiago",
+    "Vinícius",
+    "Vitor",
+    "Vitória",
+    // Indian
+    "Aadhya",
+    "Aarav",
+    "Aarush",
+    "Aditi",
+    "Aditya",
+    "Advait",
+    "Ajay",
+    "Akash",
+    "Akshay",
+    "Alok",
+    "Amitabh",
+    "Ananya",
+    "Anand",
+    "Anjali",
+    "Ankit",
+    "Ankita",
+    "Anushka",
+    "Arnav",
+    "Aryan",
+    "Ashok",
+    "Avni",
+    "Ayaan",
+    "Bhavna",
+    "Chetan",
+    "Darshan",
+    "Dev",
+    "Devika",
+    "Dhruv",
+    "Dinesh",
+    "Disha",
+    "Ganesh",
+    "Gaurav",
+    "Geeta",
+    "Gopal",
+    "Harsh",
+    "Harish",
+    "Hemant",
+    "Ishaan",
+    "Ishita",
+    "Jaya",
+    "Jayant",
+    "Jyoti",
+    "Kabir",
+    "Kajal",
+    "Kalpana",
+    "Kamal",
+    "Karan",
+    "Kavita",
+    "Kavya",
+    "Kiran",
+    "Kishore",
+    "Krish",
+    "Lakshmi",
+    "Madhav",
+    "Mahesh",
+    "Manish",
+    "Manoj",
+    "Meena",
+    "Meera",
+    "Mohan",
+    "Mukesh",
+    "Nandini",
+    "Naveen",
+    "Neelam",
+    "Nikhil",
+    "Nisha",
+    "Nitin",
+    "Pankaj",
+    "Parth",
+    "Pradeep",
+    "Prakash",
+    "Pranav",
+    "Prashant",
+    "Preeti",
+    "Radha",
+    "Rajan",
+    "Rajiv",
+    "Rakesh",
+    "Ravi",
+    "Reyansh",
+    "Rishi",
+    "Ritu",
+    "Rohan",
+    "Rohit",
+    "Sachin",
+    "Sahil",
+    "Sai",
+    "Sakshi",
+    "Sandeep",
+    "Sanjana",
+    "Santosh",
+    "Saroj",
+    "Shanti",
+    "Shreya",
+    "Shruti",
+    "Siddharth",
+    "Sita",
+    "Sneha",
+    "Sonia",
+    "Sunita",
+    "Swati",
+    "Tanvi",
+    "Tarun",
+    "Uday",
+    "Usha",
+    "Varun",
+    "Vedant",
+    "Vihaan",
+    "Vikram",
+    "Vinod",
+    "Vishal",
+    "Vivaan",
+    "Yash",
+    // Japanese (romanised)
+    "Akira",
+    "Akiko",
+    "Ayumi",
+    "Daiki",
+    "Daisuke",
+    "Emi",
+    "Haruka",
+    "Haruto",
+    "Hiroshi",
+    "Hiroko",
+    "Hitomi",
+    "Kaito",
+    "Kazuki",
+    "Kenji",
+    "Kenta",
+    "Kumiko",
+    "Mai",
+    "Makoto",
+    "Mami",
+    "Mayumi",
+    "Megumi",
+    "Minoru",
+    "Miyu",
+    "Momoko",
+    "Naoki",
+    "Naoko",
+    "Ren",
+    "Riko",
+    "Ryota",
+    "Sakura",
+    "Satoshi",
+    "Sho",
+    "Shota",
+    "Sota",
+    "Takashi",
+    "Takumi",
+    "Taro",
+    "Tomoko",
+    "Yoko",
+    "Yui",
+    "Yuka",
+    "Yumi",
+    "Yuto",
+];
+
+/// Further common given names in the supported European languages (English, German, Dutch,
+/// French, Spanish, Italian, Swedish, Portuguese), pipe-separated. Names that are also
+/// everyday words in one of those languages ("Per", "Luz", "Grace") are left out.
+const GIVEN_NAMES: &str = "\
+William|Liam|Oliver|Henry|Jack|Harry|George|Charlie|Thomas|James|Robert|Richard|Edward|Charles|\
+Joseph|Arthur|Frederick|Albert|Alfred|Walter|Harold|Ernest|Stanley|Leonard|Francis|Herbert|\
+Bernard|Raymond|Kenneth|Ronald|Donald|Douglas|Gordon|Malcolm|Duncan|Graham|Stuart|Stewart|Neil|\
+Keith|Barry|Trevor|Nigel|Clive|Colin|Derek|Dennis|Geoffrey|Gerald|Howard|Kevin|Brian|Gary|Wayne|\
+Shane|Craig|Darren|Lee|Ross|Scott|Simon|Stephen|Steven|Timothy|Philip|Phillip|Anthony|Andrew|\
+Matthew|Michael|Christopher|Nicholas|Jonathan|Benjamin|Samuel|Daniel|Joshua|Nathan|Ryan|Adam|\
+Luke|Callum|Connor|Kieran|Declan|Owen|Rhys|Gareth|Glyn|Dylan|Evan|Ethan|Logan|Lucas|Noah|Aiden|\
+Caleb|Isaac|Jacob|Elijah|Gabriel|Brandon|Bradley|Cody|Dustin|Travis|Tyler|Justin|Kyle|Marcus|\
+Mitchell|Nathaniel|Patrick|Peter|Russell|Shaun|Sean|Spencer|Theodore|Tobias|Vincent|Zachary|\
+Elliot|Elliott|Harvey|Jasper|Jude|Leo|Louis|Oscar|Reuben|Rory|Seth|Toby|Freddie|Alfie|Archie|\
+Bobby|Dominic|Edmund|Felix|Hugo|Ivan|Joel|Julian|Lewis|Marvin|Neville|Norman|Rodney|Roger|\
+Ronnie|Rupert|Terence|Vernon|Warren|Wesley|Gregory|Jeffrey|Jeremy|Jerry|Larry|Terry|Johnny|\
+Jimmy|Tommy|Danny|Kenny|Mary|Elizabeth|Margaret|Dorothy|Helen|Betty|Patricia|Barbara|Susan|\
+Sandra|Karen|Donna|Carol|Sharon|Michelle|Laura|Sarah|Kimberly|Deborah|Jessica|Shirley|Cynthia|\
+Angela|Melissa|Brenda|Pamela|Nicole|Stephanie|Rebecca|Kathleen|Christine|Catherine|Katherine|\
+Kathryn|Debra|Rachel|Carolyn|Janet|Maria|Heather|Diane|Julie|Joyce|Victoria|Kelly|Christina|\
+Lauren|Joan|Evelyn|Judith|Megan|Cheryl|Andrea|Hannah|Martha|Jacqueline|Frances|Gloria|Ann|Anne|\
+Teresa|Kathy|Sara|Janice|Jean|Alice|Madison|Doris|Abigail|Julia|Judy|Beverly|Denise|Marilyn|\
+Amanda|Danielle|Theresa|Sophia|Natalie|Diana|Charlotte|Marie|Kayla|Alexis|Lori|Emma|Olivia|\
+Amelia|Ava|Mia|Isabella|Sophie|Ella|Evie|Lucy|Chloe|Freya|Millie|Phoebe|Matilda|Esme|Imogen|\
+Eleanor|Harriet|Florence|Edith|Ethel|Gladys|Mildred|Agnes|Beatrice|Mabel|Muriel|Irene|Vera|\
+Sylvia|Maureen|Gillian|Lesley|Lynne|Pauline|Sheila|Valerie|Wendy|Yvonne|Bethany|Kayleigh|Leanne|\
+Gemma|Kirsty|Natasha|Samantha|Stacey|Zoe|Abbie|Caitlin|Ellie|Erin|Jodie|Kerry|Lindsay|Lydia|\
+Maisie|Nadia|Paige|Rosie|Scarlett|Tilly|Siobhan|Bridget|Fiona|Moira|Morag|Rhiannon|Sian|Carys|\
+Ashley|Brittney|Courtney|Kristen|Lindsey|Meghan|Tiffany|Vanessa|Whitney|Allison|Erica|Monica|\
+Tracy|Tracey|Dana|Melanie|Rachael|Joanne|Suzanne|Tina|Tanya|Elaine|Annette|Colleen|Maggie|Peggy|\
+Sally|Jenny|Jennifer|Linda|Lisa|Emily|Hans|Klaus|Jürgen|Dieter|Günter|Günther|Horst|Manfred|Uwe|\
+Wolfgang|Helmut|Gerhard|Werner|Heinz|Karl|Kurt|Rolf|Ralf|Bernd|Rainer|Reinhard|Friedrich|\
+Wilhelm|Heinrich|Hermann|Otto|Ernst|Gustav|Ludwig|Siegfried|Dietrich|Detlef|Detlev|Gerd|Gert|\
+Götz|Hartmut|Helmuth|Holger|Ingo|Joachim|Jörg|Lothar|Lutz|Matthias|Norbert|Olaf|Reiner|Rüdiger|\
+Thorsten|Torsten|Ulrich|Volker|Wilfried|Winfried|Axel|Bodo|Burkhard|Egon|Erwin|Fritz|Gottfried|\
+Hannes|Harald|Heiko|Henning|Hubert|Jens|Jochen|Knut|Konrad|Kuno|Leopold|Lorenz|Marius|Mirko|\
+Nils|Ottmar|Pascal|Reinhold|Roland|Sascha|Sebastian|Stefan|Steffen|Sven|Till|Timo|Ulf|Waldemar|\
+Wendelin|Wenzel|Florian|Fabian|Jonas|Leon|Lukas|Luca|Maximilian|Moritz|Niklas|Nico|Paul|Philipp|\
+Tim|Elias|Emil|Ben|Jan|Marcel|Marco|Christian|Dominik|Johannes|Andreas|Markus|Martin|Alexander|\
+Christoph|Frank|Jan-Peter|Karl-Heinz|Hans-Peter|Hans-Jürgen|Klaus-Peter|Horst-Peter|\
+Heinz-Dieter|Ursula|Ingrid|Gisela|Helga|Monika|Renate|Brigitte|Karin|Elke|Gabriele|Petra|Sabine|\
+Birgit|Heike|Claudia|Susanne|Martina|Kerstin|Silke|Anja|Katrin|Kathrin|Stefanie|Tanja|Daniela|\
+Anna|Lena|Leonie|Lea|Johanna|Lina|Mila|Emilia|Frieda|Greta|Ida|Ilse|Irmgard|Hildegard|Gertrud|\
+Erika|Edeltraud|Waltraud|Elfriede|Herta|Hertha|Liselotte|Lieselotte|Margarete|Marianne|\
+Rosemarie|Annemarie|Christa|Dagmar|Elisabeth|Frauke|Gudrun|Hannelore|Heidi|Heidrun|Ilona|Inge|\
+Jutta|Karola|Luise|Magdalena|Marlene|Mechthild|Regina|Rita|Roswitha|Sieglinde|Silvia|Ulrike|Uta|\
+Ute|Veronika|Waltraut|Wiebke|Annika|Antje|Bettina|Carina|Corinna|Franziska|Friederike|Henrike|\
+Jana|Janina|Jasmin|Katharina|Kristina|Maren|Mareike|Miriam|Nadine|Nina|Ramona|Simone|Svenja|\
+Verena|Constanze|Theresia|Hedwig|Mathilde|Adelheid|Anneliese|Erdmute|Hiltrud|Ortrud|Swantje|\
+Gesine|Imke|Insa|Tomke|Jeroen|Pieter|Joost|Bas|Bram|Daan|Gijs|Hendrik|Henk|Jaap|Joris|Kees|Koen|\
+Lars|Luuk|Maarten|Niels|Pim|Rutger|Ruud|Sander|Stijn|Thijs|Tijs|Wim|Wouter|Willem|Jacobus|\
+Cornelis|Gerrit|Arie|Dirk|Evert|Gerard|Hennie|Herman|Huub|Jan-Willem|Jelle|Jesse|Jop|Jorrit|\
+Klaas|Lieven|Marten|Menno|Mees|Reinier|Rens|Rik|Robbert|Roel|Ruben|Siem|Sjoerd|Teun|Ties|Tycho|\
+Wessel|Wijnand|Willem-Jan|Yorick|Loek|Sem|Tygo|Mats|Thijmen|Fenna|Femke|Jolien|Josje|Karlijn|\
+Lieke|Lotte|Maaike|Marieke|Marloes|Mirjam|Nienke|Noor|Roos|Sanne|Saskia|Sietske|Tess|Tessa|\
+Willemijn|Wilhelmina|Anouk|Annelies|Annemieke|Anneke|Bregje|Britt|Esther|Evi|Femmy|Floortje|\
+Geertje|Hanneke|Hester|Ineke|Janneke|Jikke|Lisanne|Liza|Lize|Maud|Merel|Mieke|Myrthe|Nynke|\
+Renske|Rianne|Sanna|Wendela|Yfke|Ymke|Zoë|Liesbeth|Truus|Riet|Grietje|Aaltje|Trijntje|Jasmijn|\
+Esmee|Pierre|Jacques|Michel|Philippe|Alain|Christophe|Nicolas|Laurent|Stéphane|Frédéric|Thierry|\
+Éric|Olivier|Sébastien|Didier|Gilles|Jérôme|Thibault|Thibaut|Guillaume|Julien|Mathieu|Matthieu|\
+Maxime|Antoine|Romain|Clément|Quentin|Théo|Baptiste|Valentin|Adrien|Damien|Arnaud|Benoît|Cédric|\
+Fabrice|Franck|Grégoire|Gérard|Hervé|Jean-Pierre|Jean-Claude|Jean-Luc|Jean-Marc|Jean-Paul|\
+Jean-François|Jean-Michel|Jean-Louis|Lionel|Loïc|Ludovic|Maurice|Raphaël|Régis|Rémi|Rémy|Serge|\
+Sylvain|Thibaud|Yann|Yannick|Yves|Gaston|Gaspard|Gustave|Honoré|Lucien|Marcelin|Octave|Rodolphe|\
+Théophile|Timothée|Xavier|Aurélien|Bastien|Corentin|Dorian|Enzo|Gaël|Kévin|Killian|Loris|Mathis|\
+Sacha|Tristan|Anatole|Augustin|Léo|Raphael|Jules|Monique|Nathalie|Isabelle|Sylvie|Françoise|\
+Martine|Valérie|Sandrine|Véronique|Stéphanie|Céline|Aurélie|Émilie|Camille|Chloé|Manon|Léa|Inès|\
+Louise|Juliette|Margaux|Margot|Lucie|Elodie|Élodie|Amandine|Anaïs|Audrey|Caroline|Claire|\
+Delphine|Géraldine|Hélène|Laetitia|Laëtitia|Marion|Mélanie|Morgane|Océane|Virginie|Agathe|\
+Albane|Apolline|Bérénice|Capucine|Clémence|Colette|Éléonore|Eugénie|Geneviève|Gisèle|Huguette|\
+Jeanne|Josette|Josiane|Liliane|Lucienne|Madeleine|Marguerite|Mireille|Odette|Paulette|Solange|\
+Thérèse|Yvette|Ghislaine|Arlette|Annick|Bernadette|Chantal|Corinne|Dominique|Évelyne|Fabienne|\
+Laurence|Pascale|Régine|Agnès|Béatrice|Mélissa|Noémie|Noémi|Romane|Zoé|Clara|Eva|Maëlle|Maëva|\
+Ambre|Lou|Anne-Marie|Marie-Claire|Marie-Thérèse|Marie-Christine|Marie-France|Marie-Laure|Maryse|\
+Mylène|Nadège|Rolande|Sidonie|Victoire|Viviane|Arnaude|José|Antonio|Manuel|Francisco|Juan|David|\
+Javier|Jesús|Carlos|Miguel|Rafael|Pedro|Ángel|Alejandro|Fernando|Pablo|Jorge|Luis|Sergio|\
+Alberto|Álvaro|Diego|Adrián|Raúl|Enrique|Ramón|Vicente|Andrés|Joaquín|Víctor|Eduardo|Roberto|\
+Jaime|Ignacio|Alfonso|Ricardo|Emilio|Guillermo|Gonzalo|Rubén|Óscar|Marcos|Mariano|Agustín|Tomás|\
+Félix|Julián|Lorenzo|Gregorio|Cristóbal|Esteban|Gustavo|Iker|Íñigo|Unai|Aitor|Asier|Jon|Mikel|\
+Xavi|Jordi|Josep|Pere|Oriol|Marc|Arnau|Ernesto|Federico|Héctor|Leandro|Nicolás|Patricio|Rodrigo|\
+Rogelio|Saúl|Sebastián|Teodoro|Valentín|Abel|Amador|Anselmo|Aurelio|Baltasar|Bartolomé|Benito|\
+Bernardo|Casimiro|Ceferino|Clemente|Cosme|Cristian|Damián|Desiderio|Eloy|Elías|Eusebio|\
+Eustaquio|Fabián|Fausto|Feliciano|Fermín|Florentino|Fulgencio|Gerardo|Gilberto|Heliodoro|\
+Hilario|Horacio|Ismael|Isidro|Jacinto|Jeremías|Leonardo|Leoncio|Lucio|Macario|Marcelino|Marcial|\
+Martín|Matías|Mauricio|Maximiliano|Moisés|Nazario|Nemesio|Octavio|Pascual|Plácido|Prudencio|\
+Reinaldo|Régulo|Rufino|Sancho|Severino|Silvio|Simón|Teófilo|Toribio|Ulises|Venancio|Virgilio|\
+Wenceslao|Zacarías|Espiridión|Ezequiel|Gaspar|Lázaro|Leocadio|Nicanor|Paulino|Ruy|Seve|Tadeo|\
+Vidal|Chus|Pepe|Paco|Chema|Carmen|Josefa|Isabel|Ana|Francisca|Cristina|Marta|Antonia|Dolores|\
+Lucía|Elena|Manuela|Raquel|Rosario|Beatriz|Nuria|Rocío|Montserrat|Mónica|Alicia|Sonia|Ángela|\
+Inmaculada|Paula|Yolanda|Margarita|Susana|Natalia|Inés|Consuelo|Adela|Aurora|Begoña|Blanca|\
+Catalina|Celia|Eugenia|Fátima|Gema|Graciela|Guadalupe|Itziar|Jimena|Leire|Lorena|Lourdes|\
+Macarena|Maite|Marisol|Matilde|Nerea|Noelia|Olga|Paloma|Rebeca|Rosalía|Rosana|Sofía|Tamara|\
+Verónica|Ximena|Zaida|Zoraida|Adriana|Ainhoa|Alejandra|Amaia|Anabel|Araceli|Ariadna|Azucena|\
+Belén|Carla|Carolina|Cecilia|Delia|Elisa|Elvira|Estefanía|Estela|Fabiola|Felisa|Fernanda|\
+Florencia|Gabriela|Lidia|Lola|Lolita|Lucila|Luisa|Mariana|Maricela|Marisa|Micaela|Mireia|Nilda|\
+Noemí|Pía|Ruth|Salomé|Silvana|Valeria|Vanesa|Viridiana|Yésica|Zulema|Agustina|Benita|Brígida|\
+Casilda|Edelmira|Eloísa|Encarna|Eufemia|Florinda|Hortensia|Javiera|Jacinta|Leocadia|Leonor|\
+Lorenza|Lucrecia|Maximina|Nicolasa|Rufina|Sabina|Severina|Teodora|Chelo|Charo|Conchi|Loli|\
+Maribel|Mari|Nati|Rosi|Giuseppe|Giovanni|Francesco|Mario|Luigi|Angelo|Vincenzo|Pietro|Salvatore|\
+Carlo|Domenico|Bruno|Paolo|Michele|Giorgio|Aldo|Luciano|Giuliano|Stefano|Alessandro|\
+Matteo|Riccardo|Tommaso|Edoardo|Filippo|Davide|Emanuele|Fabio|Fabrizio|Massimo|Massimiliano|\
+Maurizio|Claudio|Enrico|Gianni|Gianluca|Gianfranco|Giancarlo|Gianmarco|Giacomo|Guido|Ugo|\
+Umberto|Valerio|Vittorio|Alfredo|Amedeo|Arnaldo|Attilio|Benedetto|Carmine|Cesare|Corrado|Dario|\
+Donato|Donatello|Elio|Ettore|Ferdinando|Fulvio|Gaetano|Gennaro|Gino|Girolamo|Ignazio|Lamberto|\
+Leopoldo|Livio|Manlio|Marcello|Mauro|Nazzareno|Nicola|Orazio|Ottavio|Pasquale|Piero|Raffaele|\
+Raimondo|Remo|Renato|Rocco|Ruggero|Sandro|Saverio|Tiziano|Tullio|Ubaldo|Vito|Alfio|Adelmo|\
+Amleto|Annibale|Baldassarre|Calogero|Cosimo|Damiano|Egidio|Eraldo|Ermanno|Fiorenzo|Gioele|\
+Graziano|Jacopo|Lino|Marcantonio|Nicolò|Niccolò|Osvaldo|Pierluigi|Pierpaolo|Rodolfo|Tancredi|\
+Uberto|Zeno|Lucho|Giulia|Francesca|Chiara|Alessandra|Federica|Valentina|Paola|Roberta|Giovanna|\
+Lucia|Carmela|Antonella|Patrizia|Simona|Stefania|Raffaella|Giuseppina|Concetta|Franca|Graziella|\
+Loredana|Mariella|Ornella|Rossella|Tiziana|Vittoria|Ludovica|Noemi|Sofia|Bianca|Camilla|\
+Carlotta|Debora|Eleonora|Flavia|Gaia|Ilaria|Letizia|Margherita|Michela|Nicoletta|Ottavia|\
+Rachele|Serena|Veronica|Adelaide|Agnese|Albina|Amalia|Benedetta|Bruna|Caterina|Clelia|Donatella|\
+Edvige|Erminia|Ester|Filomena|Fiorella|Fortunata|Gabriella|Gelsomina|Gilda|Lia|Liliana|Livia|\
+Lucrezia|Marcella|Mirella|Nerina|Ninetta|Orsola|Piera|Pina|Romina|Rosalba|Rosanna|Sabrina|\
+Santina|Simonetta|Ada|Giada|Zita|Anders|Johan|Per-Olof|Erik|Olof|Gunnar|Bengt|Göran|Lennart|\
+Leif|Magnus|Mikael|Fredrik|Henrik|Mattias|Oskar|Viktor|Isak|Ludvig|Filip|Anton|Arvid|Björn|\
+Bo-Göran|Christer|Einar|Ingemar|Ingvar|Jan-Erik|Joakim|Kjell|Klas|Kristoffer|Linus|Måns|Nisse|\
+Olle|Ove|Pontus|Rasmus|Rune|Sixten|Staffan|Stig|Sune|Ture|Valter|Åke|Östen|Örjan|Torbjörn|Tore|\
+Hampus|Melker|Vilgot|Algot|Folke|Gösta|Helge|Ivar|Jöns|Malte|Ragnar|Sigvard|Sölve|Margareta|\
+Birgitta|Ulla|Inger|Gunilla|Eva-Lena|Agneta|Helena|Malin|Linnéa|Ebba|Elsa|Alva|Wilma|Astrid|\
+Signe|Tuva|Selma|Elin|Frida|Hanna|Klara|Lovisa|Maja|Moa|Stina|Tilda|Ellen|Freja|Hedvig|Ingeborg|\
+Linn|Märta|Sigrid|Solveig|Ylva|Åsa|Asa|Britta|Charlotta|Elisabet|Gunnel|Katarina|Lisbeth|\
+Pernilla|Therese|Ulrika|Viveka|Majken|Barbro|Berit|Dagny|Hillevi|Ingegerd|Irma|Laila|Maj-Britt|\
+Märit|Ragnhild|Rut|Svea|Tora|Tyra|Vendela|Alma|Nora|Stella|João|Paulo|Mateus|Thiago|Tiago|\
+Marcelo|Felipe|Vinícius|Diogo|Rui|Nuno|Duarte|Gonçalo|Afonso|Martim|Luís|Joaquim|Sebastião|Inês|\
+Larissa|Letícia|Juliana|Camila|Luana|Yasmin|Isadora|Jéssica|Ahmed|Mohammed|Muhammad|Mohamed|Ali|\
+Omar|Hassan|Hussein|Ibrahim|Mustafa|Mehmet|Ahmet|Yusuf|Emre|Murat|Kemal|Abdullah|Khalid|Tariq|\
+Bilal|Karim|Samir|Youssef|Fatima|Aisha|Ayşe|Fatma|Zeynep|Elif|Emine|Leila|Layla|Amira|Nour|\
+Fadime|Hatice|Meryem|Aleksander|Aleksandra|Andrzej|Krzysztof|Piotr|Tomasz|Paweł|Marcin|Michał|\
+Grzegorz|Jakub|Łukasz|Agnieszka|Katarzyna|Małgorzata|Joanna|Ewa|Dorota|Jolanta|Dmitri|Dmitry|\
+Sergei|Sergey|Vladimir|Nikolai|Alexei|Andrei|Mikhail|Yuri|Igor|Oleg|Boris|Tatiana|Svetlana|\
+Swetlana|Irina|Ekaterina|Yulia|Dusan|Dušan|Jurij|Zoran|Goran|Dragan|Nenad|Vesna|Jelena|Milena|\
+Mirela|Ivana|Ivo|Luka|Marko|Petar|Stjepan";
+
 /// Domains that identify public services, not the user. Never masked (subdomains included).
 pub const PUBLIC_DOMAINS: &[&str] = &[
     "google.com",
@@ -354,6 +1756,13 @@ pub const PUBLIC_DOMAINS: &[&str] = &[
     "akamai.com",
     "letsencrypt.org",
     "mit.edu",
+    "xbrl.org",
+    "xbrl.us",
+    "fpml.org",
+    "iso.org",
+    "swift.com",
+    "oasis-open.org",
+    "fixtrading.org",
 ];
 
 /// TLDs recognised by the bare hostname detector (code-ish TLDs like `.rs`/`.py` excluded).
@@ -499,3 +1908,1598 @@ pub const GENERIC_LABELS: &[&str] = &[
     "us",
     "corp",
 ];
+
+/// Common Japanese surnames (kanji). A surname, a space and a short given name is a person.
+pub const JP_SURNAMES: &[&str] = &[
+    "佐藤",
+    "鈴木",
+    "高橋",
+    "田中",
+    "伊藤",
+    "渡辺",
+    "渡邊",
+    "山本",
+    "中村",
+    "小林",
+    "加藤",
+    "吉田",
+    "山田",
+    "佐々木",
+    "山口",
+    "松本",
+    "井上",
+    "木村",
+    "林",
+    "斎藤",
+    "斉藤",
+    "清水",
+    "山崎",
+    "森",
+    "池田",
+    "橋本",
+    "阿部",
+    "石川",
+    "山下",
+    "中島",
+    "石井",
+    "小川",
+    "前田",
+    "岡田",
+    "長谷川",
+    "藤田",
+    "後藤",
+    "近藤",
+    "村上",
+    "遠藤",
+    "青木",
+    "坂本",
+    "斉藤",
+    "福田",
+    "太田",
+    "西村",
+    "藤井",
+    "金子",
+    "岡本",
+    "藤原",
+    "中野",
+    "三浦",
+    "原田",
+    "中川",
+    "松田",
+    "竹内",
+    "小野",
+    "田村",
+    "中山",
+    "和田",
+    "石田",
+    "森田",
+    "上田",
+    "原",
+    "内田",
+    "柴田",
+    "酒井",
+    "宮崎",
+    "横山",
+    "高木",
+    "安藤",
+    "宮本",
+    "大野",
+    "小島",
+    "谷口",
+    "今井",
+    "工藤",
+    "高田",
+    "増田",
+    "丸山",
+    "杉山",
+    "村田",
+    "大塚",
+    "新井",
+    "小山",
+    "平野",
+    "藤本",
+    "河野",
+    "上野",
+    "野口",
+    "武田",
+    "松井",
+    "千葉",
+    "岩崎",
+    "菅原",
+    "木下",
+    "久保",
+    "佐野",
+    "野村",
+    "松尾",
+    "市川",
+    "菊地",
+    "杉本",
+    "古川",
+    "大西",
+    "島田",
+    "水野",
+    "桜井",
+    "高野",
+    "渡部",
+    "吉川",
+    "山内",
+    "西田",
+    "飯田",
+    "菊池",
+    "西川",
+    "小松",
+    "北村",
+    "安田",
+    "五十嵐",
+    "川口",
+    "平田",
+    "関",
+    "中田",
+    "久保田",
+    "服部",
+    "東",
+    "岩田",
+    "土屋",
+    "川崎",
+    "福島",
+    "本田",
+    "辻",
+    "樋口",
+    "秋山",
+    "田口",
+    "永井",
+    "山中",
+    "中西",
+    "吉村",
+    "川上",
+    "石原",
+    "大橋",
+    "松岡",
+    "馬場",
+    "浜田",
+    "森本",
+    "星野",
+    "矢野",
+    "浅野",
+    "大久保",
+    "松下",
+    "吉岡",
+    "小池",
+    "野田",
+    "荒木",
+    "大谷",
+    "内藤",
+    "松浦",
+    "熊谷",
+    "黒田",
+    "尾崎",
+    "永田",
+    "川村",
+    "望月",
+    "田辺",
+    "松村",
+    "荒井",
+    "堀",
+    "大島",
+    "平井",
+    "早川",
+    "菅野",
+    "栗原",
+    "西山",
+    "広瀬",
+    "横田",
+    "石橋",
+    "萩原",
+    "岩本",
+    "片山",
+    "関口",
+    "宮田",
+    "大石",
+    "高山",
+    "本間",
+    "吉野",
+    "須藤",
+    "岡崎",
+    "小田",
+    "伊東",
+    "鎌田",
+    "上原",
+    "篠原",
+    "小西",
+    "松原",
+    "福井",
+    "成田",
+    "南",
+    "大森",
+    "奥村",
+    "内山",
+    "沢田",
+    "川島",
+    "桑原",
+    "三宅",
+    "片岡",
+    "富田",
+    "杉浦",
+    "岡",
+    "八木",
+    "奥田",
+    "小沢",
+    "松永",
+    "北川",
+    "関根",
+    "河合",
+    "平山",
+    "牧野",
+    "白石",
+    "今村",
+    "寺田",
+    "青山",
+    "中尾",
+    "小倉",
+    "渋谷",
+    "上村",
+    "小野寺",
+    "大川",
+    "宇野",
+    "江口",
+    "津田",
+];
+
+/// Name particles that may sit between capitalised name tokens.
+pub const PARTICLES: &[&str] = &[
+    "van", "von", "de", "der", "den", "da", "das", "do", "dos", "di", "del", "della", "du", "la",
+    "le", "ten", "ter", "bin", "al", "dei", "des", "zu", "y", "e", "af", "ibn", "el",
+];
+
+/// Titles and honorifics that precede a name (compared without a trailing dot).
+pub const TITLES: &[&str] = &[
+    "Mr",
+    "Mrs",
+    "Ms",
+    "Mx",
+    "Miss",
+    "Dr",
+    "Prof",
+    "Sir",
+    "Dame",
+    "Herr",
+    "Frau",
+    "Hr",
+    "Fr",
+    "M",
+    "Mme",
+    "Mlle",
+    "Me",
+    "Sr",
+    "Sra",
+    "Srta",
+    "Dña",
+    "Don",
+    "Doña",
+    "Sig",
+    "Sig.ra",
+    "Sigra",
+    "Dott",
+    "Dott.ssa",
+    "Avv",
+    "Ing",
+    "Dhr",
+    "Mevr",
+    "Mevrouw",
+    "Meneer",
+    "Shri",
+    "Smt",
+    "Univ.Prof",
+    "Dipl.-Ing",
+    "Monsieur",
+    "Madame",
+    "Mademoiselle",
+    "Signor",
+    "Signora",
+    "Signorina",
+    "Señor",
+    "Señora",
+    "Señorita",
+    "Herrn",
+    "Mijnheer",
+    "Fru",
+    "Mister",
+    "Doktor",
+    "Dottor",
+    "Dottore",
+    "Dottoressa",
+    "Avvocato",
+    "Notaio",
+    "Lic",
+    "Licenciado",
+    "Licenciada",
+    "Dra",
+    "Mag",
+];
+
+/// Degree and generational suffixes that may follow a name.
+pub const NAME_SUFFIXES: &[&str] = &[
+    "Jr", "Sr", "II", "III", "IV", "PhD", "MD", "MBA", "B.Sc", "M.Sc", "B.A", "M.A", "B.Eng",
+    "M.Eng", "MSc", "BSc", "Esq", "MdB", "MdL",
+];
+
+/// Capitalised words that are not surnames/given names (headings, places, weekdays...).
+pub const NAME_STOPWORDS: &[&str] = &[
+    "The",
+    "And",
+    "Is",
+    "Was",
+    "From",
+    "To",
+    "In",
+    "Of",
+    "For",
+    "With",
+    "On",
+    "At",
+    "By",
+    "Or",
+    "But",
+    "If",
+    "Then",
+    "This",
+    "That",
+    "These",
+    "Those",
+    "Has",
+    "Had",
+    "Will",
+    "Can",
+    "Could",
+    "Would",
+    "Should",
+    "May",
+    "Might",
+    "Must",
+    "Said",
+    "Says",
+    "Wrote",
+    "Asked",
+    "Here",
+    "There",
+    "Please",
+    "Thanks",
+    "Thank",
+    "Hi",
+    "Hello",
+    "Dear",
+    "Team",
+    "Street",
+    "Road",
+    "Avenue",
+    "Lane",
+    "Drive",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+    "January",
+    "February",
+    "March",
+    "July",
+    "September",
+    "October",
+    "November",
+    "December",
+    "Inc",
+    "Ltd",
+    "LLC",
+    "Group",
+    "Company",
+    "Corp",
+    "Corporation",
+    "University",
+    "College",
+    "School",
+    "Hospital",
+    "Hotel",
+    "Cloud",
+    "Web",
+    "Services",
+    "Service",
+    "Data",
+    "Science",
+    "Office",
+    "Support",
+    "Sales",
+    "Center",
+    "Centre",
+    "Department",
+    "Project",
+    "Report",
+    "Meeting",
+    "Notes",
+    "Note",
+    "Summary",
+    "Action",
+    "Items",
+    "Today",
+    "Tomorrow",
+    "Yesterday",
+    "New",
+    "Old",
+    "North",
+    "South",
+    "East",
+    "West",
+    "Email",
+    "Phone",
+    "Address",
+    "Name",
+    "Date",
+    "Mobile",
+    "Tel",
+    "Fax",
+    "Status",
+    "Total",
+    "Invoice",
+    "Order",
+    "Ticket",
+    "Customer",
+    "Client",
+    "Manager",
+    "Director",
+    "Engineer",
+    "Developer",
+    "Admin",
+    "Board",
+    "Council",
+    "Ministry",
+    "Agency",
+    "Foundation",
+    "Institute",
+    "Association",
+    "Club",
+    "Square",
+    "Airport",
+    "City",
+    "County",
+    "State",
+    "Republic",
+    "Kingdom",
+    "Union",
+    "Europe",
+    "America",
+    "Asia",
+    "Africa",
+    "Australia",
+    "Week",
+    "Month",
+    "Year",
+    "Quarter",
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q4",
+    "Review",
+    "Plan",
+    "Update",
+    "Release",
+    "Version",
+    "Build",
+    "Test",
+    "Tests",
+    "Deploy",
+    "Run",
+    "Check",
+    "Install",
+    "Setup",
+    "Config",
+    "Server",
+    "Client",
+    "API",
+    "App",
+    "Code",
+    "Bug",
+    "Fix",
+    "Feature",
+    "Issue",
+    "Error",
+    "Warning",
+    "Info",
+    "Debug",
+    "Book",
+    "Chapter",
+    "Section",
+    "Page",
+    "Table",
+    "Figure",
+    "Appendix",
+    "Analysis",
+    "Model",
+    "Market",
+    "Product",
+    "Products",
+    "Cost",
+    "Budget",
+    "Revenue",
+    "Policy",
+    "Security",
+    "Privacy",
+    "Terms",
+    "Conditions",
+    "Agreement",
+    "Contract",
+    "Legal",
+    "Finance",
+    "Marketing",
+    "Engineering",
+    "Operations",
+    "Human",
+    "Resources",
+    "Health",
+    "Insurance",
+    "Travel",
+    "Food",
+    "Water",
+    "Energy",
+    "Regards",
+    "Sincerely",
+    "Cheers",
+    "Yours",
+    "Sent",
+    "Reply",
+    "Forward",
+    "Subject",
+    "Re",
+    "Fwd",
+    "Attn",
+    "Cc",
+    "Bcc",
+    "Mr",
+    "Mrs",
+    "Ms",
+    "Dr",
+    "Prof",
+    "Herr",
+    "Frau",
+    "Avenida",
+    "Calle",
+    "Via",
+    "Rue",
+    "Platz",
+    "Straße",
+    "Strasse",
+    "Lieferung",
+    "Rechnung",
+    "Antwort",
+    "Bitte",
+    "Danke",
+    "Merci",
+    "Gracias",
+    "Grazie",
+    "Bedankt",
+    "Obrigado",
+    "Obrigada",
+    "Mit",
+    "Und",
+    "Der",
+    "Die",
+    "Das",
+    "Le",
+    "La",
+    "Les",
+    "El",
+    "Los",
+    "Las",
+    "Il",
+    "Lo",
+    "Gli",
+    "De",
+    "Het",
+    "Een",
+    "Um",
+    "Uma",
+    "Os",
+    "As",
+    "Valued",
+    "Sir",
+    "Sirs",
+    "Madam",
+    "Member",
+    "Members",
+    "Policyholder",
+    "Colleagues",
+    "Investors",
+    "Shareholders",
+    "Everyone",
+    "Damen",
+    "Herren",
+    "Kunden",
+    "Mesdames",
+    "Messieurs",
+    "Señores",
+    "Signori",
+    "Heren",
+    "Hej",
+    "Hejsan",
+    "Hallå",
+    "Tack",
+    "Hallo",
+    "Hola",
+    "Ciao",
+    "Bonjour",
+    "Bonsoir",
+    "Salut",
+    "Buongiorno",
+    "Salve",
+    "Grazie",
+    "Gracias",
+    "Danke",
+    "Beste",
+    "Geachte",
+    "Hoi",
+    "Goedemorgen",
+    "Goededag",
+    "Estimado",
+    "Estimada",
+    "Querido",
+    "Querida",
+    "Gentile",
+    "Egregio",
+    "Egregia",
+    "Liebe",
+    "Lieber",
+    "Sehr",
+    "Geehrte",
+    "Geehrter",
+    "Cher",
+    "Chère",
+    "Kära",
+    "Bästa",
+    "Welcome",
+    "Vielen",
+    "Dank",
+    "Okej",
+    "Ja",
+    "Nein",
+    "Nee",
+    "Sure",
+    "Yes",
+    "No",
+    "Agent",
+    "Agente",
+    "Kund",
+    "Kunde",
+    "Signed",
+    "Signature",
+    "Best",
+    "Kind",
+    "Warm",
+    "Mvh",
+    "Saludos",
+    "Cordialement",
+    "Atentamente",
+    "Groeten",
+    "Ihr",
+    "Ihre",
+    "Ihren",
+    "Ihrem",
+    "Ihrer",
+    "Unser",
+    "Unsere",
+    "Unseren",
+    "Dein",
+    "Deine",
+    "Mein",
+    "Meine",
+    "Votre",
+    "Vos",
+    "Notre",
+    "Nos",
+    "Nuestro",
+    "Nuestra",
+    "Vuestro",
+    "Vostro",
+    "Vostra",
+    "Nostro",
+    "Nostra",
+    "Uw",
+    "Onze",
+    "Mijn",
+    "Jouw",
+    "Din",
+    "Ditt",
+    "Dina",
+    "Vår",
+    "Vårt",
+    "Våra",
+];
+
+/// First names that are also everyday words: not trusted at the start of a sentence.
+pub const AMBIGUOUS_FIRST: &[&str] = &[
+    "Mark",
+    "Will",
+    "May",
+    "Rose",
+    "Joy",
+    "Faith",
+    "Grace",
+    "Angel",
+    "Ray",
+    "Bo",
+    "Sai",
+    "Lee",
+    "Taylor",
+    "Morgan",
+    "Hunter",
+    "Parker",
+    "Bill",
+    "Max",
+    "Jack",
+    "Guy",
+    "Victor",
+    "Chase",
+    "Dean",
+    "Pat",
+    "Sam",
+    "Bob",
+    "Art",
+    "Jan",
+    "Kim",
+    "Don",
+    "Rich",
+    "Paz",
+    "Dawn",
+    "Holly",
+    "Ivy",
+    "Pearl",
+    "Ruby",
+    "Amber",
+    "Crystal",
+    "Jade",
+    "Hazel",
+    "Iris",
+    "Lily",
+    "Robin",
+    "Penny",
+    "Sky",
+    "Rain",
+    "Rob",
+    "Jean",
+    "Christian",
+    "Frank",
+    "Gene",
+    "Ken",
+    "Sunny",
+    "Mai",
+    "Ren",
+    "Sho",
+    "Hope",
+    "Sandy",
+    "Wade",
+    "Drew",
+    "Lance",
+    "Miles",
+    "Norman",
+    "Dev",
+    "Tara",
+    "Floor",
+    "Sem",
+    "Till",
+    "April",
+    "June",
+    "August",
+];
+
+/// Given names that are also common capitalised words in headings and titles ("Grace
+/// Period", "Victoria Dock"): they only count with a stronger cue (title, greeting).
+const WORD_NAMES: &[&str] = &[
+    "Grace",
+    "Hope",
+    "Faith",
+    "Joy",
+    "Summer",
+    "Autumn",
+    "Winter",
+    "Dawn",
+    "Rose",
+    "Lily",
+    "Victoria",
+    "Elizabeth",
+    "Charity",
+    "Prudence",
+    "Constance",
+    "Patience",
+    "Felicity",
+    "Destiny",
+    "Trinity",
+    "Harmony",
+    "Liberty",
+    "Unity",
+    "Amber",
+    "Ruby",
+    "Pearl",
+    "Crystal",
+    "Jade",
+    "Ivy",
+    "Holly",
+    "Daisy",
+    "Iris",
+    "Violet",
+    "Olive",
+    "Sky",
+    "Storm",
+    "River",
+    "Forest",
+    "Stone",
+    "Hunter",
+    "Chase",
+    "Grant",
+    "Lane",
+    "Page",
+    "Penny",
+    "Ray",
+    "Rich",
+    "Ward",
+    "Wells",
+    "Mercy",
+    "Royal",
+    "Sterling",
+    "Bill",
+    "Art",
+    "Guy",
+    "Pat",
+    "Sunny",
+    "Connect",
+    "Ultimate",
+    "Defined",
+    "Christian",
+    "Frank",
+    "Earnest",
+    "Major",
+    "Marshall",
+    "Baker",
+    "Carter",
+    "Cooper",
+    "Mason",
+    "Parker",
+    "Porter",
+    "Taylor",
+    "Tucker",
+    "Walker",
+    "Gene",
+    "Virginia",
+    "Georgia",
+    "Carolina",
+    "Florence",
+    "Lourdes",
+    "Paris",
+    "Sydney",
+    "Madison",
+    "Austin",
+    "Dallas",
+    "Jordan",
+    "Kent",
+    "York",
+    "Pierre",
+];
+
+/// Lowercase and strip common Latin diacritics, so "Noëlle" matches "Noelle".
+pub fn fold(s: &str) -> String {
+    s.chars()
+        .flat_map(|c| c.to_lowercase())
+        .map(|c| match c {
+            'à' | 'á' | 'â' | 'ã' | 'ä' | 'å' => 'a',
+            'ç' => 'c',
+            'è' | 'é' | 'ê' | 'ë' => 'e',
+            'ì' | 'í' | 'î' | 'ï' => 'i',
+            'ñ' => 'n',
+            'ò' | 'ó' | 'ô' | 'õ' | 'ö' | 'ø' => 'o',
+            'ù' | 'ú' | 'û' | 'ü' => 'u',
+            'ý' | 'ÿ' => 'y',
+            'ć' | 'č' => 'c',
+            'ę' => 'e',
+            'ł' => 'l',
+            'ń' => 'n',
+            'ś' | 'š' => 's',
+            'ź' | 'ż' | 'ž' => 'z',
+            'ą' => 'a',
+            c => c,
+        })
+        .collect()
+}
+
+static FIRST_SET: LazyLock<HashSet<String>> = LazyLock::new(|| {
+    FIRST_NAMES
+        .iter()
+        .chain(MORE_FIRST_NAMES)
+        .copied()
+        .chain(GIVEN_NAMES.split('|'))
+        .map(fold)
+        .collect()
+});
+static STOP_SET: LazyLock<HashSet<&'static str>> =
+    LazyLock::new(|| NAME_STOPWORDS.iter().copied().collect());
+static TITLE_SET: LazyLock<HashSet<String>> =
+    LazyLock::new(|| TITLES.iter().map(|t| t.to_lowercase()).collect());
+static SUFFIX_SET: LazyLock<HashSet<String>> =
+    LazyLock::new(|| NAME_SUFFIXES.iter().map(|t| t.to_lowercase()).collect());
+
+/// True if `token` (or the first part of a hyphenated token) is a known given name.
+pub fn is_first_name(token: &str) -> bool {
+    let t = token.trim_matches(|c: char| !c.is_alphabetic() && c != '-');
+    if t.is_empty() || !t.starts_with(char::is_uppercase) {
+        return false;
+    }
+    let f = fold(t);
+    FIRST_SET.contains(&f) || f.split('-').next().is_some_and(|p| FIRST_SET.contains(p))
+}
+
+fn is_title(token: &str) -> bool {
+    TITLE_SET.contains(&token.trim_end_matches(['.', ',']).to_lowercase())
+}
+
+fn is_name_suffix(token: &str) -> bool {
+    SUFFIX_SET.contains(&token.trim_end_matches(['.', ',']).to_lowercase())
+}
+
+/// A middle initial: one capital letter and a full stop ("J." in "Melanie J. Hopkins").
+pub(crate) fn is_initial(t: &str) -> bool {
+    let mut cs = t.chars();
+    matches!((cs.next(), cs.next(), cs.next()), (Some(c), Some('.'), None) if c.is_uppercase())
+}
+
+/// Heading words that can precede a letter and a full stop ("Section A. Scope").
+const INITIAL_HEADINGS: &[&str] = &[
+    "Part",
+    "Section",
+    "Schedule",
+    "Exhibit",
+    "Appendix",
+    "Annex",
+    "Annexe",
+    "Article",
+    "Chapter",
+    "Class",
+    "Series",
+    "Type",
+    "Level",
+    "Phase",
+    "Option",
+    "Plan",
+    "Tier",
+    "Grade",
+    "Form",
+    "Item",
+    "Step",
+    "Figure",
+    "Table",
+    "Group",
+    "Block",
+    "Unit",
+    "Building",
+    "Floor",
+    "Room",
+    "Gate",
+    "Route",
+    "Vitamin",
+    "Category",
+    "Clause",
+    "Paragraph",
+    "Rule",
+    "Note",
+    "Model",
+    "Version",
+    "Stage",
+    "Zone",
+    "Area",
+    "Sector",
+    "Division",
+    "Team",
+    "Line",
+    "Box",
+    "Row",
+    "Column",
+    "Point",
+    "Anlage",
+    "Abschnitt",
+    "Teil",
+    "Punkt",
+    "Bijlage",
+    "Artikel",
+    "Anexo",
+    "Artículo",
+    "Allegato",
+    "Articolo",
+    "Punto",
+    "Bilaga",
+    "Avsnitt",
+    "Sezione",
+    "Sección",
+    "Hoofdstuk",
+    "Kapitel",
+    "Capitolo",
+    "Capítulo",
+    "Titre",
+    "Titolo",
+    "Título",
+    "Serie",
+    "Klasse",
+    "Classe",
+    "Clase",
+    "Tranche",
+    "Fase",
+    "Typ",
+    "Tipo",
+    "Opción",
+    "Opzione",
+    "Anhang",
+    "Allegato",
+    "Bijlage",
+    "Exhibit",
+    "Vitamine",
+    "Kategorie",
+    "Categoria",
+];
+
+/// Words that make a capitalised sequence an organisation rather than a person
+/// ("Jane Smith Bank", "Rossi Assicurazioni", "Holm Partners").
+pub const ORG_WORDS: &[&str] = &[
+    "Bank",
+    "Banks",
+    "Banca",
+    "Banco",
+    "Banque",
+    "Banken",
+    "Bancorp",
+    "Sparkasse",
+    "Volksbank",
+    "Raiffeisenbank",
+    "Insurance",
+    "Assurance",
+    "Assurances",
+    "Versicherung",
+    "Versicherungen",
+    "Verzekeringen",
+    "Verzekering",
+    "Seguros",
+    "Assicurazioni",
+    "Försäkring",
+    "Försäkringar",
+    "Group",
+    "Gruppe",
+    "Groep",
+    "Grupo",
+    "Gruppo",
+    "Groupe",
+    "Gruppen",
+    "Holding",
+    "Holdings",
+    "Capital",
+    "Partners",
+    "Partner",
+    "Fund",
+    "Funds",
+    "Fonds",
+    "Fondo",
+    "Fondi",
+    "Foundation",
+    "Stiftung",
+    "Stichting",
+    "Fundación",
+    "Fondazione",
+    "Fondation",
+    "Stiftelse",
+    "Trust",
+    "Company",
+    "Companies",
+    "Corporation",
+    "Corp",
+    "Inc",
+    "Ltd",
+    "LLC",
+    "LLP",
+    "PLC",
+    "GmbH",
+    "AG",
+    "BV",
+    "NV",
+    "SA",
+    "SpA",
+    "Srl",
+    "AB",
+    "Services",
+    "Solutions",
+    "Technologies",
+    "Technology",
+    "Systems",
+    "Consulting",
+    "Associates",
+    "Investments",
+    "Ventures",
+    "Industries",
+    "Enterprises",
+    "Enterprise",
+    "Agency",
+    "Institute",
+    "Institut",
+    "Instituut",
+    "University",
+    "Universität",
+    "Universidad",
+    "Università",
+    "Université",
+    "Universiteit",
+    "Universitet",
+    "Hospital",
+    "Clinic",
+    "Klinik",
+    "Kliniek",
+    "Center",
+    "Centre",
+    "Zentrum",
+    "Centrum",
+    "Society",
+    "Association",
+    "Council",
+    "Ministry",
+    "Authority",
+    "Department",
+    "Bureau",
+    "Logistics",
+    "Financial",
+    "Finance",
+    "Securities",
+    "Asset",
+    "Assets",
+    "Management",
+    "Advisors",
+    "Advisory",
+    "Brokers",
+    "Markets",
+    "Exchange",
+    "Credit",
+    "Lending",
+    "Leasing",
+    "Realty",
+    "Properties",
+    "Energy",
+    "Pharma",
+    "Motors",
+    "Airlines",
+    "Apotheke",
+    "Verein",
+    "Genossenschaft",
+    "Treuhand",
+    "Immobilien",
+    "Handel",
+    "Bouw",
+    "Beheer",
+    "Vastgoed",
+    "Inmobiliaria",
+    "Construcciones",
+    "Distribuciones",
+    "Servicios",
+    "Servizi",
+    "Costruzioni",
+    "Immobiliare",
+    "Fastigheter",
+    "Förvaltning",
+    "Bygg",
+    "Konsult",
+    "Invest",
+    "Kapital",
+];
+
+static ORG_WORD_SET: LazyLock<HashSet<&'static str>> =
+    LazyLock::new(|| ORG_WORDS.iter().copied().collect());
+
+/// True if `token` (trailing punctuation ignored) is an organisation head word.
+pub fn is_org_word(token: &str) -> bool {
+    ORG_WORD_SET.contains(token.trim_end_matches(['.', ',', ':', ';']))
+}
+
+fn is_cap_token(t: &str) -> bool {
+    let mut cs = t.chars();
+    cs.next().is_some_and(char::is_uppercase)
+        && t.chars().any(char::is_lowercase)
+        && t.chars()
+            .all(|c| c.is_alphabetic() || matches!(c, '-' | '\'' | '’' | '.'))
+}
+
+fn is_cjk(c: char) -> bool {
+    super::fields::is_cjk(c)
+}
+
+/// True if `v` reads like a personal name: 1-6 tokens of capitalised words, name particles,
+/// titles/degrees or CJK characters, with at least one real name token and no stopwords.
+pub fn looks_like_name(v: &str) -> bool {
+    let tokens: Vec<&str> = v.split_whitespace().collect();
+    if tokens.is_empty() || tokens.len() > 6 {
+        return false;
+    }
+    let mut names = 0;
+    for (i, t) in tokens.iter().enumerate() {
+        let bare = t.trim_end_matches(',');
+        if is_title(bare) || is_name_suffix(bare) {
+            continue;
+        }
+        if PARTICLES.contains(&bare) || is_initial(bare) {
+            continue;
+        }
+        if bare.chars().all(is_cjk) && bare.chars().count() <= 4 {
+            names += 1;
+            continue;
+        }
+        let after_initial = i > 0 && is_initial(tokens[i - 1]);
+        if !is_cap_token(bare) || (STOP_SET.contains(bare.trim_end_matches('.')) && !after_initial)
+        {
+            return false;
+        }
+        names += 1;
+    }
+    names >= 1
+}
+
+const NAME_TOKEN: &str =
+    r"\p{Lu}(?:\p{Ll}+(?:['’]?\p{Lu}\p{Ll}+)*|['’]\p{Lu}\p{Ll}+)(?:-\p{L}\p{Ll}+)*";
+
+static NAME_SEQ: LazyLock<Regex> = LazyLock::new(|| {
+    let p = PARTICLES.join("|");
+    let t = NAME_TOKEN;
+    Regex::new(&format!(
+        r"\b{t}\b(?:[^\S\n]+(?:(?:{p})[^\S\n]+){{0,3}}(?:{t}\b|\p{{Lu}}\.)){{0,4}}"
+    ))
+    .expect("valid regex")
+});
+
+// Upper-case names in banking and EDI records: "HELMUT A. BENDER", "NAD+BY+JOHN DOE".
+static CAPS_NAME: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        r"\b\p{Lu}{2,}(?:-\p{Lu}{2,})*(?:[^\S\n]+(?:\p{Lu}\.|\p{Lu}{2,}(?:-\p{Lu}{2,})*)){1,3}",
+    )
+    .expect("valid regex")
+});
+
+/// "MARGARETA" -> "Margareta" (each hyphenated part).
+fn title_case(t: &str) -> String {
+    t.split('-')
+        .map(|p| {
+            let mut cs = p.chars();
+            cs.next()
+                .map(|c| {
+                    c.to_uppercase()
+                        .chain(cs.flat_map(char::to_lowercase))
+                        .collect()
+                })
+                .unwrap_or_default()
+        })
+        .collect::<Vec<String>>()
+        .join("-")
+}
+
+/// Upper-case person names: a known given name first, then a middle initial
+/// ("KATE N. WILKINS") or a whole structured field ("/BENEFICIARY/JOHN DOE/", "+ERIC ZOBEL*").
+fn caps_names(text: &str, out: &mut Vec<Finding>) {
+    for m in CAPS_NAME.find_iter(text) {
+        let tokens: Vec<&str> = m.as_str().split_whitespace().collect();
+        let names: Vec<String> = tokens.iter().map(|t| title_case(t)).collect();
+        let last = tokens[tokens.len() - 1];
+        if is_initial(last)
+            || !is_first_name(&names[0])
+            || AMBIGUOUS_FIRST.contains(&names[0].as_str())
+            || names.iter().any(|n| {
+                STOP_SET.contains(n.as_str())
+                    || is_org_word(n)
+                    || is_title(n)
+                    || PUBLIC_WORDS.contains(&n.as_str())
+            })
+        {
+            continue;
+        }
+        let initial = tokens[1..tokens.len() - 1].iter().any(|t| is_initial(t));
+        let before = text[..m.start()]
+            .trim_end_matches([' ', '\t'])
+            .chars()
+            .next_back();
+        let after = text[m.end()..].chars().next();
+        let bold = text[..m.start()].ends_with("**") || text[m.end()..].starts_with("**");
+        let field = !bold
+            && before.is_none_or(|c| "/:+*|^=>\n".contains(c))
+            && after.is_none_or(|c| "/+*|^'<\n:,".contains(c));
+        if initial || field {
+            out.push(Finding {
+                score: 0.75,
+                ..Finding::new(m.start(), m.end(), Kind::Person, "person")
+            });
+        }
+    }
+}
+
+/// Upper-case words that follow given names in record headings, not surnames.
+const PUBLIC_WORDS: &[&str] = &[
+    "Street",
+    "Road",
+    "Avenue",
+    "Lane",
+    "Drive",
+    "Bank",
+    "City",
+    "Center",
+    "Centre",
+    "Branch",
+    "Account",
+    "Payment",
+    "Transfer",
+    "Reference",
+    "Number",
+    "Code",
+    "Date",
+    "Amount",
+];
+
+static JP_NAME: LazyLock<Regex> = LazyLock::new(|| {
+    let mut s: Vec<&str> = JP_SURNAMES.to_vec();
+    s.sort_by_key(|x| std::cmp::Reverse(x.chars().count()));
+    Regex::new(&format!(
+        r"(?:{})[ 　][\p{{Han}}\p{{Hiragana}}\p{{Katakana}}]{{1,4}}",
+        s.join("|")
+    ))
+    .expect("valid regex")
+});
+
+/// Greetings right before a name ("Dear", "Hej", "Geachte"): the name may be any
+/// capitalised sequence (lowercased, compared on the last word(s)).
+static CUE_BEFORE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        r"(?i)(?:^|[^\p{L}])(?:dear|hi|hello|hey|thanks|thank you|welcome|liebe[rs]?|hallo|guten tag|sehr geehrte[rn]?|danke|bonjour|bonsoir|salut|merci|cher|chère|hola|buenos días|buenas tardes|gracias|estimad[oa]|querid[oa]|ciao|buongiorno|buonasera|salve|grazie|car[oa]|gentile|egregi[oa]|beste|geachte|hoi|goedemorgen|goedemiddag|bedankt|hej|hejsan|hallå|tack|kära|bästa|olá|prezad[oa])[,:]?[^\S\n]+$",
+    )
+    .expect("valid regex")
+});
+
+/// Role words right before a name ("customer", "cc", "signed by", "between"). Weaker than a
+/// greeting: a capitalised role word is usually part of a heading ("Customer Due Diligence",
+/// "Client Account Number"), and "from" precedes anything, so those need a known given name.
+static ROLE_BEFORE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        r"(?i)(?:^|[^\p{L}])(attn|attention|cc|bcc|from|customer|client|patient|employee|colleague|candidate|applicant|tenant|signed by|prepared by|approved by|authori[sz]ed by|reviewed by|submitted by|requested by|between|kunde|kundin|cliente|klant|kund|i'm|i am|my name is|je suis|je m'appelle|ich bin|ich heiße|mein name ist|me llamo|soy|mi nombre es|mi chiamo|sono|il mio nome è|jag heter|jag är|mitt namn är|ik ben|mijn naam is|ik heet|undersigned|soussigné|unterzeichnete?r?|ondergetekende|sottoscritto|sottoscritta|suscrito|undertecknad)[,:]?[^\S\n]+$",
+    )
+    .expect("valid regex")
+});
+
+/// Phrases right after a name that describe a person: "Jane Roe, a resident of …",
+/// "…, residing at", "…, con domicilio en", "…, wohnhaft in", "…, demeurant".
+static DESCRIBED_AFTER: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        r"(?i)^,?[^\S\n]*\(?(?:a resident of|resident of|residing at|residing in|resident at|who resides|living at|domiciled|born on|born in|a natural person|an individual|with (?:a |his |her )?(?:residential |mailing |postal |home )?address|whose (?:address|residence)|con domicilio|domiciliad[oa]|residente en|residente a|residente in|nacid[oa] el|nat[oa] a|nat[oa] il|wohnhaft|geboren am|né le|née le|né à|née à|demeurant|domicilié|woonachtig|wonende te|geboren op|boende|bosatt|född|med adress|mit der anschrift|mit anschrift|dont l'adresse|con dirección|con indirizzo|with passport|employed as|hereby (?:declare|certify|confirm|authori[sz]e|agree|acknowledge|consent)|erkläre hiermit|verklaar hierbij|déclare|dichiaro|declaro|intygar)\b",
+    )
+    .expect("valid regex")
+});
+
+/// A SWIFT field tag right before the value (":50K:", ":25B:").
+static SWIFT_TAG: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r":\d{2}[A-Z]?:$").expect("valid regex"));
+
+/// A first-person pronoun and a comma: "I, ", "Io, ", "Jag, ", "Ik, ", "Ich, ", "Je, ", "Yo, ".
+static I_COMMA: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?:^|[^\p{L}])(?:I|Io|Jag|Ik|Ich|Je|Yo|Eu),[^\S\n]+$").expect("valid regex")
+});
+
+/// "Krebs-Stumpf", "Roma-Pérez": two capitalised name parts of three letters or more.
+pub(crate) fn double_barrelled(t: &str) -> bool {
+    let parts: Vec<&str> = t.split('-').collect();
+    parts.len() == 2
+        && parts.iter().all(|p| {
+            p.chars().count() >= 3
+                && p.starts_with(char::is_uppercase)
+                && p.chars().skip(1).all(char::is_lowercase)
+                && !STOP_SET.contains(p)
+                && !is_org_word(p)
+        })
+}
+
+/// Legal-form suffixes that turn a capitalised sequence into an organisation.
+static ORG_AFTER: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^[,]?[^\S\n]+(?:&[^\S\n]+)?(?:GmbH|AG|KG|SE|Inc\b|LLC|Ltd|Limited|PLC|plc|LLP|Corp|S\.A|SA\b|SAS|SARL|S\.L|SL\b|S\.p\.A|SpA|S\.r\.l|s\.r\.l|Srl|B\.V|BV\b|N\.V|NV\b|Ltda|S/A|Pvt|Pty|e\.V|OHG|UG\b|and Sons|& Sons|& Co|e figli|Group\b|Holding)")
+        .expect("valid regex")
+});
+
+/// Decide whether a run of capitalised tokens (byte offset, token) is a person name.
+fn judge(text: &str, tokens: &[(usize, &str)]) -> Option<Finding> {
+    if let Some(f) = judge_run(text, tokens) {
+        return Some(f);
+    }
+    // "Ask John Smith": the name may start after a capitalised sentence opener.
+    (1..tokens.len().saturating_sub(1))
+        .filter(|&k| is_first_name(tokens[k].1))
+        .find_map(|k| judge_run(text, &tokens[k..]))
+}
+
+fn judge_run(text: &str, tokens: &[(usize, &str)]) -> Option<Finding> {
+    let first = tokens[0].1;
+    let last = tokens[tokens.len() - 1];
+    let start = tokens[0].0;
+    let end = last.0 + last.1.len();
+    if ORG_AFTER.is_match(&text[end..])
+        || is_org_name(&text[start..end])
+        || tokens.iter().any(|(_, t)| is_org_word(t))
+    {
+        return None;
+    }
+    let mut from = start.saturating_sub(40);
+    while !text.is_char_boundary(from) {
+        from += 1;
+    }
+    let before = &text[from..start];
+    let prev_word = before
+        .trim_end_matches([' ', '\t'])
+        .rsplit(char::is_whitespace)
+        .next()
+        .unwrap_or("");
+    // Titles are capitalised ("Me Dupont"); "to me. However" is not one.
+    let titled = before.ends_with([' ', '\t'])
+        && prev_word.starts_with(char::is_uppercase)
+        && is_title(prev_word);
+    let cued = CUE_BEFORE.is_match(before);
+    let role = ROLE_BEFORE.captures(before).map(|c| {
+        let w = c.get(1).map_or("", |m| m.as_str());
+        let lower = w.starts_with(char::is_lowercase) || w.chars().all(|c| !c.is_lowercase());
+        lower && !w.eq_ignore_ascii_case("from")
+    });
+    let emailed = {
+        let a = text[end..].trim_start_matches([' ', '\t']);
+        (a.starts_with('<') || a.starts_with('('))
+            && a[1..]
+                .split([')', '>', ' '])
+                .next()
+                .is_some_and(|e| e.contains('@'))
+    };
+    // A payee: "transfer 500 EUR to Jane Roe, IBAN ...". "Account" follows many other
+    // things ("his Defined Contribution account", "Ultimate Fitness Package, Account ID"),
+    // so it counts only after a comma or bracket and a known given name.
+    let payee = {
+        let raw = &text[end..];
+        let a = raw.trim_start_matches([',', ' ', '(']).to_lowercase();
+        let separated = raw.starts_with([',', '(']) || raw.starts_with(" (");
+        ["iban", "bic", "swift", "sort code"]
+            .iter()
+            .any(|k| a.starts_with(k))
+            || (separated
+                && is_first_name(first)
+                && ["account", "acct", "a/c"].iter().any(|k| a.starts_with(k)))
+    };
+    let multi = tokens.len() >= 2;
+    let after = &text[end..];
+    let described = DESCRIBED_AFTER.is_match(after);
+    // "Melanie J. Hopkins": a middle initial between two capitalised words is itself a cue.
+    // The word after the initial must continue the name, not open a sentence ("Serie B. La").
+    let initialed = tokens.len() >= 3
+        && (1..tokens.len() - 1).any(|i| {
+            is_initial(tokens[i].1)
+                && is_cap_token(tokens[i + 1].1)
+                && !PARTICLES.contains(&tokens[i + 1].1.to_lowercase().as_str())
+                && !STOP_SET.contains(tokens[i + 1].1)
+        })
+        && is_cap_token(first)
+        && is_cap_token(last.1)
+        && !INITIAL_HEADINGS.contains(&first);
+    let known_first = is_first_name(first)
+        && !WORD_NAMES.contains(&first)
+        && !(AMBIGUOUS_FIRST.contains(&first) && sentence_start(text, start));
+    // "Thank you for your help, Vincent." / "Yes, Rachel, the promotion…": a given name
+    // addressed between commas or before the end of the sentence.
+    let vocative =
+        !multi && known_first && before.ends_with(", ") && after.starts_with(['.', ',', '!', '?']);
+    // Chat transcripts: "Astrid: Printer not responding".
+    // A whole field of a delimited record: "NAD+SH+…+Agnolo Badoer++", "/Jane Roe/".
+    // Markdown emphasis ("**Loan Details**") and slash-delimited labels ("/Reference
+    // Number/") look alike, so only `+` fields stand alone; the others need a given name.
+    // "Alla Krebs-Stumpf": a double-barrelled surname after a capitalised word.
+    let hyphenated = tokens.len() <= 3 && is_cap_token(first) && double_barrelled(last.1);
+    let cell_end = |a: &str| {
+        a.trim_start_matches([' ', '\t'])
+            .starts_with(['|', '&', '\n'])
+    };
+    let given = is_first_name(first) || hyphenated;
+    // EDIFACT party segments ("NAD+SH+…+Agnolo Badoer+") and HL7 name fields stand alone;
+    // other delimited fields need a given name ("LIN+2+++234567+Item Two+").
+    let segment = before.rsplit('\n').next().unwrap_or("");
+    let edi_field = ((before.ends_with('+') && segment.contains("NAD+") || before.ends_with('^'))
+        && after.starts_with(['+', ':', '\'', '^']))
+        || (given
+            && ((before.ends_with('/') && after.starts_with('/'))
+                || (before.ends_with('=') && cell_end(after))
+                || (before.trim_end_matches([' ', '\t']).ends_with('|') && cell_end(after))
+                || (SWIFT_TAG.is_match(before) && (after.starts_with(':') || cell_end(after)))
+                || (before.ends_with('*')
+                    && !before.ends_with("**")
+                    && after.starts_with('*')
+                    && !after.starts_with("**"))));
+    // "I, Jane Roe, hereby…" in the supported languages.
+    let pronoun = I_COMMA.is_match(before) && after.starts_with(',');
+    let line_start = {
+        let pre = text[..start].trim_end_matches([' ', '\t', '*', '-', '#']);
+        pre.is_empty() || pre.ends_with('\n')
+    };
+    let speaker = known_first && after.starts_with(':') && line_start;
+    let person = titled
+        || initialed
+        || vocative
+        || speaker
+        || (described && (multi || known_first))
+        || (pronoun && (multi || known_first))
+        || (edi_field && multi && tokens.len() <= 4)
+        || (cued && (multi || is_first_name(first)))
+        || (role.is_some() && is_first_name(first))
+        || (role == Some(true) && multi)
+        || (multi && (emailed || payee || known_first));
+    person.then(|| Finding {
+        score: if known_first { 0.8 } else { 0.85 },
+        ..Finding::new(start, end, Kind::Person, "person")
+    })
+}
+
+/// True if the text before `start` ends a sentence (or the text starts there).
+fn sentence_start(text: &str, start: usize) -> bool {
+    let before = text[..start].trim_end_matches([' ', '\t', '"', '\'', '(', '*', '-', '•']);
+    before.is_empty() || before.ends_with(['.', '!', '?', '\n', ':', '#'])
+}
+
+/// Rule-based person names. Cues, strongest first: a title/honorific ("Dr.", "Frau",
+/// "Mme"), a greeting or role word before ("Dear", "cc", "customer"), an email right after
+/// (`Name <a@b.c>`), or a known given name followed by a capitalised surname.
+pub fn detect_people(text: &str) -> Vec<Finding> {
+    let mut out = vec![];
+    for m in NAME_SEQ.find_iter(text) {
+        let tokens: Vec<(usize, &str)> = m
+            .as_str()
+            .split([' ', '\t'])
+            .scan(m.start(), |off, t| {
+                let o = *off;
+                *off += t.len() + 1;
+                Some((o, t))
+            })
+            .filter(|(_, t)| !t.is_empty())
+            .collect();
+        // Split at stopwords and titles ("Thanks", "Street", "Dr"); judge each segment.
+        let mut seg: Vec<(usize, &str)> = vec![];
+        for (i, tok) in tokens.iter().enumerate() {
+            // A capitalised particle inside a name ("René De Oliveira") does not split it.
+            let inner_particle = !seg.is_empty()
+                && i + 1 < tokens.len()
+                && PARTICLES.contains(&tok.1.to_lowercase().as_str());
+            // "Esther M. Jochems": an initial inside a name is not the title "M.".
+            let inner_initial = !seg.is_empty() && i + 1 < tokens.len() && is_initial(tok.1);
+            // "Timothy K. West": after an initial, a capitalised word is the surname.
+            let after_initial = seg.last().is_some_and(|(_, t)| is_initial(t))
+                && seg.len() >= 2
+                && !is_title(tok.1);
+            let breaker = !inner_particle
+                && !inner_initial
+                && !after_initial
+                && (STOP_SET.contains(tok.1) || is_title(tok.1));
+            let leading_particle = seg.is_empty() && PARTICLES.contains(&tok.1);
+            if !(breaker || leading_particle) {
+                seg.push(*tok);
+            }
+            if (breaker || i + 1 == tokens.len()) && !seg.is_empty() {
+                while seg.last().is_some_and(|(_, t)| is_initial(t)) {
+                    seg.pop();
+                }
+                if let Some(f) = (!seg.is_empty()).then(|| judge(text, &seg)).flatten() {
+                    out.push(f);
+                }
+                seg.clear();
+            }
+        }
+    }
+    if text.contains(|c: char| c.is_ascii_uppercase()) {
+        caps_names(text, &mut out);
+    }
+    for m in JP_NAME.find_iter(text) {
+        out.push(Finding {
+            score: 0.8,
+            ..Finding::new(m.start(), m.end(), Kind::Person, "person")
+        });
+    }
+    out
+}

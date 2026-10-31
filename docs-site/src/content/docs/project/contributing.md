@@ -1,6 +1,6 @@
 ---
 title: Contributing
-description: How to build Shadow, run the tests, work on the docs, and send a pull request.
+description: "How to contribute to Shadow: build from source, run the tests, work on the docs and detectors, and send a pull request."
 ---
 
 Thanks for your interest in Shadow. Bug reports, detector improvements, new provider formats, documentation fixes and test cases are all welcome. The canonical guide is [`CONTRIBUTING.md`](https://github.com/Tiny-Bubble-Company/shadow/blob/main/CONTRIBUTING.md) in the repository; this page summarises it.
