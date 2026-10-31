@@ -12,7 +12,7 @@ fn shadow() -> (Shadow, tempfile::TempDir) {
 }
 
 #[test]
-fn an_email_action_with_a_local_tool_reaches_the_real_recipient() {
+fn an_email_action_shows_the_real_recipient_and_masks_the_content() {
     let (shadow, _d) = shadow();
     let req = json!({
         "model": "gpt-5",
@@ -21,15 +21,26 @@ fn an_email_action_with_a_local_tool_reaches_the_real_recipient() {
     });
     let session = shadow.session_for(&req);
     assert_eq!(session.classification().intent, Intent::Act);
-
-    // The provider sees a realistic fake address…
     let mut out = req.clone();
     session.mask_json(&mut out);
-    let sent = out.to_string();
-    assert!(
-        !sent.contains("jane.doe@acme.com") && !sent.contains("Acme GmbH"),
-        "{sent}"
-    );
+    let sent = out["messages"][0]["content"].as_str().unwrap();
+    assert!(sent.contains("jane.doe@acme.com"), "the recipient: {sent}");
+    assert!(!sent.contains("Acme GmbH"), "the content is masked: {sent}");
+    assert_eq!(session.summary().kept, 1);
+}
+
+#[test]
+fn recipients_can_be_hidden_and_restored_in_the_tool_call_instead() {
+    // [policy.act] targets = "surrogate": the model sees a stand-in, and Shadow restores the
+    // real recipient in the tool call on this machine.
+    let dir = tempfile::tempdir().unwrap();
+    let mut cfg = ShadowConfig::from_dir(dir.path());
+    cfg.policy.act.targets = shadow_core::Treatment::Surrogate;
+    let shadow = Shadow::open(cfg).unwrap();
+    let req = json!({ "messages": [{ "role": "user", "content": "Email jane.doe@acme.com that the renewal is signed" }] });
+    let session = shadow.session_for(&req);
+    let mut out = req.clone();
+    session.mask_json(&mut out);
     let fake = out["messages"][0]["content"]
         .as_str()
         .unwrap()
@@ -37,13 +48,10 @@ fn an_email_action_with_a_local_tool_reaches_the_real_recipient() {
         .nth(1)
         .unwrap()
         .to_string();
-    assert!(fake.contains('@'), "still an email: {fake}");
-
-    // …the model calls the tool with it, and Shadow restores the real recipient on this machine.
-    let mut call = json!({ "name": "send_email", "arguments": { "to": fake, "body": "Signed!" } });
+    assert!(fake.contains('@') && fake != "jane.doe@acme.com", "{fake}");
+    let mut call = json!({ "name": "send_email", "arguments": { "to": fake } });
     session.unmask_json(&mut call);
     assert_eq!(call["arguments"]["to"], "jane.doe@acme.com");
-    assert_eq!(session.summary().kept, 0);
 }
 
 #[test]
@@ -96,33 +104,25 @@ fn a_follow_up_action_by_the_provider_keeps_the_earlier_recipient() {
 }
 
 #[test]
-fn drafting_an_email_masks_everything_and_the_draft_comes_back_real() {
-    // No tool: the model only writes text, which Shadow restores before you see it.
+fn drafting_an_email_shows_the_model_the_real_recipient_and_masks_the_rest() {
+    // The goal is a message to Jane: the model must see Jane, or it writes to someone else.
+    // What the message is about (another person, a health detail, a card) is still masked.
     let (shadow, _d) = shadow();
-    let req = json!({ "messages": [{ "role": "user", "content": "Draft a renewal reminder to Jane Doe (jane.doe@acme.com) at Acme GmbH." }] });
+    let req = json!({ "messages": [{ "role": "user", "content": "Draft a renewal reminder to Jane Doe (jane.doe@acme.com) at Acme GmbH. Mention that Max Weber approved it and the card 4111 1111 1111 1111 will be charged." }] });
     let session = shadow.session_for(&req);
+    assert_eq!(session.classification().intent, Intent::Act);
     let mut out = req.clone();
     session.mask_json(&mut out);
-    let sent = out["messages"][0]["content"].as_str().unwrap().to_string();
+    let sent = out["messages"][0]["content"].as_str().unwrap();
     assert!(
-        !sent.contains("jane.doe@acme.com") && !sent.contains("Jane Doe"),
-        "{sent}"
+        sent.contains("Jane Doe")
+            && sent.contains("jane.doe@acme.com")
+            && sent.contains("Acme GmbH"),
+        "the recipient is passed through: {sent}"
     );
-    assert_eq!(session.summary().kept, 0);
-
-    // The model writes its draft with the fakes it saw; the user reads it with the real ones.
-    let fake_line = sent
-        .trim_start_matches("Draft a renewal reminder to ")
-        .trim_end_matches('.');
-    let mut answer =
-        json!({ "content": format!("Hi! A reminder for {fake_line}: your renewal is due.") });
-    session.unmask_json(&mut answer);
-    let back = answer["content"].as_str().unwrap();
     assert!(
-        back.contains("Jane Doe")
-            && back.contains("jane.doe@acme.com")
-            && back.contains("Acme GmbH"),
-        "{back}"
+        !sent.contains("Max Weber") && !sent.contains("4111 1111 1111 1111"),
+        "everything that isn't the recipient is masked: {sent}"
     );
 }
 
@@ -217,17 +217,23 @@ fn real_text_equal_to_a_fake_survives_the_round_trip() {
 }
 
 #[test]
-fn a_draft_that_uses_only_a_first_name_still_reaches_the_real_person() {
-    // Models greet people by first name. "Dear Hui," must come back as "Dear Jane,".
-    let (shadow, _d) = shadow();
-    let req = json!({ "messages": [{ "role": "user", "content": "Draft a thank-you note to Jane Doe for the workshop." }] });
+fn an_answer_that_uses_only_a_first_name_still_names_the_real_person() {
+    // Jane is who the text is about, not who it is for, so she is masked. Models refer to
+    // people by first name: "Hui said" must come back as "Jane said".
+    // Without this machine's own identity in the vault, so no other fake person can share
+    // the first name (a shared part is ambiguous and deliberately not restored).
+    let dir = tempfile::tempdir().unwrap();
+    let mut cfg = ShadowConfig::from_dir(dir.path());
+    cfg.detectors.local_facts = false;
+    let shadow = Shadow::open(cfg).unwrap();
+    let req = json!({ "messages": [{ "role": "user", "content": "Summarise the workshop feedback from Jane Doe for the team." }] });
     let session = shadow.session_for(&req);
     let mut out = req.clone();
     session.mask_json(&mut out);
     let sent = out["messages"][0]["content"].as_str().unwrap().to_string();
     let fake = sent
-        .trim_start_matches("Draft a thank-you note to ")
-        .trim_end_matches(" for the workshop.")
+        .trim_start_matches("Summarise the workshop feedback from ")
+        .trim_end_matches(" for the team.")
         .to_string();
     assert!(!fake.contains("Jane"), "{sent}");
     let parts: Vec<&str> = fake.split_whitespace().collect();

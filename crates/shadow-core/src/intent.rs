@@ -218,8 +218,138 @@ fn asks_for_action(text: &str) -> Option<String> {
         }) {
             return Some(format!("asks to \"{w}\""));
         }
+        // "Draft a renewal reminder to Jane", "write a letter for Mr Okafor": the goal is a
+        // message to a person, so it is treated like sending one.
+        if let Some(i) = ws.iter().position(|w| COMPOSE_VERBS.contains(&w.as_str())) {
+            if ws[i + 1..]
+                .iter()
+                .take(6)
+                .any(|w| MESSAGE_NOUNS.contains(&w.as_str()))
+            {
+                return Some(format!("asks to {} a message", ws[i]));
+            }
+        }
     }
     None
+}
+
+const COMPOSE_VERBS: &[&str] = &["draft", "write", "compose", "prepare", "create", "redraft"];
+const MESSAGE_NOUNS: &[&str] = &[
+    "email",
+    "e-mail",
+    "mail",
+    "letter",
+    "message",
+    "reply",
+    "response",
+    "note",
+    "reminder",
+    "invitation",
+    "invite",
+    "follow-up",
+    "followup",
+    "text",
+    "sms",
+    "dm",
+    "memo",
+    "notice",
+    "card",
+    "post",
+    "announcement",
+];
+
+/// Words that end the recipient part of an instruction: what follows is the content.
+const RECIPIENT_END: &[&str] = &[
+    " about ",
+    " regarding ",
+    " re: ",
+    " re ",
+    " that ",
+    " saying ",
+    " telling ",
+    " asking ",
+    " to say",
+    " to tell",
+    " to ask",
+    " with the ",
+    " with a ",
+    " with our ",
+    " explaining ",
+    " to confirm",
+    " to let ",
+    " so that ",
+    " because ",
+    " if ",
+    " when ",
+];
+
+/// The parts of an instruction that name who an action or message is for: "Draft a reminder
+/// to **Jane Doe (jane@acme.com) at Acme GmbH**. Their plan renews...", "Email
+/// **jane@acme.com** that the renewal is signed". Values found here are the recipient: the
+/// model has to see them as they are to write to, or act on, the right person.
+pub fn recipient_phrases(instruction: &str) -> Vec<String> {
+    let lower = instruction.to_lowercase();
+    let mut out = vec![];
+    // Sentence by sentence; a "." inside an address or a number doesn't end one.
+    let mut sentences = vec![];
+    let mut start = 0;
+    for (i, c) in lower.char_indices() {
+        let next = lower[i + c.len_utf8()..].chars().next();
+        if matches!(c, '\n' | '!' | '?' | ';') || (c == '.' && next.is_none_or(char::is_whitespace))
+        {
+            sentences.push((start, i));
+            start = i + c.len_utf8();
+        }
+    }
+    sentences.push((start, lower.len()));
+    for (s, e) in sentences {
+        let sentence = &lower[s..e];
+        if asks_for_action(sentence).is_none() {
+            continue;
+        }
+        let ws: Vec<(usize, &str)> = sentence
+            .split_whitespace()
+            .map(|w| (w.as_ptr() as usize - sentence.as_ptr() as usize, w))
+            .collect();
+        let bare = |w: &str| {
+            w.trim_matches(|c: char| !(c.is_alphanumeric() || c == '-'))
+                .to_string()
+        };
+        // Where the recipient starts: after "to"/"for" once the verb has appeared, else right
+        // after a verb that takes the person as its object ("email jane@...", "call Jo").
+        let verb = ws.iter().position(|(_, w)| {
+            let w = bare(w);
+            ACT_VERBS.contains(&w.as_str()) || COMPOSE_VERBS.contains(&w.as_str())
+        });
+        let Some(v) = verb else { continue };
+        let after_prep = ws[v + 1..]
+            .iter()
+            .position(|(_, w)| matches!(bare(w).as_str(), "to" | "for" | "at"))
+            .map(|i| v + 1 + i + 1);
+        let direct = ACT_VERBS.contains(&bare(ws[v].1).as_str())
+            && !COMPOSE_VERBS.contains(&bare(ws[v].1).as_str());
+        let from = match (after_prep, direct) {
+            (Some(i), false) => i,
+            (Some(i), true) if i == v + 2 => i, // "send to Jane"
+            (_, true) => v + 1,
+            (None, false) => continue,
+        };
+        let Some(&(offset, _)) = ws.get(from) else {
+            continue;
+        };
+        let rest = &sentence[offset..];
+        let end = RECIPIENT_END
+            .iter()
+            .filter_map(|m| rest.find(m))
+            .min()
+            .unwrap_or(rest.len());
+        let (a, b) = (s + offset, s + offset + end);
+        let phrase = instruction[a..b].trim();
+        if !phrase.is_empty() {
+            out.push(phrase.to_string());
+        }
+    }
+    out
 }
 
 /// Many records, or a table of personal data, is a report whatever the wording.
@@ -311,19 +441,21 @@ pub fn classify(ctx: &RequestContext, personal_values: usize) -> Classification 
 
 /// Whether a finding is something an action needs as it is.
 ///
-/// When the model only drafts text or calls a tool that runs on this machine, nothing is a
-/// target that needs to stay real: Shadow restores fakes in the answer and in tool-call
-/// arguments before anything is sent. The exception is an action the provider carries out
-/// itself (a hosted MCP server, a server-side tool), where Shadow never sees the result. Then
-/// the recipient and the people, companies and addresses in the instruction are what the
-/// action is about, and a fake would reach the wrong person or say the wrong name.
+/// When a request is meant to reach a person (an email, letter, message, call, invite or
+/// payment), the model has to see who it is for: a stand-in recipient makes it address,
+/// research or act on the wrong person. So the recipient (`in_recipient`: the value is in a
+/// [`recipient_phrases`] span) is a target: name, contact details, company, address. The rest
+/// of the request, such as other people, health data, IDs, cards and secrets, is not.
 ///
-/// `in_instruction`: the value appears in the latest instruction. `instruction_has_contact`:
-/// the instruction itself names an email address or phone number; if it does not ("now send
-/// her the invite"), the recipient is in earlier messages, so contact details anywhere count.
+/// When the provider carries out the action itself (a hosted MCP server, a server-side tool),
+/// Shadow never sees the result, so more is a target: the people, companies, addresses and
+/// contact details named anywhere in the instruction, and, for a follow-up that names no
+/// email or phone ("now send her the invite"), emails, phones and people anywhere in the
+/// request. `instruction_has_contact` says whether the instruction names an email or phone.
 pub fn is_action_target(
     c: &Classification,
     in_instruction: bool,
+    in_recipient: bool,
     instruction_has_contact: bool,
     kind: Kind,
 ) -> bool {
@@ -336,14 +468,11 @@ pub fn is_action_target(
             kind,
             Kind::Person | Kind::Org | Kind::Address | Kind::Iban | Kind::Username
         );
+    if in_recipient && about {
+        return true;
+    }
     if !c.remote_actions {
-        // Local tools: the target is restored in the tool call; `[policy.act] targets`
-        // decides its treatment (surrogate by default).
-        return in_instruction
-            && matches!(
-                kind,
-                Kind::Email | Kind::Phone | Kind::Person | Kind::Address | Kind::Iban
-            );
+        return false;
     }
     (in_instruction && about) || (!instruction_has_contact && (contact || kind == Kind::Person))
 }
@@ -547,11 +676,13 @@ mod tests {
             "Write a short note to Jane and send it",
             "Check the calendar, then book a room for Jane",
             "Hey, can you remind Jane about Friday?",
+            "Draft a renewal reminder to Jane Doe",
+            "Write a letter to Mr Okafor about his results",
         ] {
             assert_eq!(classify(&ctx(asks), 1).intent, Intent::Act, "{asks}");
         }
         for mentions in [
-            "Draft a renewal reminder to Jane Doe",
+            "Write a function that parses emails",
             "Summarise the email Jane sent me",
             "How do I send a POST request in Python?",
         ] {
@@ -561,6 +692,23 @@ mod tests {
                 "{mentions}"
             );
         }
+    }
+
+    #[test]
+    fn finds_who_a_message_is_for() {
+        assert_eq!(
+            recipient_phrases("Draft a renewal reminder to Jane Doe (jane@acme.com) at Acme GmbH. Their plan renews in June."),
+            ["Jane Doe (jane@acme.com) at Acme GmbH"]
+        );
+        assert_eq!(
+            recipient_phrases("Email jane.doe@acme.com that Max approved it"),
+            ["jane.doe@acme.com"]
+        );
+        assert_eq!(
+            recipient_phrases("Please write a letter to Mr Okafor about his MRI results"),
+            ["Mr Okafor"]
+        );
+        assert!(recipient_phrases("Summarise Jane's ticket").is_empty());
     }
 
     #[test]
@@ -579,7 +727,7 @@ mod tests {
             intent: Intent::Report,
             ..act.clone()
         };
-        assert_eq!(treatment(&p, &act, Kind::Email, true), Treatment::Surrogate);
+        assert_eq!(treatment(&p, &act, Kind::Email, true), Treatment::Keep);
         assert_eq!(
             treatment(&p, &act_remote, Kind::Email, true),
             Treatment::Keep

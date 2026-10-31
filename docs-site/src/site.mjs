@@ -23,6 +23,16 @@ export const BASE = normalisedBase === '/' ? '' : normalisedBase;
 /** Absolute URL of the site home, with a trailing slash. */
 export const HOME_URL = `${SITE}${BASE}/`;
 
+/**
+ * Cloudflare Web Analytics token (public: it is in every page). Only the production build for
+ * getshadow.dev reports, so the dev server and copies built for another SITE send nothing.
+ * Override with CF_BEACON_TOKEN, or set it to '' to turn analytics off.
+ */
+const isBuild = process.argv.includes('build');
+export const CF_BEACON_TOKEN =
+	process.env.CF_BEACON_TOKEN ??
+	(isBuild && SITE === PROD_SITE ? '24657fc2b8384a03b80a16f4a037a210' : '');
+
 export const REPO_URL = 'https://github.com/Tiny-Bubble-Company/shadow';
 export const RELEASES_URL = `${REPO_URL}/releases`;
 export const ORG_NAME = 'Tiny Bubble Company';

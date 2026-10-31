@@ -1,0 +1,12 @@
+// Cloudflare Workers static-assets site for https://getshadow.dev, deployed by
+// .github/workflows/deploy-site.yml on every push to main. Build first (pnpm build), then
+// `node deploy/csp.mjs dist dist/_headers` for security headers, then `wrangler deploy`.
+{
+	"name": "getshadow",
+	"compatibility_date": "2025-06-01",
+	"assets": {
+		"directory": "./dist",
+		"not_found_handling": "404-page",
+		"html_handling": "auto-trailing-slash"
+	}
+}

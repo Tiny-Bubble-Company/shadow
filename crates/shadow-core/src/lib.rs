@@ -173,7 +173,10 @@ fn unmask_pairs(entries: &[vault::VaultEntry]) -> Vec<(String, String)> {
         .collect();
     let mut parts: BTreeMap<&str, Option<&str>> = BTreeMap::new();
     for (fake, real) in &people {
-        for (f, r) in [(fake[0], real[0]), (fake[fake.len() - 1], real[real.len() - 1])] {
+        for (f, r) in [
+            (fake[0], real[0]),
+            (fake[fake.len() - 1], real[real.len() - 1]),
+        ] {
             if f.chars().count() < 3 || f == r || real_words.contains(&f.to_lowercase()) {
                 continue;
             }
@@ -513,6 +516,7 @@ impl Shadow {
             instruction_has_contact: found
                 .iter()
                 .any(|f| matches!(f.kind, Kind::Email | Kind::Phone)),
+            recipients: intent::recipient_phrases(&ctx.instruction),
             instruction: ctx.instruction,
             tokens: Mutex::new(Tokens::default()),
         }
@@ -720,6 +724,8 @@ pub struct Session {
     instruction: String,
     /// The instruction names an email address or phone number itself.
     instruction_has_contact: bool,
+    /// Who the request's message or action is for (see [`intent::recipient_phrases`]).
+    recipients: Vec<String>,
     tokens: Mutex<Tokens>,
 }
 
@@ -769,6 +775,9 @@ impl Session {
             let target = intent::is_action_target(
                 class,
                 !instruction.is_empty() && instruction.contains(real),
+                self.recipients
+                    .iter()
+                    .any(|p| p.contains(real.trim_end_matches('.'))),
                 self.instruction_has_contact,
                 f.kind,
             );

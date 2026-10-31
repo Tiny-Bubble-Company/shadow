@@ -4,7 +4,7 @@ import starlight from '@astrojs/starlight';
 import sitemap from '@astrojs/sitemap';
 import { unified } from '@astrojs/markdown-remark';
 import rehypeBaseLinks from './src/plugins/rehype-base-links.mjs';
-import { SITE, BASE, REPO_URL, SITE_DESCRIPTION } from './src/site.mjs';
+import { SITE, BASE, REPO_URL, SITE_DESCRIPTION, CF_BEACON_TOKEN } from './src/site.mjs';
 
 // Where the site is published comes from the SITE and BASE environment variables
 // (see src/site.mjs). Default: served at the domain root (BASE=""); GitHub Pages uses BASE=/shadow.
@@ -40,6 +40,19 @@ export default defineConfig({
 			},
 			head: [
 				{ tag: 'meta', attrs: { name: 'theme-color', content: '#7C6CFF' } },
+				// Cloudflare Web Analytics: cookie-free page views (see src/site.mjs).
+				...(CF_BEACON_TOKEN
+					? [
+							{
+								tag: 'script',
+								attrs: {
+									defer: true,
+									src: 'https://static.cloudflareinsights.com/beacon.min.js',
+									'data-cf-beacon': JSON.stringify({ token: CF_BEACON_TOKEN }),
+								},
+							},
+						]
+					: []),
 				{
 					tag: 'link',
 					attrs: {

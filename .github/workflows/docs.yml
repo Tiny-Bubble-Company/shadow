@@ -1,12 +1,9 @@
 name: Docs
 
-# Builds docs-site/ (Astro Starlight) to catch broken pages before they reach
-# https://getshadow.dev. The site itself is deployed separately.
+# Builds docs-site/ (Astro Starlight) on pull requests to catch broken pages before they
+# reach https://getshadow.dev. Pushes to main are built and deployed by deploy-site.yml.
 
 on:
-  push:
-    branches: [main]
-    paths: ["docs-site/**", ".github/workflows/docs.yml"]
   pull_request:
     paths: ["docs-site/**", ".github/workflows/docs.yml"]
   workflow_dispatch:

@@ -192,12 +192,13 @@ pub struct PolicyConfig {
     pub always: BTreeMap<String, Treatment>,
 }
 
-/// Values an action is aimed at (the recipient of an email, the number to call).
+/// Values an action or message is aimed at (the recipient of an email, the number to call).
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct ActPolicy {
-    /// When the tool runs locally: Shadow restores the real value in the tool call on this
-    /// machine, so a surrogate is safe and the action still works.
+    /// The recipient of a message or action the model writes or prepares (an email to Jane,
+    /// a call to a number). `keep` (default) shows the model the real recipient so it writes
+    /// to the right person; `surrogate` hides it and relies on restoring it in the answer.
     pub targets: Treatment,
     /// When the action runs in the provider's cloud (hosted MCP servers, server-side tools),
     /// Shadow can't restore values there; `keep` sends the real target so the action works.
@@ -207,7 +208,7 @@ pub struct ActPolicy {
 impl Default for ActPolicy {
     fn default() -> Self {
         Self {
-            targets: Treatment::Surrogate,
+            targets: Treatment::Keep,
             remote_tool_targets: Treatment::Keep,
         }
     }

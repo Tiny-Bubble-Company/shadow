@@ -379,7 +379,7 @@ async fn activity_stream_pushes_new_events() {
     assert_eq!(stream.headers()["content-type"], "text/event-stream");
     client()
         .post(format!("{}/gw/mock/v1/chat/completions", env.url))
-        .json(&json!({"model":"m","messages":[{"role":"user","content":"mail jane@example.org"}]}))
+        .json(&json!({"model":"m","messages":[{"role":"user","content":"summarise the ticket from jane@example.org"}]}))
         .send()
         .await
         .unwrap()

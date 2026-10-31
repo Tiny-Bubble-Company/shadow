@@ -14,17 +14,17 @@ const steps = [
 	id="how-it-works"
 	eyebrow="How it works"
 	title="Translate, don’t block"
-	lead="Shadow sits between your tools and the model. The provider gets a coherent prompt about a company that does not exist. You get an answer about yours."
+	lead="Shadow sits between your tools and the model. The provider gets a coherent prompt about people who do not exist. You get the answer about the real ones, and when the goal is to write to someone, the model sees who."
 >
-	<div class="hp-flow" role="img" aria-label="Your app sends jane@acme.com to Shadow on your machine. Shadow sends hui.zhao@zhilan.cn to the LLM provider. The answer comes back with the fake, and Shadow restores jane@acme.com before your app sees it.">
+	<div class="hp-flow" role="img" aria-label="Your app sends the patient name Maria Lopez to Shadow on your machine. Shadow sends the stand-in Mei Lin to the LLM provider. The answer comes back with the stand-in, and Shadow restores Maria Lopez before your app sees it.">
 		<div class="hp-flow__zone" aria-hidden="true"><span>Your machine or network</span></div>
 		<div class="hp-flow__node">
 			<span class="hp-flow__kicker">Your app</span>
 			<strong>SDK, agent, IDE, CLI</strong>
 		</div>
 		<div class="hp-flow__lane" aria-hidden="true">
-			<div class="hp-flow__arrow hp-flow__arrow--out"><code>jane@acme.com</code></div>
-			<div class="hp-flow__arrow hp-flow__arrow--in"><code>jane@acme.com</code></div>
+			<div class="hp-flow__arrow hp-flow__arrow--out"><code>Maria Lopez</code></div>
+			<div class="hp-flow__arrow hp-flow__arrow--in"><code>Maria Lopez</code></div>
 		</div>
 		<div class="hp-flow__node hp-flow__node--shadow">
 			<span class="hp-flow__kicker">Shadow</span>
@@ -32,8 +32,8 @@ const steps = [
 			<span class="hp-flow__vault">encrypted vault</span>
 		</div>
 		<div class="hp-flow__lane" aria-hidden="true">
-			<div class="hp-flow__arrow hp-flow__arrow--out hp-flow__arrow--fake"><code>hui.zhao@zhilan.cn</code></div>
-			<div class="hp-flow__arrow hp-flow__arrow--in hp-flow__arrow--fake"><code>hui.zhao@zhilan.cn</code></div>
+			<div class="hp-flow__arrow hp-flow__arrow--out hp-flow__arrow--fake"><code>Mei Lin</code></div>
+			<div class="hp-flow__arrow hp-flow__arrow--in hp-flow__arrow--fake"><code>Mei Lin</code></div>
 		</div>
 		<div class="hp-flow__node hp-flow__node--llm">
 			<span class="hp-flow__kicker">LLM provider</span>
@@ -45,32 +45,34 @@ const steps = [
 		<div class="hp-example__panel">
 			<p class="hp-example__label"><span class="hp-dot hp-dot--real"></span>1 · You ask</p>
 			<p class="hp-example__text">
-				Draft a renewal reminder to <mark class="real">Jane Doe</mark> (<mark class="real">jane@acme.com</mark>) at
-				<mark class="real">Acme GmbH</mark>. Their plan renews on 30 June.
+				Summarise this discharge note for the ward handover: <mark class="real">Maria Lopez</mark>, NHS
+				<mark class="real">943 476 5919</mark>, admitted with chest pain, troponin normal, seen by
+				<mark class="real">Dr Amara Okafor</mark>. Family contact <mark class="real">+44 7700 900123</mark>.
 			</p>
 		</div>
 		<div class="hp-example__arrow" aria-hidden="true">→</div>
 		<div class="hp-example__panel hp-example__panel--fake">
 			<p class="hp-example__label"><span class="hp-dot hp-dot--fake"></span>2 · The provider sees</p>
 			<p class="hp-example__text">
-				Draft a renewal reminder to <mark class="fake">Hui Zhao</mark> (<mark class="fake">hui.zhao@zhilan.cn</mark>) at
-				<mark class="fake">Zhilan GmbH</mark>. Their plan renews on 30 June.
+				Summarise this discharge note for the ward handover: <mark class="fake">Mei Lin</mark>, NHS
+				<mark class="fake">401 023 2137</mark>, admitted with chest pain, troponin normal, seen by
+				<mark class="fake">Dr Wei Zhang</mark>. Family contact <mark class="fake">+44 7700 900456</mark>.
 			</p>
 		</div>
 		<div class="hp-example__arrow" aria-hidden="true">→</div>
 		<div class="hp-example__panel">
 			<p class="hp-example__label"><span class="hp-dot hp-dot--real"></span>3 · You get back</p>
 			<p class="hp-example__text">
-				To: <mark class="real">jane@acme.com</mark><br />
-				Hi <mark class="real">Jane Doe</mark>, a quick reminder that the <mark class="real">Acme GmbH</mark> plan renews on
-				30 June. Reply to this email if anything should change.
+				<strong>Handover:</strong> <mark class="real">Maria Lopez</mark> (NHS <mark class="real">943 476 5919</mark>),
+				chest pain, troponin normal. Reviewed by <mark class="real">Dr Amara Okafor</mark>. Update family on
+				<mark class="real">+44 7700 900123</mark>.
 			</p>
 		</div>
 	</div>
 	<ul class="hp-example__notes">
-		<li><strong>The goal survives.</strong> The model writes about a stand-in; the draft you read and send names the real Jane.</li>
-		<li><strong>Same shape, same fake.</strong> Emails stay emails and cards pass Luhn, and a value always maps to the same fake.</li>
-		<li><strong>Intent-aware.</strong> If the provider itself sends the email through a hosted tool, the recipient and names it needs stay real and each one is logged; secrets stay masked. <a href={LINKS.intent}>How intent works</a></li>
+		<li><strong>The clinical meaning survives.</strong> The model never needs the real identity to summarise a note, so it only ever sees a stand-in patient.</li>
+		<li><strong>Same shape, same fake.</strong> NHS numbers still pass their checksum, phones stay phones, and a value always maps to the same fake.</li>
+		<li><strong>Intent-aware.</strong> Ask it to write to someone, such as “email Dr Okafor about Maria’s results”, and the recipient is passed through so the model writes to the right person; the patient is still masked. <a href={LINKS.intent}>How intent works</a></li>
 	</ul>
 
 	<ol class="hp-grid hp-grid--4 hp-steps">

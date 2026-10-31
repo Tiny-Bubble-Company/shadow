@@ -29,3 +29,6 @@ bench/results*/*.jsonl
 
 # tray app (separate workspace)
 apps/shadow-tray/target/
+
+# Cloudflare wrangler local state
+.wrangler/

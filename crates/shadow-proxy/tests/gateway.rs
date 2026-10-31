@@ -20,9 +20,10 @@ const REALS: &[&str] = &[
     "Acme",
     "4111 1111 1111 1111",
     "sk-proj-Abcdefghijklmnopqrstuvwx12345",
-    "Maria Garcia",
     "Project Falcon",
 ];
+/// Who the prompt's reply is for: the model has to see her to write to the right person.
+const RECIPIENT: &str = "Maria Garcia";
 
 #[derive(Clone, Default)]
 struct Seen(Arc<Mutex<Vec<(HeaderMap, String)>>>);
@@ -98,6 +99,7 @@ fn assert_upstream_clean(env: &Env) {
     for r in REALS {
         assert!(!body.contains(r), "upstream saw real value {r:?}: {body}");
     }
+    assert!(body.contains(RECIPIENT), "the recipient is passed through: {body}");
     let v: Value = serde_json::from_str(body).unwrap();
     assert_eq!(v["model"], "gpt-4o-mini", "protocol fields untouched");
     assert_eq!(
