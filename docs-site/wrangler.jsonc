@@ -1,11 +1,17 @@
-// Cloudflare Workers static-assets site for https://getshadow.dev, deployed by
-// .github/workflows/deploy-site.yml on every push to main. Build first (pnpm build), then
-// `node deploy/csp.mjs dist dist/_headers` for security headers, then `wrangler deploy`.
+// Cloudflare Worker for https://getshadow.dev: the static site in dist/ plus the www -> apex
+// redirect in worker/index.js. Deployed by .github/workflows/deploy-site.yml on every push to
+// main: pnpm build, then `node deploy/csp.mjs dist dist/_headers`, then `wrangler deploy`.
 {
-	"name": "getshadow",
+	"name": "shadow-docs",
+	"main": "./worker/index.js",
 	"compatibility_date": "2025-06-01",
+	// Served only on the custom domains, not on a workers.dev subdomain.
+	"workers_dev": false,
 	"assets": {
 		"directory": "./dist",
+		"binding": "ASSETS",
+		// Run the Worker first so www requests are redirected even for paths that exist.
+		"run_worker_first": true,
 		"not_found_handling": "404-page",
 		"html_handling": "auto-trailing-slash"
 	}

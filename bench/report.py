@@ -63,6 +63,8 @@ def main() -> None:
         print(f"## {folder} ({any_tool['samples']} samples, {any_tool['values']} sensitive values)\n")
         print(overall(summary), "\n")
         print(by_key(summary, "leak_by_label"), "\n")
+        print("Detection recall by type\n")
+        print(by_key({t: v for t, v in summary.items() if v.get("recall_by_label")}, "recall_by_label"), "\n")
         print(by_key(summary, "leak_by_scenario"), "\n")
 
 

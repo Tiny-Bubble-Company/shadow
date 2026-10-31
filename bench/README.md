@@ -2,7 +2,7 @@
 
 Reproducible comparison of Shadow with other open-source PII detection and redaction tools on
 the same labelled text. Results and methodology are published at
-<https://tiny-bubble-company.github.io/shadow/benchmarks/>.
+<https://getshadow.dev/benchmarks/>.
 
 ## Datasets
 

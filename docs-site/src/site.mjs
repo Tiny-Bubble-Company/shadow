@@ -31,7 +31,7 @@ export const HOME_URL = `${SITE}${BASE}/`;
 const isBuild = process.argv.includes('build');
 export const CF_BEACON_TOKEN =
 	process.env.CF_BEACON_TOKEN ??
-	(isBuild && SITE === PROD_SITE ? '24657fc2b8384a03b80a16f4a037a210' : '');
+	(isBuild && SITE === PROD_SITE ? '0777e046cdb543658cee0d89ba6699e2' : '');
 
 export const REPO_URL = 'https://github.com/Tiny-Bubble-Company/shadow';
 export const RELEASES_URL = `${REPO_URL}/releases`;

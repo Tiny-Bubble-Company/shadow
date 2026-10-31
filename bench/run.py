@@ -48,7 +48,7 @@ def run_shadow(samples: list[dict], presidio: str | None = None, model: str | No
     subprocess.run(["cargo", "build", "-q", "--release", "-p", "shadow-core", "--example", "bench"], cwd=ROOT, check=True)
     exe = ROOT / "target" / "release" / "examples" / "bench"
     inp = "".join(json.dumps({"id": s["id"], "text": s["text"]}) + "\n" for s in samples)
-    out = subprocess.run([str(exe)], input=inp, capture_output=True, text=True, env=env, check=True).stdout
+    out = subprocess.run([str(exe)], input=inp, stdout=subprocess.PIPE, text=True, env=env, check=True).stdout
     res = [json.loads(l) for l in out.splitlines() if l.strip()]
     for r in res:
         r["ms"] = r.pop("micros") / 1000
@@ -218,6 +218,7 @@ def evaluate(samples: list[dict], results: list[dict]) -> dict:
     tot = {"spans": 0, "leaked": 0, "names": 0, "partial": 0, "public": 0, "public_changed": 0, "words": 0, "words_kept": 0,
            "tp": 0, "fp": 0, "fn": 0, "emails": 0, "emails_kept": 0, "cards": 0, "cards_valid": 0, "roundtrip": 0, "rt_n": 0}
     per_label: dict[str, list[int]] = {}
+    found_by_label: dict[str, list[int]] = {}
     per_scenario: dict[str, list[int]] = {}
     lat = []
     has_spans = True
@@ -264,6 +265,9 @@ def evaluate(samples: list[dict], results: list[dict]) -> dict:
             for g in s["spans"]:
                 hit = any(min(g["end"], p["end"]) - max(g["start"], p["start"]) >= 0.5 * (g["end"] - g["start"]) for p in pred)
                 tot["tp" if hit else "fn"] += 1
+                found_by_label.setdefault(g["label"], [0, 0])
+                found_by_label[g["label"]][0] += 1
+                found_by_label[g["label"]][1] += hit
             # Spans a dataset marks "ignore" (labels with no counterpart here) are not false positives.
             for p in pred:
                 if not any(min(g["end"], p["end"]) - max(g["start"], p["start"]) > 0 for g in s["spans"] + s.get("ignore", [])):
@@ -286,6 +290,9 @@ def evaluate(samples: list[dict], results: list[dict]) -> dict:
         "round_trip": pct(tot["roundtrip"], tot["rt_n"]),
         "latency_ms": {"p50": round(statistics.median(lat), 2), "p95": round(lat[int(0.95 * (len(lat) - 1))], 2)},
         "leak_by_label": {k: pct(v[1], v[0]) for k, v in sorted(per_label.items())},
+        # Detection recall per type. Precision per type isn't comparable across tools: each
+        # labels its findings differently, and a false positive has no gold type.
+        "recall_by_label": {k: pct(v[1], v[0]) for k, v in sorted(found_by_label.items())} if has_spans else None,
         "leak_by_scenario": {k: pct(v[1], v[0]) for k, v in sorted(per_scenario.items())},
         "samples": len(samples),
         "values": tot["spans"],
@@ -298,6 +305,8 @@ def main() -> None:
     ap.add_argument("--tools", default="shadow,presidio,gliner,scrubadub,llm_guard")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--out", default=str(HERE / "results"))
+    # Score the outputs already saved in --out (<tool>.jsonl) again, without running the tools.
+    ap.add_argument("--rescore", action="store_true")
     a = ap.parse_args()
     samples = [json.loads(l) for l in open(a.data, encoding="utf-8") if l.strip()]
     if a.limit:
@@ -307,10 +316,14 @@ def main() -> None:
     summary = {}
     for tool in a.tools.split(","):
         t0 = time.time()
-        results = TOOLS[tool](samples)
-        with open(out / f"{tool}.jsonl", "w", encoding="utf-8") as f:
-            for r in results:
-                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+        saved = out / f"{tool}.jsonl"
+        if a.rescore:
+            results = [json.loads(l) for l in open(saved, encoding="utf-8") if l.strip()]
+        else:
+            results = TOOLS[tool](samples)
+            with open(saved, "w", encoding="utf-8") as f:
+                for r in results:
+                    f.write(json.dumps(r, ensure_ascii=False) + "\n")
         summary[tool] = evaluate(samples, results)
         print(f"{tool:16s} leak {summary[tool]['leak_rate']}%  ({time.time() - t0:.0f}s)", flush=True)
         # Saved after every tool, so one crashing tool doesn't lose the others' results.
