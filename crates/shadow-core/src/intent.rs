@@ -154,7 +154,7 @@ const REPORT_WORDS: &[&str] = &[
     "distribution",
     "average",
     "median",
-    "top 10",
+    "top",
     "rank",
     "ranking",
 ];
@@ -180,21 +180,23 @@ fn words(s: &str) -> Vec<String> {
         .collect()
 }
 
+/// Words that can come before the verb of a request: "please", "can you", "go ahead and".
+const LEAD_WORDS: &[&str] = &[
+    "please", "can", "could", "would", "will", "you", "kindly", "go", "ahead", "and", "now",
+    "then", "also", "pls", "hey", "just",
+];
+/// Words after which an action verb is still the thing being asked for: "I need you **to**
+/// email", "write it **and** send it", "**then** book".
+const VERB_LINKS: &[&str] = &["to", "and", "then", "please", "you", "also", "&"];
+
 /// Does the instruction ask for an action (rather than mention one)?
 fn asks_for_action(text: &str) -> Option<String> {
     let lower = text.to_lowercase();
     for clause in lower.split(['.', '\n', '!', '?', ';']) {
         let ws = words(clause);
-        // Skip courtesy words: "please", "can you", "could you", "would you", "kindly", "go ahead and".
         let start = ws
             .iter()
-            .position(|w| {
-                ![
-                    "please", "can", "could", "would", "will", "you", "kindly", "go", "ahead",
-                    "and", "now", "then", "also", "pls", "hey",
-                ]
-                .contains(&w.as_str())
-            })
+            .position(|w| !LEAD_WORDS.contains(&w.as_str()))
             .unwrap_or(ws.len());
         if let Some(first) = ws.get(start) {
             if ACT_VERBS.contains(&first.as_str()) {
@@ -208,6 +210,13 @@ fn asks_for_action(text: &str) -> Option<String> {
             {
                 return Some(format!("asks to {first} a record elsewhere"));
             }
+        }
+        // "I need you to email Jane", "draft the reply and send it".
+        if let Some(w) = ws.windows(2).find_map(|p| {
+            (VERB_LINKS.contains(&p[0].as_str()) && ACT_VERBS.contains(&p[1].as_str()))
+                .then(|| p[1].clone())
+        }) {
+            return Some(format!("asks to \"{w}\""));
         }
     }
     None
@@ -300,15 +309,43 @@ pub fn classify(ctx: &RequestContext, personal_values: usize) -> Classification 
     }
 }
 
-/// Whether a finding is what an action is aimed at: a contact detail or person in the
-/// instruction itself.
-pub fn is_action_target(c: &Classification, in_instruction: bool, kind: Kind) -> bool {
-    c.intent == Intent::Act
-        && in_instruction
-        && matches!(
+/// Whether a finding is something an action needs as it is.
+///
+/// When the model only drafts text or calls a tool that runs on this machine, nothing is a
+/// target that needs to stay real: Shadow restores fakes in the answer and in tool-call
+/// arguments before anything is sent. The exception is an action the provider carries out
+/// itself (a hosted MCP server, a server-side tool), where Shadow never sees the result. Then
+/// the recipient and the people, companies and addresses in the instruction are what the
+/// action is about, and a fake would reach the wrong person or say the wrong name.
+///
+/// `in_instruction`: the value appears in the latest instruction. `instruction_has_contact`:
+/// the instruction itself names an email address or phone number; if it does not ("now send
+/// her the invite"), the recipient is in earlier messages, so contact details anywhere count.
+pub fn is_action_target(
+    c: &Classification,
+    in_instruction: bool,
+    instruction_has_contact: bool,
+    kind: Kind,
+) -> bool {
+    if c.intent != Intent::Act {
+        return false;
+    }
+    let contact = matches!(kind, Kind::Email | Kind::Phone);
+    let about = contact
+        || matches!(
             kind,
-            Kind::Email | Kind::Phone | Kind::Person | Kind::Address | Kind::Iban
-        )
+            Kind::Person | Kind::Org | Kind::Address | Kind::Iban | Kind::Username
+        );
+    if !c.remote_actions {
+        // Local tools: the target is restored in the tool call; `[policy.act] targets`
+        // decides its treatment (surrogate by default).
+        return in_instruction
+            && matches!(
+                kind,
+                Kind::Email | Kind::Phone | Kind::Person | Kind::Address | Kind::Iban
+            );
+    }
+    (in_instruction && about) || (!instruction_has_contact && (contact || kind == Kind::Person))
 }
 
 /// The treatment for one value.
@@ -505,6 +542,25 @@ mod tests {
             Intent::Converse,
             "mentioning email isn't sending one"
         );
+        for asks in [
+            "I need you to email Jane the contract",
+            "Write a short note to Jane and send it",
+            "Check the calendar, then book a room for Jane",
+            "Hey, can you remind Jane about Friday?",
+        ] {
+            assert_eq!(classify(&ctx(asks), 1).intent, Intent::Act, "{asks}");
+        }
+        for mentions in [
+            "Draft a renewal reminder to Jane Doe",
+            "Summarise the email Jane sent me",
+            "How do I send a POST request in Python?",
+        ] {
+            assert_ne!(
+                classify(&ctx(mentions), 1).intent,
+                Intent::Act,
+                "{mentions}"
+            );
+        }
     }
 
     #[test]

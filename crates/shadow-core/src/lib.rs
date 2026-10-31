@@ -26,7 +26,7 @@ pub mod persona;
 pub mod translate;
 pub mod vault;
 
-use std::collections::{BTreeSet, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::path::Path;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
@@ -145,6 +145,58 @@ fn refine_ml_findings(mut all: Vec<Finding>, text: &str) -> Vec<Finding> {
     all
 }
 
+/// Fake -> real pairs for unmasking: every vault entry, plus the first and last name of each
+/// fake person on their own. Models greet people by first name ("Dear Hui,"), and a draft
+/// that kept a fake first name would go to the real person with the wrong name. A part is
+/// left out when it is short, would map to two different people, or is itself a real name
+/// in the vault (then restoring it could rename a real person).
+fn unmask_pairs(entries: &[vault::VaultEntry]) -> Vec<(String, String)> {
+    let mut pairs: Vec<(String, String)> = entries
+        .iter()
+        .map(|e| (e.fake.clone(), e.real.clone()))
+        .collect();
+    let people: Vec<(Vec<&str>, Vec<&str>)> = entries
+        .iter()
+        .filter(|e| e.kind == Kind::Person.as_str())
+        .map(|e| {
+            (
+                e.fake.split_whitespace().collect(),
+                e.real.split_whitespace().collect(),
+            )
+        })
+        .filter(|(f, r): &(Vec<&str>, Vec<&str>)| f.len() >= 2 && r.len() >= 2)
+        .collect();
+    let real_words: HashSet<String> = entries
+        .iter()
+        .filter(|e| e.kind == Kind::Person.as_str())
+        .flat_map(|e| e.real.split_whitespace().map(str::to_lowercase))
+        .collect();
+    let mut parts: BTreeMap<&str, Option<&str>> = BTreeMap::new();
+    for (fake, real) in &people {
+        for (f, r) in [(fake[0], real[0]), (fake[fake.len() - 1], real[real.len() - 1])] {
+            if f.chars().count() < 3 || f == r || real_words.contains(&f.to_lowercase()) {
+                continue;
+            }
+            parts
+                .entry(f)
+                .and_modify(|seen| {
+                    if *seen != Some(r) {
+                        *seen = None; // two people share this part: ambiguous
+                    }
+                })
+                .or_insert(Some(r));
+        }
+    }
+    let full: HashSet<&str> = entries.iter().map(|e| e.fake.as_str()).collect();
+    pairs.extend(
+        parts
+            .into_iter()
+            .filter(|(f, _)| !full.contains(f))
+            .filter_map(|(f, r)| r.map(|r| (f.to_string(), r.to_string()))),
+    );
+    pairs
+}
+
 /// Dictionary terms for vault entries: each real value, and each fake too, because real text
 /// that happens to equal a fake (a real "Carvalho" when "Carvalho" is someone else's stand-in)
 /// must be masked as well, or unmasking would turn it into the wrong person.
@@ -163,6 +215,14 @@ fn vault_terms(entries: &[vault::VaultEntry]) -> Vec<(String, Kind)> {
             }
         }
     }
+    // Fake first and last names are restored on their own, so real text that equals one
+    // is masked too, for the same reason.
+    out.extend(
+        unmask_pairs(entries)
+            .into_iter()
+            .skip(entries.len())
+            .map(|(fake_part, _)| (fake_part, Kind::Person)),
+    );
     out
 }
 
@@ -409,13 +469,7 @@ impl Shadow {
         }
         let mut st = self.write();
         if st.unmasker_gen != st.vault.generation {
-            let pairs = st
-                .vault
-                .entries()
-                .iter()
-                .map(|e| (e.fake.clone(), e.real.clone()))
-                .collect();
-            st.unmasker = Arc::new(Unmasker::new(pairs));
+            st.unmasker = Arc::new(Unmasker::new(unmask_pairs(st.vault.entries())));
             st.unmasker_gen = st.vault.generation;
         }
         st.unmasker.clone()
@@ -450,11 +504,15 @@ impl Shadow {
 
     /// A masking session for one request: classifies its intent and applies the policy.
     pub fn session(&self, ctx: RequestContext) -> Session {
-        let personal = intent::personal(&self.scan(&ctx.instruction));
+        let found = self.scan(&ctx.instruction);
+        let personal = intent::personal(&found);
         let class = intent::classify(&ctx, personal);
         Session {
             shadow: self.clone(),
             class,
+            instruction_has_contact: found
+                .iter()
+                .any(|f| matches!(f.kind, Kind::Email | Kind::Phone)),
             instruction: ctx.instruction,
             tokens: Mutex::new(Tokens::default()),
         }
@@ -660,6 +718,8 @@ pub struct Session {
     shadow: Shadow,
     class: Classification,
     instruction: String,
+    /// The instruction names an email address or phone number itself.
+    instruction_has_contact: bool,
     tokens: Mutex<Tokens>,
 }
 
@@ -709,6 +769,7 @@ impl Session {
             let target = intent::is_action_target(
                 class,
                 !instruction.is_empty() && instruction.contains(real),
+                self.instruction_has_contact,
                 f.kind,
             );
             let treatment = intent::treatment(cfg, class, f.kind, target);
@@ -783,12 +844,7 @@ impl Session {
                 return u.clone();
             }
         }
-        let mut pairs: Vec<(String, String)> = st
-            .vault
-            .entries()
-            .iter()
-            .map(|e| (e.fake.clone(), e.real.clone()))
-            .collect();
+        let mut pairs = unmask_pairs(st.vault.entries());
         drop(st);
         pairs.extend(toks.pairs.iter().cloned());
         let u = Arc::new(Unmasker::new(pairs));

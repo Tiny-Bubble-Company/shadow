@@ -47,10 +47,12 @@ fn an_email_action_with_a_local_tool_reaches_the_real_recipient() {
 }
 
 #[test]
-fn a_provider_hosted_tool_gets_the_real_target_and_nothing_else() {
+fn a_provider_hosted_tool_gets_what_the_action_needs_and_nothing_else() {
+    // The provider sends this email itself, so Shadow never sees the result: a fake address
+    // would reach someone else and a fake company name would end up in Jane's inbox.
     let (shadow, _d) = shadow();
     let req = json!({
-        "input": [{ "role": "user", "content": [{ "type": "input_text", "text": "Send jane.doe@acme.com the Acme GmbH contract summary" }] }],
+        "input": [{ "role": "user", "content": [{ "type": "input_text", "text": "Send jane.doe@acme.com the Acme GmbH contract summary. Our deploy key is ghp_Q8v2Lr7XcN4mT9wK1sB6yH3dF5gJ0pZaE2uR" }] }],
         "tools": [{ "type": "mcp", "server_label": "mail", "server_url": "https://mcp.mail.example.com" }]
     });
     let session = shadow.session_for(&req);
@@ -63,14 +65,65 @@ fn a_provider_hosted_tool_gets_the_real_target_and_nothing_else() {
         .as_str()
         .unwrap();
     assert!(
-        text.contains("jane.doe@acme.com"),
-        "the provider runs the tool, so the target is kept: {text}"
+        text.contains("jane.doe@acme.com") && text.contains("Acme GmbH"),
+        "the provider runs the tool, so what the email is about stays real: {text}"
     );
     assert!(
-        !text.contains("Acme GmbH"),
-        "everything that isn't the target is still masked: {text}"
+        !text.contains("ghp_Q8v2Lr7XcN4mT9wK1sB6yH3dF5gJ0pZaE2uR"),
+        "a secret is never part of what the action needs: {text}"
     );
-    assert_eq!(session.summary().kept, 1);
+    assert!(session.summary().kept >= 2);
+}
+
+#[test]
+fn a_follow_up_action_by_the_provider_keeps_the_earlier_recipient() {
+    // "Now send her the invite": the address is in an earlier turn, not the instruction.
+    let (shadow, _d) = shadow();
+    let req = json!({
+        "input": [
+            { "role": "user", "content": "Jane Doe (jane.doe@acme.com) is joining the launch call." },
+            { "role": "assistant", "content": "Noted." },
+            { "role": "user", "content": "Now send her the invite." }
+        ],
+        "tools": [{ "type": "mcp", "server_label": "calendar", "server_url": "https://mcp.calendar.example.com" }]
+    });
+    let session = shadow.session_for(&req);
+    assert_eq!(session.classification().intent, Intent::Act);
+    let mut out = req.clone();
+    session.mask_json(&mut out);
+    let first = out.pointer("/input/0/content").unwrap().as_str().unwrap();
+    assert!(first.contains("jane.doe@acme.com"), "{first}");
+}
+
+#[test]
+fn drafting_an_email_masks_everything_and_the_draft_comes_back_real() {
+    // No tool: the model only writes text, which Shadow restores before you see it.
+    let (shadow, _d) = shadow();
+    let req = json!({ "messages": [{ "role": "user", "content": "Draft a renewal reminder to Jane Doe (jane.doe@acme.com) at Acme GmbH." }] });
+    let session = shadow.session_for(&req);
+    let mut out = req.clone();
+    session.mask_json(&mut out);
+    let sent = out["messages"][0]["content"].as_str().unwrap().to_string();
+    assert!(
+        !sent.contains("jane.doe@acme.com") && !sent.contains("Jane Doe"),
+        "{sent}"
+    );
+    assert_eq!(session.summary().kept, 0);
+
+    // The model writes its draft with the fakes it saw; the user reads it with the real ones.
+    let fake_line = sent
+        .trim_start_matches("Draft a renewal reminder to ")
+        .trim_end_matches('.');
+    let mut answer =
+        json!({ "content": format!("Hi! A reminder for {fake_line}: your renewal is due.") });
+    session.unmask_json(&mut answer);
+    let back = answer["content"].as_str().unwrap();
+    assert!(
+        back.contains("Jane Doe")
+            && back.contains("jane.doe@acme.com")
+            && back.contains("Acme GmbH"),
+        "{back}"
+    );
 }
 
 #[test]
@@ -161,4 +214,38 @@ fn real_text_equal_to_a_fake_survives_the_round_trip() {
         m.text
     );
     assert_eq!(shadow.unmask(&m.text), text);
+}
+
+#[test]
+fn a_draft_that_uses_only_a_first_name_still_reaches_the_real_person() {
+    // Models greet people by first name. "Dear Hui," must come back as "Dear Jane,".
+    let (shadow, _d) = shadow();
+    let req = json!({ "messages": [{ "role": "user", "content": "Draft a thank-you note to Jane Doe for the workshop." }] });
+    let session = shadow.session_for(&req);
+    let mut out = req.clone();
+    session.mask_json(&mut out);
+    let sent = out["messages"][0]["content"].as_str().unwrap().to_string();
+    let fake = sent
+        .trim_start_matches("Draft a thank-you note to ")
+        .trim_end_matches(" for the workshop.")
+        .to_string();
+    assert!(!fake.contains("Jane"), "{sent}");
+    let parts: Vec<&str> = fake.split_whitespace().collect();
+    let (first, last) = (parts[0], parts[parts.len() - 1]);
+    let mut answer = json!({ "content": format!("Dear {first},\n\nThank you for the workshop. Best wishes to the {last} family.") });
+    session.unmask_json(&mut answer);
+    let back = answer["content"].as_str().unwrap();
+    assert!(back.starts_with("Dear Jane,"), "{back}");
+    assert!(back.contains("the Doe family"), "{back}");
+}
+
+#[test]
+fn a_real_person_who_shares_a_fake_first_name_is_not_renamed() {
+    let (shadow, _d) = shadow();
+    let fake = shadow.mask("Jane Doe called.").text;
+    let first = fake.split_whitespace().next().unwrap().to_string();
+    // Later, a real person with that first name appears. Their name must survive the round trip.
+    let text = format!("{first} Example from accounting joined the call.");
+    let masked = shadow.mask(&text).text;
+    assert_eq!(shadow.unmask(&masked), text);
 }

@@ -322,6 +322,8 @@ fn draw_overview(f: &mut Frame, area: Rect, app: &App) {
         Line::from(vec![
             Span::styled(" ▇ ", Style::new().fg(ACCENT)),
             Span::styled("requests  ", Style::new().fg(MUTED)),
+            Span::styled("▇ ", Style::new().fg(DANGER)),
+            Span::styled("blocked  ", Style::new().fg(MUTED)),
             Span::styled("▁▃▅ ", Style::new().fg(ACCENT_SOFT)),
             Span::styled("values protected ", Style::new().fg(MUTED)),
         ])
@@ -340,42 +342,30 @@ fn draw_overview(f: &mut Frame, area: Rect, app: &App) {
         width: used.max(1),
         ..inner
     };
-    let [bars_area, spark_area] =
-        Layout::vertical([Constraint::Min(3), Constraint::Length(2)]).areas(inner);
-    let bars: Vec<Bar> = tl
-        .iter()
-        .map(|p| {
-            let color = if p.blocked > 0 { DANGER } else { ACCENT };
-            Bar::default()
-                .value(p.requests)
-                .text_value(String::new())
-                .style(Style::new().fg(color))
-        })
-        .collect();
-    f.render_widget(
-        BarChart::default()
-            .data(BarGroup::default().bars(&bars))
-            .bar_width(bw as u16)
-            .bar_gap(gap as u16),
-        bars_area,
-    );
+    let [bars_area, blocked_area, spark_area] = Layout::vertical([
+        Constraint::Min(3),
+        Constraint::Length(1),
+        Constraint::Length(2),
+    ])
+    .areas(inner);
+    // Requests per bucket; blocked requests get their own row underneath, so one block
+    // doesn't paint a whole busy bucket red.
+    let chart = |bars, area: Rect, f: &mut Frame| {
+        f.render_widget(
+            BarChart::default()
+                .data(BarGroup::default().bars(bars))
+                .bar_width(bw as u16)
+                .bar_gap(gap as u16),
+            area,
+        );
+    };
+    let requests: Vec<Bar> = tl.iter().map(|p| bar(p.requests, ACCENT)).collect();
+    chart(&requests, bars_area, f);
+    let blocked: Vec<Bar> = tl.iter().map(|p| bar(p.blocked.min(1), DANGER)).collect();
+    chart(&blocked, blocked_area, f);
     // Same geometry as the bars above so both series line up bucket by bucket.
-    let values: Vec<Bar> = tl
-        .iter()
-        .map(|p| {
-            Bar::default()
-                .value(p.values)
-                .text_value(String::new())
-                .style(Style::new().fg(ACCENT_SOFT))
-        })
-        .collect();
-    f.render_widget(
-        BarChart::default()
-            .data(BarGroup::default().bars(&values))
-            .bar_width(bw as u16)
-            .bar_gap(gap as u16),
-        spark_area,
-    );
+    let values: Vec<Bar> = tl.iter().map(|p| bar(p.values, ACCENT_SOFT)).collect();
+    chart(&values, spark_area, f);
 
     let [a, b, c] = Layout::horizontal([
         Constraint::Ratio(1, 3),
@@ -694,6 +684,14 @@ fn draw_breakdown(f: &mut Frame, area: Rect, app: &App) {
 }
 
 /// Render one frame to a string (used by tests and `--demo` smoke checks).
+/// One bar of a timeline chart, without its value printed underneath.
+fn bar(value: u64, color: Color) -> Bar<'static> {
+    Bar::default()
+        .value(value)
+        .text_value(String::new())
+        .style(Style::new().fg(color))
+}
+
 #[cfg(test)]
 fn render_to_string(app: &mut App, w: u16, h: u16) -> String {
     use ratatui::backend::TestBackend;

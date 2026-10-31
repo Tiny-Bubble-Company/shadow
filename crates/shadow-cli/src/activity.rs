@@ -185,13 +185,7 @@ pub fn demo_log() -> ActivityLog {
     type Client = (&'static str, &'static [(&'static str, f64)]);
     const CLIENTS: &[(Client, f64)] = &[
         (("Claude Code", &[("anthropic", 1.0)]), 30.0),
-        (
-            (
-                "Cursor",
-                &[("openai", 0.45), ("anthropic", 0.45), ("gemini", 0.1)],
-            ),
-            20.0,
-        ),
+        (("Codex CLI", &[("openai", 1.0)]), 20.0),
         (
             (
                 "OpenAI Python SDK",
@@ -199,11 +193,17 @@ pub fn demo_log() -> ActivityLog {
             ),
             14.0,
         ),
-        (("ChatGPT Desktop", &[("chatgpt", 1.0)]), 9.0),
+        (
+            (
+                "Aider",
+                &[("anthropic", 0.5), ("openai", 0.3), ("openrouter", 0.2)],
+            ),
+            9.0,
+        ),
         (("Google GenAI SDK", &[("gemini", 1.0)]), 7.0),
         (("Anthropic Node SDK", &[("anthropic", 1.0)]), 6.0),
         (("LangChain", &[("openai", 0.5), ("mistral", 0.5)]), 5.0),
-        (("GitHub Copilot", &[("copilot", 1.0)]), 5.0),
+        (("Anthropic Python SDK", &[("anthropic", 1.0)]), 5.0),
         (("curl", &[("openai", 0.6), ("anthropic", 0.4)]), 4.0),
     ];
     const KINDS: &[(&str, f64)] = &[
@@ -225,11 +225,9 @@ pub fn demo_log() -> ActivityLog {
         "openai" => "api.openai.com",
         "anthropic" => "api.anthropic.com",
         "gemini" => "generativelanguage.googleapis.com",
-        "chatgpt" => "chatgpt.com",
         "azure" => "acme-eu.openai.azure.com",
         "openrouter" => "openrouter.ai",
         "mistral" => "api.mistral.ai",
-        "copilot" => "api.githubcopilot.com",
         _ => "",
     };
     let log = ActivityLog::in_memory(30);

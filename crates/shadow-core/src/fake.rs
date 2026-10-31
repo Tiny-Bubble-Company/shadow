@@ -707,6 +707,71 @@ mod tests {
     }
 
     #[test]
+    fn every_kind_survives_odd_input() {
+        // Model detectors can label any text with any kind.
+        let kinds = [
+            Kind::Email,
+            Kind::Phone,
+            Kind::Person,
+            Kind::Org,
+            Kind::Term,
+            Kind::Address,
+            Kind::Iban,
+            Kind::CreditCard,
+            Kind::NationalId,
+            Kind::Ip,
+            Kind::Mac,
+            Kind::Hostname,
+            Kind::Secret,
+            Kind::Username,
+            Kind::Date,
+        ];
+        let odd = [
+            "x",
+            "12",
+            "-",
+            "€",
+            "Ü",
+            "@",
+            "a@",
+            "@b",
+            ".",
+            "..",
+            "1.",
+            "+",
+            "+4",
+            "DE",
+            "GB1",
+            "4111",
+            "12/",
+            "/12/",
+            "1987-13-45",
+            "31.02.",
+            "Jan",
+            "-----BEGIN",
+            "sk-",
+            "ab:cd",
+            "::",
+            "Straße 5",
+            "日本語",
+            "Ab Cd Ef Gh Ij Kl",
+            "(555)",
+            "0000-0000",
+            "a.b.c.d.e",
+            "ﬁ",
+            "İstanbul",
+            "ß@ß.ß",
+        ];
+        with_faker(|f| {
+            for k in kinds {
+                for real in odd {
+                    let _ = f.fake_for(k, real);
+                }
+            }
+        });
+    }
+
+    #[test]
     fn date_fakes_keep_format() {
         with_faker(|f| {
             for real in [

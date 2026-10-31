@@ -507,19 +507,18 @@
   }
   var DEMO_CLIENTS = [
     ["Claude Code", 30, [["anthropic", 1]]],
-    ["Cursor", 20, [["openai", 0.45], ["anthropic", 0.45], ["gemini", 0.1]]],
+    ["Codex CLI", 20, [["openai", 1]]],
     ["OpenAI Python SDK", 14, [["openai", 0.7], ["azure", 0.2], ["openrouter", 0.1]]],
-    ["ChatGPT Desktop", 9, [["chatgpt", 1]]],
+    ["Aider", 9, [["anthropic", 0.5], ["openai", 0.3], ["openrouter", 0.2]]],
     ["Google GenAI SDK", 7, [["gemini", 1]]],
     ["Anthropic Node SDK", 6, [["anthropic", 1]]],
     ["LangChain", 5, [["openai", 0.5], ["mistral", 0.5]]],
-    ["GitHub Copilot", 5, [["copilot", 1]]],
+    ["Anthropic Python SDK", 5, [["anthropic", 1]]],
     ["curl", 4, [["openai", 0.6], ["anthropic", 0.4]]]
   ];
   var DEMO_HOSTS = {
     openai: "api.openai.com", anthropic: "api.anthropic.com", gemini: "generativelanguage.googleapis.com",
-    chatgpt: "chatgpt.com", azure: "acme-eu.openai.azure.com", openrouter: "openrouter.ai",
-    mistral: "api.mistral.ai", copilot: "api.githubcopilot.com"
+    azure: "acme-eu.openai.azure.com", openrouter: "openrouter.ai", mistral: "api.mistral.ai"
   };
   var DEMO_KINDS = [["email", 26], ["person", 22], ["secret", 12], ["hostname", 11], ["org", 8], ["term", 8],
     ["phone", 6], ["ip", 6], ["username", 5], ["address", 3], ["credit_card", 2], ["iban", 1.5], ["national_id", 1]];
