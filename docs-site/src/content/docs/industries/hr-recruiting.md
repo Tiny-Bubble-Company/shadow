@@ -1,5 +1,6 @@
 ---
 title: "Secure LLM use in HR and recruiting: protect candidate and employee data in AI prompts"
+seoTitle: "Secure LLM use in HR and recruiting: protect candidate data"
 description: "Mask candidate and employee names, contact details and IDs in CVs and HR documents before they reach OpenAI, Anthropic or Gemini. Self-hosted, reversible."
 keywords:
   - chatgpt candidate data privacy

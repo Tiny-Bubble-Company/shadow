@@ -1,6 +1,7 @@
 ---
 title: Activity dashboard
-description: See what Shadow is doing on your machine. A web dashboard, a terminal view and a menu-bar app show the AI traffic Shadow checked, the sensitive data it masked, and the requests it blocked, by data type, destination and app.
+seoTitle: "AI activity dashboard: see what your tools send · Shadow"
+description: "Shadow's dashboard, menu-bar app and shadow top show AI traffic checked, data masked and requests blocked, by data type, provider and app. Counts only."
 keywords:
   - AI privacy dashboard
   - monitor ChatGPT data leaks
@@ -19,6 +20,8 @@ faq:
   - q: Where is the activity history stored?
     a: In activity/activity.jsonl inside the Shadow data directory, created with mode 0600 in a 0700 directory. It rotates at 16 MB and drops events older than 30 days by default.
 ---
+
+Shadow's activity dashboard shows how much AI traffic went through Shadow, what it masked and what it blocked, by data type, destination and app, in a web page, a menu-bar app or `shadow top`. It records counts and categories, never values.
 
 Shadow works quietly in the background, so it can be hard to tell that it is doing anything. The activity feed answers three questions at a glance:
 

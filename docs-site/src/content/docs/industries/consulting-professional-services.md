@@ -1,5 +1,6 @@
 ---
 title: "Secure LLM use in consulting and professional services: keep client data out of AI prompts"
+seoTitle: "Secure LLM use in consulting: protect client data · Shadow"
 description: "Mask client names, engagement codenames and contacts in prompts, decks and spreadsheets before consultants use OpenAI, Anthropic or Gemini. Self-hosted."
 keywords:
   - consulting firm chatgpt client confidentiality

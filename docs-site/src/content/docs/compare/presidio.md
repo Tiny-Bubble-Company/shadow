@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Presidio — open-source Presidio alternative for LLM traffic"
+seoTitle: "Shadow vs Presidio: open-source alternative for LLM traffic"
 description: Shadow vs Microsoft Presidio for LLM prompts. Presidio detects and redacts PII; Shadow adds reversible fakes, streaming restore and a proxy.
 sidebar:
   label: Presidio
@@ -117,7 +118,7 @@ See [Detection: Presidio](/shadow/concepts/detection/#presidio) for setup.
 
 ## How do they compare on accuracy?
 
-Published Presidio results vary a lot with the dataset and label mapping, so a single number is misleading. Shadow's [benchmark](/shadow/benchmarks/) measures leak rate, over-masking, round-trip exactness and latency, with Presidio as a baseline and as a Shadow detector, and publishes its code and mappings. On the held-out set, Presidio alone leaked 20.74% of sensitive values, Shadow's built-in rules 3.08%, and Shadow with Presidio as an extra detector 1.35%.
+Published Presidio results vary a lot with the dataset and label mapping, so a single number is misleading. Shadow's [benchmark](/shadow/benchmarks/) measures leak rate, over-masking, round-trip exactness and latency, with Presidio as a baseline and as a Shadow detector, and publishes its code and mappings. On the held-out set, Presidio alone leaked 20.74% of sensitive values, Shadow's built-in rules 3.08% (about 7.5 ms per document), and Shadow with Presidio as an extra detector 1.35%. On the third-party Gretel finance set every tool leaks more: Presidio alone 43.39%, Shadow's rules 31% and Shadow with Presidio 23.2%. GLiNER alone did best on that set (17.61%), so Shadow's rules are not the strongest detector everywhere.
 
 ## Sources
 

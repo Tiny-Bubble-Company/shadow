@@ -1,5 +1,6 @@
 ---
 title: "AI privacy use cases: mask PII and secrets in LLM prompts with Shadow"
+seoTitle: "AI privacy use cases: mask PII and secrets in LLM prompts"
 description: "Step-by-step guides: stop PII leaks to ChatGPT, redact prompts for OpenAI and Claude, protect secrets from coding assistants, agents, RAG and documents."
 keywords:
   - mask pii in llm prompts
@@ -24,9 +25,9 @@ sidebar:
   order: 0
 ---
 
-These guides answer the questions people actually search for when they want to use LLMs without leaking data: how to stop customer data reaching ChatGPT, how to redact PII before the OpenAI API, how to keep API keys out of coding assistants. Each one starts with a direct answer, then gives the exact commands and configuration.
+Shadow is an open-source privacy layer that replaces sensitive values with realistic, reversible fakes before a request leaves your machine or server, and restores them in the answer. These guides show how to use it for the questions people actually search for when they want to use LLMs without leaking data: how to stop customer data reaching ChatGPT, how to redact PII before the OpenAI API, how to keep API keys out of coding assistants.
 
-All of them use the same tool. Shadow is an open-source privacy layer that replaces sensitive values with realistic, reversible fakes before a request leaves your machine or server, and restores them in the answer.
+Each guide starts with a direct answer, then gives the exact commands and configuration.
 
 ## Stop data leaking to AI tools
 

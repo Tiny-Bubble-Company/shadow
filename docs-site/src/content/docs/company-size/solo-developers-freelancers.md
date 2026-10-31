@@ -1,5 +1,6 @@
 ---
 title: "AI privacy for solo developers and freelancers: keep client data and keys out of LLMs"
+seoTitle: "AI privacy for solo developers and freelancers · Shadow"
 description: "Use Claude Code, Aider and LLM APIs on client work without sending client names, customer data or API keys. Free, local, five-minute setup."
 keywords:
   - freelancer ai client confidentiality

@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Lakera Guard — Lakera alternative for PII masking in LLM prompts"
+seoTitle: "Shadow vs Lakera Guard: PII masking for LLM prompts"
 description: Shadow vs Lakera Guard (Check Point AI Guardrails). Lakera detects PII and prompt attacks; Shadow masks PII with reversible fakes and restores answers.
 sidebar:
   label: Lakera Guard

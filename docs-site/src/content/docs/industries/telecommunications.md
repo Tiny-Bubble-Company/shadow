@@ -1,5 +1,6 @@
 ---
 title: "Secure LLM use in telecommunications: keep subscriber data and network details out of AI prompts"
+seoTitle: "Secure LLM use in telecom: protect subscriber data · Shadow"
 description: "Mask subscriber names, phone numbers, IPs, MACs and internal hostnames before telecom teams send prompts to OpenAI, Anthropic or Gemini. Self-hosted."
 keywords:
   - telecom ai privacy

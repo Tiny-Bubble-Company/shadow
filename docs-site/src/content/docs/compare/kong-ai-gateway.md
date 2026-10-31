@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Kong AI Gateway — open-source alternative to Kong ai-sanitizer"
+seoTitle: "Shadow vs Kong AI Gateway: an ai-sanitizer alternative"
 description: Shadow vs Kong AI Gateway's ai-sanitizer plugin. Both can use synthetic values and restore; Shadow is open source, local and streams restores.
 sidebar:
   label: Kong AI Gateway

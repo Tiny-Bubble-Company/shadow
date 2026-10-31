@@ -1,5 +1,6 @@
 ---
 title: "LLM data loss prevention: DLP for ChatGPT, Claude and AI APIs without blocking"
+seoTitle: "LLM data loss prevention without blocking AI · Shadow"
 description: "Open-source DLP for LLM traffic: Shadow masks PII, customer data and secrets in AI API requests with reversible fakes instead of blocking them."
 keywords:
   - llm dlp

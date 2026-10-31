@@ -1,5 +1,6 @@
 ---
 title: "Secure generative AI in pharma and life sciences: protect clinical and R&D data with Shadow"
+seoTitle: "Secure generative AI in pharma: protect clinical data"
 description: "Mask investigator, patient and partner names, compound codenames and internal systems before AI requests leave. Self-hosted, reversible, no telemetry."
 keywords:
   - pharma generative ai data privacy

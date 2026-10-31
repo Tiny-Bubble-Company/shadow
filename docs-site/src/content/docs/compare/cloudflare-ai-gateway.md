@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Cloudflare AI Gateway DLP — alternative that masks instead of blocking"
+seoTitle: "Shadow vs Cloudflare AI Gateway DLP: mask, don't block"
 description: Shadow vs Cloudflare AI Gateway DLP. Cloudflare flags or blocks prompts with sensitive data; Shadow masks with reversible fakes and restores answers.
 sidebar:
   label: Cloudflare AI Gateway

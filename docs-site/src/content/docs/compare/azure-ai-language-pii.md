@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Azure AI Language PII — open-source Azure PII alternative for LLMs"
+seoTitle: "Shadow vs Azure AI Language PII: open-source alternative"
 description: Shadow vs Azure AI Language PII detection. Azure masks or synthesises PII one way; Shadow uses reversible fakes and restores LLM responses locally.
 sidebar:
   label: Azure AI Language PII

@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs AWS Comprehend and Bedrock Guardrails — a self-hosted alternative"
+seoTitle: "Shadow vs AWS Comprehend and Bedrock Guardrails for PII"
 description: Shadow vs AWS Comprehend PII and Amazon Bedrock Guardrails. AWS detects, blocks or tags PII; Shadow masks with reversible fakes and restores answers.
 sidebar:
   label: AWS Comprehend / Bedrock Guardrails

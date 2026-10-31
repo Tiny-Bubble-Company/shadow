@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Nightfall — open-source Nightfall AI alternative for LLM prompts"
+seoTitle: "Shadow vs Nightfall AI: open-source alternative for LLMs"
 description: Shadow vs Nightfall AI DLP. Nightfall blocks or redacts prompts in the browser and on endpoints; Shadow masks with reversible fakes and restores answers.
 sidebar:
   label: Nightfall

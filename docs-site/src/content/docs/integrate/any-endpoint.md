@@ -1,6 +1,16 @@
 ---
 title: Integrating any endpoint
+seoTitle: "Put Shadow in front of any LLM endpoint, tool or agent"
 description: "Put Shadow in front of anything that calls an LLM: Claude Code and coding assistants, IDEs, agents, desktop apps, custom APIs and self-hosted gateways."
+faq:
+  - q: "Does Shadow work with Claude Code and other coding assistants?"
+    a: "Yes, when the tool accepts a base URL such as `ANTHROPIC_BASE_URL` or honours `HTTPS_PROXY` and calls an intercepted AI API host. Usernames in paths, internal hostnames, IPs and API keys are masked."
+  - q: "Does it work with Cursor or GitHub Copilot?"
+    a: "Not by default. They talk to their vendors' own backends, which are not on the intercept list; you can add a host with `extra_hosts`, but it is masked only if Shadow can parse the request format."
+  - q: "Can I protect a self-hosted or internal model API?"
+    a: "Yes. Add its host to `[proxy] extra_hosts` for proxy mode, or a route under `[proxy.routes]` for gateway mode. Shadow masks every string value in a JSON body, so unknown request shapes work too."
+  - q: "Are the ChatGPT and Claude desktop apps covered?"
+    a: "No. They talk to their consumer backends, chatgpt.com and claude.ai, which are not intercepted."
 ---
 
 Shadow is not tied to a list of applications. If something sends HTTP requests to a model API, Shadow can sit in front of it. This page shows how to decide where to plug it in.

@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Zscaler — open-source Zscaler GenAI DLP alternative for AI APIs"
+seoTitle: "Shadow vs Zscaler GenAI DLP: open-source alternative"
 description: Shadow vs Zscaler GenAI protection. Zscaler blocks, isolates and logs AI app use; Shadow masks API prompts with reversible fakes and restores them.
 sidebar:
   label: Zscaler

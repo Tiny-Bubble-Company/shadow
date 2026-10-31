@@ -1,6 +1,16 @@
 ---
 title: Personas
+seoTitle: "Personas: consistent fake identities for prompts · Shadow"
 description: "Personas give Shadow one coherent fake identity per machine (company, people, domain, hostnames) so masked prompts stay realistic and consistent."
+faq:
+  - q: "What is a Shadow persona?"
+    a: "A coherent fake identity for one machine: a company and domain, a city, a primary person, colleagues, a username, a user id and a hostname. Shadow creates it once, stores it in `persona.json` and draws every fake from it."
+  - q: "Why use a persona instead of random fakes?"
+    a: "Random fakes make prompts incoherent, with an email at one fake company and a phone number from another country. A persona keeps fakes consistent with each other and stable over time, so answers stay good and the same customer keeps the same fake name."
+  - q: "Can I choose the persona's region?"
+    a: "Yes, with `[persona] region = \"JP\"` or `shadow init --region JP`. By default Shadow picks a region far from the machine's timezone, and a change takes effect only after `shadow init --force`."
+  - q: "What happens if I reset the persona?"
+    a: "`shadow init --force` deletes `persona.json` and `vault.bin` and starts a new identity. Responses that mention old fakes are no longer restored."
 ---
 
 A persona is a coherent fake identity for one machine: a company, its domain, a city, a primary person, colleagues, a username, a user id and a hostname. Shadow creates it once, on `shadow init` or the first `Shadow::open`, stores it in `persona.json`, and draws every fake from it.

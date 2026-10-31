@@ -1,6 +1,16 @@
 ---
 title: Embed in Rust
+seoTitle: "Embed Shadow in Rust: in-process PII masking for LLMs"
 description: "Embed the shadow-core Rust crate to mask and restore LLM calls in-process: sessions, intent policy, JSON and streaming helpers, no proxy hop."
+faq:
+  - q: "Do I need the proxy to use Shadow from Rust?"
+    a: "No. The `shadow-core` crate masks and restores in-process, with no proxy hop. `shadow-proxy` is available too if you want to host the proxy inside your own binary."
+  - q: "How do I restore a streamed response in Rust?"
+    a: "Create a `StreamUnmasker` with `shadow.stream_unmasker()`, push each chunk and emit what it returns, then call `finish()` to flush the held-back tail. The output equals unmasking the whole text at once."
+  - q: "When should I use a session instead of shadow.mask?"
+    a: "Use a session for requests with tools or bulk data. It applies the intent policy, keeps the request's typed tokens for restoration, and should be created once per model call or agent turn."
+  - q: "Is Shadow safe to share across threads?"
+    a: "Yes. `Shadow` is cheap to clone and safe to share across threads and tasks, and several processes can share one data directory."
 ---
 
 `shadow-core` is the engine behind the `shadow` binary: detection, persona, vault, policy and translation. Embed it when your own Rust service calls models and you want masking in-process, with no proxy hop. Meridian, a compliance platform, uses it this way so that every model call it makes is masked before it leaves.

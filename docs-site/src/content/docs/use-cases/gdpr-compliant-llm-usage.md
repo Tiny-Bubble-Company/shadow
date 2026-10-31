@@ -1,5 +1,6 @@
 ---
 title: "How to use ChatGPT, Claude and other LLMs in line with GDPR"
+seoTitle: "How to use ChatGPT, Claude and LLMs in line with GDPR"
 description: "Use LLMs with less personal data: Shadow pseudonymises prompts locally (GDPR Art. 4(5), 25, 32) before they reach OpenAI, Anthropic or Gemini."
 keywords:
   - gdpr compliant llm

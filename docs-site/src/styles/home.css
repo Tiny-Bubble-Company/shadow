@@ -826,6 +826,14 @@
 	color: var(--hp-accent-text);
 	font-weight: 600;
 }
+.hp-bench__note {
+	max-width: 46rem;
+	margin: var(--hp-space-3) auto 0;
+	font-size: var(--sl-text-sm);
+	color: var(--hp-muted);
+	text-align: center;
+	line-height: 1.55;
+}
 .hp-bench__stats {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));

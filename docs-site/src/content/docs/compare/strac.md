@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Strac — open-source Strac alternative for AI data protection"
+seoTitle: "Shadow vs Strac: open-source AI data protection alternative"
 description: Shadow vs Strac DLP for ChatGPT and AI apps. Compare browser-extension DLP with an open-source proxy that masks prompts with reversible fakes.
 sidebar:
   label: Strac

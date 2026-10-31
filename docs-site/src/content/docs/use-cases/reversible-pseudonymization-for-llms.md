@@ -1,5 +1,6 @@
 ---
 title: "Reversible pseudonymisation for LLMs: mask data and restore it in the answer"
+seoTitle: "Reversible pseudonymisation for LLMs: mask and restore"
 description: "How to pseudonymise prompts for OpenAI, Anthropic or Gemini with realistic, reversible fakes, keep the key local, and get real values back in responses."
 keywords:
   - reversible pseudonymization llm

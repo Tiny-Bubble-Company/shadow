@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs LLM Guard — open-source LLM Guard alternative for PII masking"
+seoTitle: "Shadow vs LLM Guard: open-source PII masking compared"
 description: Shadow vs LLM Guard (Protect AI). Both reverse PII in LLM responses; Shadow adds realistic fakes, streaming restore, tool calls and a proxy.
 sidebar:
   label: LLM Guard
@@ -103,7 +104,7 @@ Yes. They solve overlapping but different problems. A common split is LLM Guard 
 
 ## How do they compare on accuracy?
 
-Both tools' detection depends on configuration and models. Shadow's [benchmark](/shadow/benchmarks/) measures leak rate, over-masking, round-trip exactness and latency on a held-out test set, with published code and label mappings. On it, LLM Guard's Anonymize scanner leaked 29.26% of sensitive values, against 3.08% for Shadow's built-in rules (about 7.5 ms per document). LLM Guard's own documentation publishes latency figures; check them against your hardware.
+Both tools' detection depends on configuration and models. Shadow's [benchmark](/shadow/benchmarks/) measures leak rate, over-masking, round-trip exactness and latency on a held-out test set, with published code and label mappings. On it, LLM Guard's Anonymize scanner leaked 29.26% of sensitive values, against 3.08% for Shadow's built-in rules (about 7.5 ms per document) and 1.35% for Shadow with the Presidio detector. On the third-party Gretel finance set, LLM Guard leaked 62.5% and Shadow's built-in rules 31%; there GLiNER alone did better than both, at 17.61%. LLM Guard's own documentation publishes latency figures; check them against your hardware.
 
 ## Sources
 

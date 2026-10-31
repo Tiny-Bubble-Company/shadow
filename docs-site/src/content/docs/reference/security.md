@@ -1,6 +1,16 @@
 ---
 title: Security model
+seoTitle: "Shadow security model: what it protects and its limits"
 description: "Shadow's security model: what it protects from AI providers, what it trusts, how the vault and local CA are secured, and its known limitations."
+faq:
+  - q: "Does Shadow send data to the cloud?"
+    a: "No. There is no hosted component, account or telemetry. Shadow sends only the masked requests you were already sending, to the hosts you were already sending them to."
+  - q: "What does Shadow not protect?"
+    a: "Your IP address and API account, meaning that can identify you from context, text in images, and traffic to hosts it does not intercept, such as chatgpt.com or claude.ai in a browser. Read the limitations before relying on it."
+  - q: "Who can read the vault?"
+    a: "Anyone who can read files as the user Shadow runs as can read `vault.key` and decrypt the mapping. Use full-disk encryption and keep the data directory private."
+  - q: "What happens if Shadow is down?"
+    a: "Proxied tools fail to connect rather than bypass it. If the optional NER sidecar or Presidio is down, Shadow keeps masking with its built-in detectors."
 ---
 
 Shadow's job is narrow and specific: **keep the sensitive values in AI requests away from AI providers**, and from everyone downstream of them, while keeping the tools that send those requests useful. It protects the values it detects, in traffic to the AI hosts it intercepts; the limitations below say exactly where that stops.

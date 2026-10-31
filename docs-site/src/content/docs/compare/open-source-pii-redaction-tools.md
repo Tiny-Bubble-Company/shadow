@@ -1,5 +1,6 @@
 ---
 title: "Best open-source PII redaction tools for LLMs in 2026"
+seoTitle: "Best open-source PII redaction tools for LLMs in 2026"
 description: An honest guide to open-source PII redaction tools for LLM prompts in 2026, including Presidio, LLM Guard, GLiNER, OpenAI Privacy Filter, Rehydra and Shadow.
 sidebar:
   label: Open-source PII redaction tools
@@ -108,7 +109,7 @@ Shadow replaces values with realistic, format-preserving fakes from a persistent
 
 ## How accurate are they?
 
-Published numbers for the same tool vary by up to five times between datasets because of label mapping and annotation style, so headline F1 scores rarely transfer. The Shadow [benchmark](/shadow/benchmarks/) runs Presidio, LLM Guard, GLiNER, OpenAI Privacy Filter and scrubadub side by side with Shadow on a licence-clean held-out set, and measures leak rate, over-masking, round-trip exactness and latency, with the mapping and code published. Leak rates there range from 0.08% (Shadow with the NER sidecar) and 3.08% (Shadow's built-in rules) to 20.74% for Presidio and 29.26% for LLM Guard.
+Published numbers for the same tool vary by up to five times between datasets because of label mapping and annotation style, so headline F1 scores rarely transfer. The Shadow [benchmark](/shadow/benchmarks/) runs Presidio, LLM Guard, GLiNER, OpenAI Privacy Filter and scrubadub side by side with Shadow on a licence-clean held-out set, and measures leak rate, over-masking, round-trip exactness and latency, with the mapping and code published. On that held-out set, the share of sensitive values leaked was 1.35% for Shadow with the Presidio detector, 3.08% for Shadow's built-in rules (about 7.5 ms per document, 100% exact round trip), 11.01% for OpenAI Privacy Filter, 13.28% for GLiNER multi PII, 20.74% for Presidio, 29.26% for LLM Guard and 67.38% for scrubadub. On the third-party Gretel finance set every tool leaks more and the order changes: GLiNER alone leaked 17.61%, ahead of Shadow with Presidio (23.2%) and Shadow's built-in rules (31%), then Presidio (43.39%), Privacy Filter (48.59%), LLM Guard (62.5%) and scrubadub (91.06%).
 
 ## Sources
 

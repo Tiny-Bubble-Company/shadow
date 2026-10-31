@@ -1,6 +1,16 @@
 ---
 title: Introduction
+seoTitle: "What is Shadow? Reversible PII masking for LLM APIs"
 description: "What Shadow is: an open-source privacy layer that masks PII and secrets in prompts to ChatGPT, Claude and other LLMs with reversible fakes, unlike blocking DLP."
+faq:
+  - q: "How is Shadow different from redaction?"
+    a: "Redaction replaces values with placeholders such as `[REDACTED]` or `<PERSON>`, so the model can no longer tell people apart or write to the right address. Shadow replaces each value with a stable, realistic fake of the same format and restores the real value in the answer."
+  - q: "Does Shadow protect what I type into chatgpt.com or claude.ai?"
+    a: "No. Shadow covers apps that call AI provider APIs such as `api.openai.com` and `api.anthropic.com`. It does not see AI web apps in a browser or AI features built into other SaaS products."
+  - q: "Can the AI provider still tell who I am?"
+    a: "Yes. Shadow protects the content of requests, not your identity: the provider still sees your IP address and the account behind your API key."
+  - q: "What happens when I ask the model to email someone?"
+    a: "The recipient is passed through as written and logged, so the model greets and addresses the right person. Everything else in the request is still masked; set `[policy.act] targets = \"surrogate\"` to hide the recipient too."
 ---
 
 import ProductShot from '../../../components/ProductShot.astro';
@@ -61,7 +71,7 @@ The activity dashboard shows how much traffic went to which provider (OpenAI, An
 	srcDark={product.dashboardDark}
 	frame="browser"
 	title="127.0.0.1:8877 · Shadow activity"
-	alt="Shadow activity dashboard: traffic monitored, values masked and requests blocked, a timeline, and breakdowns by data type, destination and source app."
+	alt="Shadow activity dashboard in a browser: counts of AI requests monitored, sensitive values masked and requests blocked, a timeline, and breakdowns by data type, destination provider and source app."
 	caption="The activity dashboard: traffic monitored, sensitive data masked and requests blocked."
 	sizes="(min-width: 50rem) 720px, 100vw"
 />

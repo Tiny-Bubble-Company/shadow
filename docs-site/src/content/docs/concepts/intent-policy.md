@@ -1,7 +1,19 @@
 ---
 title: Intent-aware policy
+seoTitle: "Intent-aware PII policy for LLM requests · Shadow"
 description: "Shadow classifies each AI request as act, report, code or converse and picks a fake, token, real value or redaction for every sensitive value."
+faq:
+  - q: "Why does Shadow send a message recipient's real details?"
+    a: "If you ask the model to write to or act on someone, faking that person makes it greet the wrong name or address the wrong inbox. So the recipient phrase passes through as written and every keep is logged; everything else in the request stays masked."
+  - q: "How do I hide the recipient from the provider too?"
+    a: "Set `[policy.act] targets = \"surrogate\"`. The model then writes to a stand-in, and Shadow restores the real recipient in the answer and in tool-call arguments."
+  - q: "What is the difference between a surrogate and a token?"
+    a: "A surrogate is a realistic fake such as `hui.zhao@zhilan.cn`, so the model writes naturally about it. A token such as `[PERSON_0007]` is visibly a placeholder for bulk reports; both are restored in the response."
+  - q: "Can I make sure secrets never leave in any form?"
+    a: "Yes. Set `[policy.always] secret = \"redact\"` and the provider receives `[REDACTED_SECRET]`. Redaction is irreversible by design."
 ---
+
+Shadow's intent-aware policy classifies each AI request as `act`, `report`, `code` or `converse`, and picks a treatment for every detected value: a realistic fake, a typed token, the real value or a redaction.
 
 One treatment does not fit every request. A chat about a customer works best with realistic fakes. A report over a thousand customer rows works best with opaque IDs. An email has to reach the real person, so the model has to know who that person is. Shadow's policy looks at what a request is *for*, then picks a treatment for each detected value, so masking never gets in the way of the goal.
 

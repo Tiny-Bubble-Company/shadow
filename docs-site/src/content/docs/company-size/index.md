@@ -1,5 +1,6 @@
 ---
 title: "Rolling out AI privacy by company size: Shadow from one laptop to a fleet"
+seoTitle: "AI privacy by company size, from laptop to fleet · Shadow"
 description: "How solo developers, startups, small businesses, mid-market firms and enterprises deploy Shadow to keep customer data and secrets out of AI tools."
 keywords:
   - ai privacy for small business
@@ -24,7 +25,7 @@ sidebar:
   order: 0
 ---
 
-Shadow is the same binary for a freelancer and for a bank. What changes with size is how you install it, how you keep its configuration consistent, and what evidence you need to show that it works. These guides cover each stage, with a recommended deployment, a rollout checklist and an honest list of what is not there yet.
+Shadow is an open-source privacy layer that replaces sensitive values in AI requests with realistic, reversible fakes and restores them in the answer, and it is the same binary for a freelancer and for a bank. What changes with size is how you install it, how you keep its configuration consistent, and what evidence you need to show that it works. These guides cover each stage, with a recommended deployment, a rollout checklist and an honest list of what is not there yet.
 
 ## Choose your size
 

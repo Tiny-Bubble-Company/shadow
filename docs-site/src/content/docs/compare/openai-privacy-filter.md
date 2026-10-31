@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs OpenAI Privacy Filter — using the open-weight PII model in a proxy"
+seoTitle: "Shadow vs OpenAI Privacy Filter: the PII model in a proxy"
 description: Shadow vs OpenAI Privacy Filter. Privacy Filter is a free PII detection model; Shadow can run it as a detector and adds reversible masking and restore.
 sidebar:
   label: OpenAI Privacy Filter
@@ -22,7 +23,7 @@ faq:
   - q: "Does OpenAI Privacy Filter send data to OpenAI?"
     a: "No. The weights are downloaded once and the model runs on your hardware. Inference does not call an OpenAI API."
   - q: "How accurate is OpenAI Privacy Filter?"
-    a: "OpenAI publishes its own self-reported scores. On Shadow's held-out benchmark, Privacy Filter alone leaked 11.01% of sensitive values, against 3.08% for Shadow's built-in rules and 0.08% for Shadow with the open-weight NER sidecar, which includes Privacy Filter. It is primarily English."
+    a: "OpenAI publishes its own self-reported scores. On Shadow's held-out benchmark, Privacy Filter alone leaked 11.01% of sensitive values, against 3.08% for Shadow's built-in rules; on the third-party Gretel finance set it leaked 48.59%, against 31% for Shadow's rules. It is primarily English."
 ---
 
 **OpenAI Privacy Filter is a free, open-weight model (Apache-2.0) that detects personal data in text. Shadow is an open-source privacy layer for AI traffic that detects sensitive values, replaces them with realistic, reversible fakes, and restores them in responses.** The two fit together: Shadow's optional NER sidecar can run Privacy Filter, so you get its recall on names and addresses plus Shadow's masking, vault, policy and restoration.
@@ -121,7 +122,7 @@ Use `ensemble` when your content includes non-English names or organisation name
 
 ## How do they compare on accuracy?
 
-Privacy Filter's published numbers are self-reported on a dataset family whose licence restricts redistribution, and it is primarily English. Shadow's [benchmark](/shadow/benchmarks/) evaluates Privacy Filter as a baseline and Shadow with and without the sidecar on a licence-clean held-out set, with code and label mappings published: Privacy Filter alone leaked 11.01% of sensitive values, Shadow's built-in rules 3.08%, and Shadow with the sidecar 0.08%.
+Privacy Filter's published numbers are self-reported on a dataset family whose licence restricts redistribution, and it is primarily English. Shadow's [benchmark](/shadow/benchmarks/) evaluates Privacy Filter as a baseline next to Shadow on a licence-clean held-out set, with code and label mappings published: Privacy Filter alone leaked 11.01% of sensitive values, against 3.08% for Shadow's built-in rules (about 7.5 ms per document) and 1.35% for Shadow with the Presidio detector. On the third-party Gretel finance set, Privacy Filter leaked 48.59%, Shadow's rules 31% and Shadow with Presidio 23.2%; GLiNER alone did best there at 17.61%.
 
 ## Sources
 

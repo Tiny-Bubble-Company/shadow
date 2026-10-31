@@ -1,5 +1,6 @@
 ---
 title: "Secure LLM use in media and entertainment: keep unreleased titles and talent names out of AI prompts"
+seoTitle: "Secure LLM use in media: keep unreleased titles private"
 description: "Mask unreleased titles, codenames, talent and deal terms before writers, producers and marketers use OpenAI, Anthropic or Gemini. Scripts masked in place."
 keywords:
   - studio ai content security

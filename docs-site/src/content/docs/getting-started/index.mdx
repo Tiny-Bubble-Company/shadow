@@ -1,8 +1,16 @@
 ---
 title: "Get started with Shadow, the open-source privacy layer for AI"
-description: "Install Shadow and mask PII and secrets in OpenAI (ChatGPT models), Anthropic (Claude) and other LLM API traffic in five minutes. Introduction, quick start and installation for macOS, Linux, Windows and Docker."
+seoTitle: "Get started with Shadow: mask PII in LLM prompts"
+description: "Install Shadow and mask PII and secrets in OpenAI, Anthropic and other LLM API calls in about five minutes, on macOS, Linux, Windows or Docker."
 sidebar:
   hidden: true
+faq:
+  - q: "How long does it take to set up Shadow?"
+    a: "About five minutes: install the binary, run `shadow init`, start `shadow run` and point your SDK's base URL at `http://127.0.0.1:8877/gw/openai/v1`. Gateway mode needs no certificate setup."
+  - q: "Does Shadow send data to the cloud?"
+    a: "No. Shadow has no hosted component, account or telemetry. The only outbound traffic is the masked request you were already sending to your AI provider, and the real-to-fake mapping stays in an encrypted vault on your machine."
+  - q: "Which operating systems does Shadow run on?"
+    a: "macOS, Linux and 64-bit Windows, as a single static binary. The repository also ships a Dockerfile for running it in containers."
 ---
 import SectionIndex from '../../../components/SectionIndex.astro';
 

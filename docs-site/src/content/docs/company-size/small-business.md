@@ -1,5 +1,6 @@
 ---
 title: "AI data privacy for small businesses: use ChatGPT-style tools without leaking customer data"
+seoTitle: "AI data privacy for small businesses: protect customers"
 description: "A practical guide for SMBs: keep customer names, emails and payment details out of AI tools with free, self-hosted Shadow. Setup, limits and checklist."
 keywords:
   - small business ai data privacy

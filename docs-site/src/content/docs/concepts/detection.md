@@ -1,6 +1,16 @@
 ---
 title: Detection
+seoTitle: "PII and secret detection: patterns, NER, Presidio · Shadow"
 description: "How Shadow detects PII and secrets: checksummed patterns, secrets, dictionary terms, local machine facts, an optional NER model and Microsoft Presidio."
+faq:
+  - q: "What does Shadow detect out of the box?"
+    a: "Emails, phone numbers, person names, street addresses, IBANs (mod-97), card numbers (Luhn), national IDs, IPs, MAC addresses, internal hostnames, API keys and other secrets, usernames in paths, and this machine's user, hostname and git identity."
+  - q: "What happens if detection misses something?"
+    a: "The value is sent as is. Run `shadow scan` on representative content, add codenames, customers and people as dictionary terms, and enable the NER sidecar or Presidio for free-text names."
+  - q: "Do the NER sidecar and Presidio send my data anywhere?"
+    a: "No, when you run them as documented. The sidecar URL must be loopback and the servers refuse non-loopback binds unless forced; Shadow sends Presidio the plaintext of each prompt, so keep it on loopback or in the same pod."
+  - q: "How do I stop a public name or domain being masked?"
+    a: "Add exact values to `allow_terms` and public domains to `allow_domains`. Well-known services such as `github.com` are already on a built-in allow list."
 ---
 
 Detection decides *what* is sensitive. Shadow layers several sources and merges their findings into one set of non-overlapping spans.

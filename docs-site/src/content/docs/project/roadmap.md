@@ -1,6 +1,14 @@
 ---
 title: Roadmap
+seoTitle: "Shadow roadmap: shipped features and what comes next"
 description: "What is planned for Shadow, the open-source privacy layer for AI: shipped features and upcoming directions. Directions, not promises."
+faq:
+  - q: "Is OCR for images planned?"
+    a: "Yes. Local, optional OCR for images and scanned PDFs is on the roadmap, so text in screenshots can be masked. Today images pass through unchanged by default."
+  - q: "Will there be Python or Node.js bindings?"
+    a: "Language bindings for `shadow-core` are planned for later. Today, apps in any language can use the gateway or proxy."
+  - q: "Are signed release binaries available?"
+    a: "Release binaries built and signed in CI are next on the roadmap. Until then the install script downloads a release when one exists and otherwise builds from source with `cargo`."
 ---
 
 Shadow is young. This page lists what we intend to work on next, roughly in priority order. It is a statement of direction, not a commitment to dates. Suggestions and pull requests are welcome: open an issue to discuss before starting on anything large.

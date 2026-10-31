@@ -1,11 +1,18 @@
 ---
 title: "How Shadow works: detection, vault, personas and policy"
-description: "Concepts behind Shadow's PII masking for LLMs: how sensitive values are detected, stored in the encrypted vault, replaced with persona-consistent fakes, and restored in streams, tool calls and files."
+description: "How Shadow masks PII for LLMs: it detects sensitive values, swaps them for persona-consistent fakes kept in an encrypted vault, and restores answers."
 sidebar:
   hidden: true
+faq:
+  - q: "How does Shadow mask data for LLMs?"
+    a: "It detects sensitive values in each request, replaces them with realistic, format-preserving fakes from a persistent persona, records the pairs in an encrypted local vault, and restores the real values in the response."
+  - q: "How is this different from redaction?"
+    a: "Redaction strips meaning with placeholders such as `<PERSON>`. Shadow's fakes keep the shape of the data, so the model can still reason about it, and they are reversible, so the answer comes back with your real values."
+  - q: "What happens if detection misses something?"
+    a: "A value that is not detected is sent as is. Detection is best effort, so test with `shadow scan`, add your own terms, and enable the optional NER sidecar or Presidio for free-text names."
 ---
 import SectionIndex from '../../../components/SectionIndex.astro';
 
-These pages explain what Shadow does to each request and why: how it finds sensitive values, how fakes stay consistent, and how they are restored in responses.
+Shadow protects AI requests in four steps: it detects sensitive values, replaces them with realistic fakes from a persistent persona, records the pairs in an encrypted local vault, and restores the real values in the response. These pages explain what Shadow does to each request and why: how it finds sensitive values, how fakes stay consistent, and how they are restored in responses.
 
 <SectionIndex dir="concepts" />

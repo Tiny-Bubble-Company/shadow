@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Lasso Security — open-source Lasso alternative for GenAI data protection"
+seoTitle: "Shadow vs Lasso Security: open-source GenAI data protection"
 description: Shadow vs Lasso Security. Lasso masks or alerts with plain-English contextual policies; Shadow masks with reversible fakes and restores answers.
 sidebar:
   label: Lasso Security

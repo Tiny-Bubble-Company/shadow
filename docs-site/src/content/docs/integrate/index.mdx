@@ -1,11 +1,18 @@
 ---
 title: "Integrate Shadow: proxy, gateway, Docker, Kubernetes or Rust"
-description: "Ways to put Shadow in front of AI traffic: a local HTTPS proxy for desktop tools, a gateway base URL for SDKs, a Docker or Kubernetes sidecar, any HTTP endpoint, or the Rust library."
+description: "Put Shadow in front of AI traffic as a local HTTPS proxy, a gateway base URL for SDKs, a Docker or Kubernetes sidecar, or an embedded Rust library."
 sidebar:
   hidden: true
+faq:
+  - q: "Which integration mode should I use?"
+    a: "Use the gateway when a tool lets you set a base URL, the proxy to cover every AI API client on a machine, and the `shadow-core` library when you build the service in Rust. See [integration modes](/shadow/integrate/overview/)."
+  - q: "Do I have to change my code?"
+    a: "Usually not. Most tools need one environment variable, such as `OPENAI_BASE_URL=http://127.0.0.1:8877/gw/openai/v1` or `HTTPS_PROXY=http://127.0.0.1:8877`."
+  - q: "Can Shadow run on servers and in Kubernetes?"
+    a: "Yes. Run it as a systemd service on a VM, or as a sidecar container next to your app on `localhost:8877` in gateway mode."
 ---
 import SectionIndex from '../../../components/SectionIndex.astro';
 
-Pick the integration that matches how your traffic reaches the model. Most desktop tools use proxy mode; SDKs and servers usually use the gateway base URL.
+Shadow integrates in four ways: as a local HTTPS proxy for every AI API client on a machine, as a gateway base URL for SDKs, as a Docker or Kubernetes sidecar, or in-process as the `shadow-core` Rust library. Pick the integration that matches how your traffic reaches the model. Most desktop tools use proxy mode; SDKs and servers usually use the gateway base URL.
 
 <SectionIndex dir="integrate" />

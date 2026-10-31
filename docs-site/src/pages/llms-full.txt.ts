@@ -4,14 +4,16 @@ import { getEntry } from 'astro:content';
 import { HOME_URL, SITE_DESCRIPTION } from '../site.mjs';
 import { groupedPages, pageUrl, toPlainMarkdown, type DocEntry } from '../seo/docs-index';
 import { inlineMarkdownToText } from '../seo/inline-md';
+import { HOME_SUMMARY } from '../seo/home-summary';
 
 export const prerender = true;
 
-function render(e: DocEntry, url: string): string {
+function render(e: DocEntry, url: string, extra?: string): string {
 	const data = e.data as DocEntry['data'] & { faq?: { q: string; a: string }[] };
 	const parts = [`# ${data.title}`, '', `Source: ${url}`, ''];
 	if (data.description) parts.push(`> ${data.description}`, '');
 	parts.push(toPlainMarkdown(e.body ?? ''));
+	if (extra) parts.push('', extra);
 	if (data.faq?.length) {
 		parts.push('', '## Frequently asked questions', '');
 		for (const { q, a } of data.faq) parts.push(`### ${inlineMarkdownToText(q)}`, '', toPlainMarkdown(a), '');
@@ -25,7 +27,8 @@ export const GET: APIRoute = async () => {
 	const chunks: string[] = [
 		`# Shadow documentation\n\n> ${SITE_DESCRIPTION}\n\nSource: ${HOME_URL}\n\nThis file concatenates every page of the Shadow documentation as Markdown. Each page starts with a level-1 heading and its source URL.`,
 	];
-	if (home) chunks.push(render(home, HOME_URL));
+	// The home page is mostly components; HOME_SUMMARY carries their content as text.
+	if (home) chunks.push(render(home, HOME_URL, HOME_SUMMARY));
 	for (const g of groups) for (const e of g.entries) chunks.push(render(e, pageUrl(e)));
 	return new Response(chunks.join('\n\n---\n\n') + '\n', {
 		headers: { 'Content-Type': 'text/plain; charset=utf-8' },

@@ -1,7 +1,19 @@
 ---
 title: How it works
+seoTitle: "How Shadow masks and restores LLM traffic, step by step"
 description: "How Shadow masks AI traffic end to end: interception, detection, intent policy, reversible translation and restoration of streamed responses."
+faq:
+  - q: "Which traffic does Shadow decrypt?"
+    a: "Only requests to known AI API hosts such as `api.openai.com`, and requests sent to its gateway. Every other host goes through a raw TCP tunnel and is never decrypted."
+  - q: "Does Shadow work with streaming?"
+    a: "Yes. For OpenAI, Anthropic, Gemini, Cohere and Ollama-style streams, Shadow holds back at most the length of the longest fake minus one byte, so tokens keep flowing and fakes split across events are still restored."
+  - q: "Does Shadow log my prompts?"
+    a: "No. It logs one line per request with the method, URL and number of values masked, never the values themselves."
+  - q: "What does Shadow not process?"
+    a: "Images (there is no OCR), audio, WebSocket and Realtime APIs, and gRPC pass through unmasked. AWS SigV4-signed requests are forwarded unmodified with a warning, because changing the body would break the signature."
 ---
+
+Shadow intercepts each request to an AI API, detects sensitive values, replaces them with reversible fakes, forwards the masked request, and restores the real values in the response, streams and tool calls included.
 
 ![Shadow architecture: apps send requests through Shadow on the endpoint, which detects, applies policy and translates before the provider; responses are restored on the way back; other hosts are tunnelled untouched.](../../../assets/architecture.svg)
 

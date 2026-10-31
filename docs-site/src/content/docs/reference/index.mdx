@@ -3,9 +3,16 @@ title: "Shadow reference: CLI, configuration, providers and security"
 description: "Reference documentation for Shadow: every CLI command, every configuration option, supported AI providers, the security model, troubleshooting and FAQ."
 sidebar:
   hidden: true
+faq:
+  - q: "Where is Shadow's configuration file?"
+    a: "`shadow.toml` in the data directory, or the path given by `--config` or `SHADOW_CONFIG`. Every key is optional, so no file at all is a valid configuration."
+  - q: "How do I check that Shadow is running?"
+    a: "Run `shadow status`. It reports whether the proxy answers, the persona, the vault size and the CA fingerprint; `shadow status --quiet` exits 0 or 1 for health checks."
+  - q: "Which AI providers does Shadow support?"
+    a: "OpenAI, Anthropic, Google Gemini and Vertex AI, Azure OpenAI, AWS Bedrock, OpenRouter, Mistral, Groq, Together AI, DeepSeek, xAI, Cohere, Perplexity, Fireworks, Cerebras and Voyage AI, plus hosts you add. See [supported providers](/shadow/reference/providers/)."
 ---
 import SectionIndex from '../../../components/SectionIndex.astro';
 
-Look up exact commands, options and guarantees.
+The Shadow reference documents every `shadow` CLI command, every `shadow.toml` option, the supported AI providers and hosts, the security model, troubleshooting steps and the FAQ. Look up exact commands, options and guarantees.
 
 <SectionIndex dir="reference" />

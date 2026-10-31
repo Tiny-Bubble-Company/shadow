@@ -1,5 +1,6 @@
 ---
 title: "Secure LLM use in banking and financial services: mask customer and card data with Shadow"
+seoTitle: "Secure LLM use in banking: mask customer and card data"
 description: "Keep IBANs, card numbers, customer names and account data out of AI prompts. Shadow masks them locally with checksum-valid fakes and restores the answer."
 keywords:
   - chatgpt for banks data privacy

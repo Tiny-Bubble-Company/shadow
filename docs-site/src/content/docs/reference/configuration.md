@@ -1,6 +1,16 @@
 ---
 title: Configuration
+seoTitle: "Shadow configuration reference: every setting and default"
 description: "Reference for every shadow.toml setting: persona, detectors, NER model, Presidio, policy, files, proxy and gateway routes, with defaults and examples."
+faq:
+  - q: "Do I need a configuration file?"
+    a: "No. Every key in `shadow.toml` is optional, and an empty file or no file at all is a valid configuration."
+  - q: "How do I protect my company name and codenames?"
+    a: "List legal names under `organization`, codenames, customers and people under `terms`, and your domains under `internal_domains`. The first organisation maps to the persona company."
+  - q: "How do I add an AI provider that isn't built in?"
+    a: "Add its host to `[proxy] extra_hosts` for proxy mode, or a route under `[proxy.routes]` for gateway mode."
+  - q: "Why did Shadow create vault.key next to my shared config file?"
+    a: "Without `data_dir`, the data directory is the folder that contains the config file. Set `data_dir` in the file or pass `--data-dir` when the config is shared."
 ---
 
 Shadow reads `shadow.toml` from the data directory, or from the path given by `--config` or `SHADOW_CONFIG`. **Every key is optional**: an empty file, or no file at all, is a valid configuration. `shadow init` writes a minimal one. [`shadow.example.toml`](https://github.com/Tiny-Bubble-Company/shadow/blob/main/shadow.example.toml) in the repository is an annotated template.

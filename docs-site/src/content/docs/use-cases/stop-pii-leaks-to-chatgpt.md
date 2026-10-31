@@ -1,5 +1,6 @@
 ---
 title: "How to stop employees pasting customer data into ChatGPT"
+seoTitle: "How to stop employees pasting customer data into ChatGPT"
 description: "Stop customer names, emails and IDs leaking into ChatGPT and other LLMs without banning AI: give staff an approved client that masks data through Shadow."
 keywords:
   - stop employees pasting data into chatgpt

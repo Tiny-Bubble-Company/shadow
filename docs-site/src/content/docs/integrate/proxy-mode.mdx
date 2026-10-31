@@ -1,6 +1,16 @@
 ---
 title: Proxy mode
-description: "Run Shadow as an HTTPS forward proxy that masks PII in the AI API traffic of every tool on a machine: trusting the local CA, intercepted hosts, bypass rules and PAC files."
+seoTitle: "HTTPS proxy mode: mask PII in AI API traffic · Shadow"
+description: "Run Shadow as an HTTPS proxy that masks PII in the AI API traffic of every tool on a machine: local CA trust, intercepted hosts, bypass rules and PAC."
+faq:
+  - q: "Does proxy mode decrypt all my HTTPS traffic?"
+    a: "No. Shadow terminates TLS only for the AI API hosts on its intercept list. Every other host gets a plain TCP tunnel, and Shadow never holds a certificate for it."
+  - q: "Does proxy mode mask chatgpt.com or claude.ai in my browser?"
+    a: "No. AI web apps in a browser are not on the intercept list, so they go direct or through a blind tunnel and are not masked. Proxy mode covers tools that call AI provider APIs."
+  - q: "What happens if Shadow stops?"
+    a: "Tools configured with `HTTPS_PROXY` fail to connect instead of bypassing Shadow. To skip it for one command, run `env -u HTTPS_PROXY your-tool`."
+  - q: "Why does an app still fail after I trusted the CA?"
+    a: "It probably pins its TLS certificates and rejects any CA it doesn't expect. Use gateway mode for that tool, or add its host to `bypass_hosts`, where it is not masked."
 ---
 
 import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';

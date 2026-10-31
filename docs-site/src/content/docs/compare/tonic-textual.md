@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Tonic Textual — open-source Tonic Textual alternative for live LLM traffic"
+seoTitle: "Shadow vs Tonic Textual: open source for live LLM traffic"
 description: Shadow vs Tonic Textual. Tonic redacts and synthesises data for datasets; Shadow masks live AI traffic with reversible fakes. Compare features and pricing.
 sidebar:
   label: Tonic Textual
@@ -98,7 +99,7 @@ A natural split: use Tonic Textual to de-identify the corpus you index for RAG o
 
 ## How do they compare on accuracy?
 
-Tonic's numbers are vendor-run on Tonic-selected data, and Tonic Textual is not in Shadow's [benchmark](/shadow/benchmarks/). On that benchmark's held-out set, Shadow's built-in rules leaked 3.08% of sensitive values (0.08% with the open-weight NER sidecar) and round-tripped 100% of documents exactly.
+Tonic's numbers are vendor-run on Tonic-selected data, and Tonic Textual is not in Shadow's [benchmark](/shadow/benchmarks/). On that benchmark's held-out set, Shadow's built-in rules leaked 3.08% of sensitive values (1.35% with the Presidio detector) and round-tripped 100% of documents exactly.
 
 ## Sources
 

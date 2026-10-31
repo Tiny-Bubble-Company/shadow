@@ -1,6 +1,16 @@
 ---
 title: Troubleshooting
+seoTitle: "Troubleshooting Shadow: certificates, proxy, detection"
 description: "Fix common Shadow problems: untrusted certificates, connection refused, gateway 404s, values not masked, fakes left in answers, streaming and vault errors."
+faq:
+  - q: "Why do I get 'certificate verify failed' through the proxy?"
+    a: "The client does not trust Shadow's CA. Run `shadow install --apply`, point the runtime at `ca/ca.pem` or `ca/bundle.pem`, or switch the tool to gateway mode, which needs no CA."
+  - q: "Why does the answer contain a fake instead of the real value?"
+    a: "The model wrote a variant that is not in the vault, such as an abbreviation or a paraphrase. Whole fakes, case variants and a fake person's first or last name are restored; other fragments are not."
+  - q: "Why was a value not masked?"
+    a: "Run `shadow scan file.txt --reveal` to check detection, add names and codenames with `shadow terms add`, add your domains to `internal_domains`, and enable the NER sidecar or Presidio for free-text names."
+  - q: "Why do I get 'connection refused' on 127.0.0.1:8877?"
+    a: "Shadow is not running. Start it with `shadow run` or check the background service."
 ---
 
 Start with:

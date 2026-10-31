@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs GLiNER PII — zero-shot PII models inside an LLM privacy proxy"
+seoTitle: "Shadow vs GLiNER PII: zero-shot NER in an LLM privacy proxy"
 description: Shadow vs GLiNER PII models (urchade, NVIDIA, Knowledgator). GLiNER detects PII spans; Shadow runs it as a detector and adds reversible masking.
 sidebar:
   label: GLiNER PII
@@ -23,7 +24,7 @@ faq:
   - q: "How do I use GLiNER with Shadow?"
     a: "Run Shadow's sidecar (ml/serve_hf.py) with the gliner or ensemble backend on 127.0.0.1:8878 and enable [model_detector]. Shadow merges GLiNER's spans with its own detectors and handles masking and restoration."
   - q: "How accurate is GLiNER for PII?"
-    a: "It varies a lot by checkpoint and dataset. On Shadow's held-out benchmark, GLiNER multi PII leaked 13.28% of sensitive values and changed many public names, against 3.08% for Shadow's built-in rules and 0.08% for Shadow with the open-weight NER sidecar, which includes GLiNER. See the Shadow benchmarks page."
+    a: "It varies a lot by checkpoint and dataset. On Shadow's held-out benchmark, GLiNER multi PII leaked 13.28% of sensitive values and changed many public names, against 3.08% for Shadow's built-in rules. On the third-party Gretel finance set, GLiNER alone leaked less than Shadow's rules (17.61% against 31%). See the Shadow benchmarks page."
 ---
 
 **GLiNER PII models are small, open-weight named-entity models that detect personal data for whatever labels you ask for. Shadow is an open-source privacy layer for AI traffic that detects sensitive values, replaces them with realistic, reversible fakes, and restores them in the response.** They are complementary: Shadow's optional NER sidecar runs `urchade/gliner_multi_pii-v1` (Apache-2.0) to improve recall on names, organisations and addresses, especially outside English.
@@ -118,7 +119,7 @@ The bundled sidecar uses Apache-2.0 weights. If you swap in `nvidia/gliner-PII` 
 
 ## How do they compare on accuracy?
 
-Published GLiNER figures vary widely by checkpoint and dataset, and vendor figures are often measured on a model's own training distribution. Shadow's [benchmark](/shadow/benchmarks/) evaluates GLiNER as a baseline and as part of Shadow: on the held-out set, GLiNER multi PII alone leaked 13.28% of sensitive values, Shadow's built-in rules 3.08%, and Shadow with the open-weight NER sidecar 0.08%.
+Published GLiNER figures vary widely by checkpoint and dataset, and vendor figures are often measured on a model's own training distribution. Shadow's [benchmark](/shadow/benchmarks/) evaluates GLiNER as a baseline and as part of Shadow: on the held-out set, GLiNER multi PII alone leaked 13.28% of sensitive values, against 3.08% for Shadow's built-in rules (about 7.5 ms per document) and 1.35% for Shadow with the Presidio detector. On the third-party Gretel finance set every tool leaks more, and GLiNER alone beats Shadow's built-in rules: 17.61% against 31% (23.2% for Shadow with Presidio). Free-text names and organisations in unfamiliar documents are where a NER model earns its place next to Shadow's rules.
 
 ## Sources
 

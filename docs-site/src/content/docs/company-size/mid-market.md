@@ -1,5 +1,6 @@
 ---
 title: "AI data protection for mid-market companies: roll out PII masking with your MDM"
+seoTitle: "AI data protection for mid-market companies · Shadow"
 description: "Deploy Shadow across hundreds of laptops and internal AI apps: MDM scripts, managed configuration, pilot groups, sidecars and an honest list of gaps."
 keywords:
   - mid-market ai data protection

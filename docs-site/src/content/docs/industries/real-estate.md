@@ -1,5 +1,6 @@
 ---
 title: "Secure ChatGPT and LLM use in real estate: protect tenant and buyer data in AI prompts"
+seoTitle: "Secure LLM use in real estate: protect tenant data · Shadow"
 description: "Mask tenant, buyer and landlord names, contact details, bank data and IDs in leases and listings before agents use OpenAI, Anthropic or Gemini."
 keywords:
   - real estate chatgpt privacy

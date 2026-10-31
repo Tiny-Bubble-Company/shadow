@@ -1,5 +1,6 @@
 ---
 title: "Secure generative AI in insurance: protect policyholder and claims data with Shadow"
+seoTitle: "Secure generative AI in insurance: protect claims data"
 description: "Use LLMs on claims notes, adjuster reports and policyholder letters without sending personal data to the provider. Shadow masks it locally and restores it."
 keywords:
   - insurance generative ai data privacy

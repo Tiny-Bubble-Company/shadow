@@ -1,5 +1,6 @@
 ---
 title: "Secure LLM use in automotive: protect connected-car, driver and supplier data in AI prompts"
+seoTitle: "Secure LLM use in automotive: protect driver data · Shadow"
 description: "Mask driver names, contact details, internal hosts, secrets and programme codenames before automotive teams use OpenAI, Anthropic or Gemini. Self-hosted."
 keywords:
   - automotive generative ai data protection

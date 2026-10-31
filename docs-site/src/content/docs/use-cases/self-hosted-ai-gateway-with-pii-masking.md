@@ -1,5 +1,6 @@
 ---
 title: "Self-hosted AI gateway with PII masking: put Shadow in front of any LLM API"
+seoTitle: "Self-hosted AI gateway with PII masking · Shadow"
 description: "Run a self-hosted, open-source gateway that masks PII and secrets before requests reach OpenAI, Anthropic, Azure OpenAI, Bedrock or vLLM, and restores answers."
 keywords:
   - self hosted ai gateway pii

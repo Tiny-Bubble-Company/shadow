@@ -1,7 +1,19 @@
 ---
 title: Tool calls and agents
+seoTitle: "PII masking for AI agents and tool calls · Shadow"
 description: "How Shadow keeps AI agents working on masked data: tool-call arguments are restored locally before tools run, and provider-hosted tools follow policy."
+faq:
+  - q: "Do AI agents still work when the model sees fake data?"
+    a: "Yes. Shadow restores fakes in tool-call arguments before your code runs the tool, and masks the tool result with the same fakes on the way back, because the vault maps values consistently."
+  - q: "Does restoration work for streamed tool calls?"
+    a: "Yes. Tool-call arguments are restored in complete JSON responses and in streams, where a fake may be split across many deltas."
+  - q: "What about tools that run in the provider's cloud?"
+    a: "Shadow cannot restore values inside the provider's cloud, so by default it keeps real what the action needs, such as the contact details named in the instruction, and logs each keep. Secrets, card numbers, national IDs, hostnames and IPs stay masked; set `remote_tool_targets = \"surrogate\"` to send fakes instead."
+  - q: "Which tool-call formats are supported?"
+    a: "OpenAI Chat Completions `tool_calls`, OpenAI Responses API function calls, Anthropic `tool_use` blocks and Gemini `functionCall` parts."
 ---
+
+Shadow keeps AI agents working on masked data: fakes in tool-call arguments are restored to real values on your machine before your tools run, and tool results are masked again on the way back.
 
 Agents turn model output into actions: sending email, querying databases, creating tickets, running shell commands. That raises a question plain masking cannot answer: if the model only ever sees fakes, how does the action reach the real target? Shadow's answer by default: the recipient of the action is passed through as written (and logged), and everything else is masked and restored.
 

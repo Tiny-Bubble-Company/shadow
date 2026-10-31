@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs LangChain PIIMiddleware — reversible PII masking for agents"
+seoTitle: "Shadow vs LangChain PIIMiddleware: reversible PII masking"
 description: Shadow vs LangChain PIIMiddleware for agent PII protection. LangChain redacts, masks or hashes one way; Shadow restores values in tool calls and streams.
 sidebar:
   label: LangChain PIIMiddleware

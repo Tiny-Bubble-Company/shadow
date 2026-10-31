@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs DataFog — open-source DataFog alternative for LLM privacy"
+seoTitle: "Shadow vs DataFog: open-source DataFog alternative for LLMs"
 description: Shadow vs DataFog for LLM PII protection. DataFog redacts, replaces or hashes PII; Shadow uses reversible fakes and restores streamed responses.
 sidebar:
   label: DataFog

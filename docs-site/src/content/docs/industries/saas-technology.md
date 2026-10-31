@@ -1,5 +1,6 @@
 ---
 title: "Secure LLM use for SaaS and technology companies: keep customer data out of AI prompts"
+seoTitle: "Secure LLM use for SaaS companies: protect customer data"
 description: "Mask customer emails, IPs, hostnames and API keys in support, engineering and product AI traffic. Self-hosted proxy, gateway or sidecar; answers restored."
 keywords:
   - saas customer data llm

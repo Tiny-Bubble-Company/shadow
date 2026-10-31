@@ -1,6 +1,16 @@
 ---
 title: The vault
+seoTitle: "Encrypted vault for reversible PII masking · Shadow"
 description: "How Shadow's local vault stores the real-to-fake mapping: ChaCha20-Poly1305 encryption at rest, multi-process sharing, export and forgetting values."
+faq:
+  - q: "Does the vault ever leave my machine?"
+    a: "No. The real-to-fake mapping is stored only in the data directory on your machine and is never sent to a provider or any other service."
+  - q: "How is the vault encrypted?"
+    a: "With ChaCha20-Poly1305, using a 32-byte key in `vault.key` created with mode `0600` and a fresh nonce on every save. A wrong key or a modified file fails authentication instead of producing garbage."
+  - q: "Can several processes share one vault?"
+    a: "Yes. Before each save, Shadow merges the on-disk vault in, so the background proxy and a `shadow mask` in your terminal never lose each other's entries."
+  - q: "What happens if I lose vault.key?"
+    a: "`vault.bin` can no longer be read. Move both files away and Shadow starts a new vault: new requests work normally, but responses that mention old fakes are not restored."
 ---
 
 The vault is the table of real↔fake pairs. It is what makes translation reversible, and it never leaves your machine.

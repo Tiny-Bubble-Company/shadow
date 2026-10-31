@@ -1,5 +1,6 @@
 ---
 title: "How to use LLMs with patient data more safely under HIPAA"
+seoTitle: "Using LLMs with patient data more safely under HIPAA"
 description: "Keep PHI out of OpenAI, Azure OpenAI and Claude prompts: Shadow masks patient identifiers locally, supports minimum necessary, and restores answers."
 keywords:
   - hipaa safe llm

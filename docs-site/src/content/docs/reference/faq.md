@@ -1,5 +1,6 @@
 ---
 title: FAQ
+seoTitle: "Shadow FAQ: latency, streaming, privacy and licensing"
 description: "Answers to common questions about Shadow: latency, streaming, message recipients, agents, files, answer quality, Presidio, DLP, telemetry and licensing."
 ---
 

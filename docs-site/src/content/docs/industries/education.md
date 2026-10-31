@@ -1,5 +1,6 @@
 ---
 title: "Secure ChatGPT and AI use in education: protect student data under FERPA with Shadow"
+seoTitle: "Secure AI in education: protect student data under FERPA"
 description: "Let staff and edtech apps use LLMs without sending student names, IDs and records to the provider. Shadow masks them locally and restores the answer."
 keywords:
   - ferpa chatgpt

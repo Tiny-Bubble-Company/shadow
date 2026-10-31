@@ -1,5 +1,6 @@
 ---
 title: "Privacy vaults for LLMs: Skyflow, Protecto, Private AI and alternatives"
+seoTitle: "Privacy vaults for LLMs: Skyflow, Protecto, Private AI"
 description: "Privacy vaults for LLMs compared: Skyflow, Protecto, Private AI, Tonic Textual, Wald.ai and Shadow's local encrypted vault. Tokens, fakes and re-identification."
 sidebar:
   label: Privacy vaults for LLMs

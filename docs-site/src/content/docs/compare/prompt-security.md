@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Prompt Security — open-source Prompt Security alternative for LLM data"
+seoTitle: "Shadow vs Prompt Security: open-source LLM data protection"
 description: Shadow vs Prompt Security (SentinelOne). Prompt Security filters or blocks AI prompts; Shadow masks them with reversible fakes and restores answers.
 sidebar:
   label: Prompt Security

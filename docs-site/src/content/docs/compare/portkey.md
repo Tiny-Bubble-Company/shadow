@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Portkey — Portkey PII redaction alternative that restores responses"
+seoTitle: "Shadow vs Portkey: PII redaction that restores responses"
 description: Shadow vs Portkey AI gateway for PII. Portkey redacts one way via partner guardrails; Shadow uses reversible fakes and restores streams and tool calls.
 sidebar:
   label: Portkey

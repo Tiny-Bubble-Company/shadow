@@ -1,6 +1,14 @@
 ---
 title: Changelog
+seoTitle: "Shadow changelog: releases, new features and fixes"
 description: "Release notes for Shadow: notable changes, new features and fixes in each version, following Keep a Changelog and Semantic Versioning."
+faq:
+  - q: "What changed about message recipients?"
+    a: "A request to contact or act on someone is now classified as `act`, and the recipient is passed through as written and logged. Set `[policy.act] targets = \"surrogate\"` for the previous behaviour."
+  - q: "What was in Shadow 0.1.0?"
+    a: "The initial release: the `shadow-core` detection and translation library, the HTTPS proxy and gateway, the `shadow` CLI, an optional NER sidecar, and install scripts for macOS, Linux and Windows."
+  - q: "Where is the canonical changelog?"
+    a: "`CHANGELOG.md` in the repository. It follows Keep a Changelog, and the project uses Semantic Versioning."
 ---
 
 All notable changes to Shadow are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/). The source of truth is [`CHANGELOG.md`](https://github.com/Tiny-Bubble-Company/shadow/blob/main/CHANGELOG.md).

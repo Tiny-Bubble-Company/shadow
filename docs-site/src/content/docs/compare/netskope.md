@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Netskope — open-source Netskope GenAI DLP alternative for AI traffic"
+seoTitle: "Shadow vs Netskope GenAI DLP: open-source alternative"
 description: Shadow vs Netskope One GenAI DLP. Netskope blocks, coaches and redacts inline; Shadow restores fakes in streams, tool calls and files.
 sidebar:
   label: Netskope

@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Wald.ai — open-source, self-hosted Wald.ai alternative"
+seoTitle: "Shadow vs Wald.ai: open-source, self-hosted alternative"
 description: Shadow vs Wald.ai for safe use of ChatGPT and Claude. Compare contextual substitution, restoration, deployment and pricing with a free local proxy.
 sidebar:
   label: Wald.ai

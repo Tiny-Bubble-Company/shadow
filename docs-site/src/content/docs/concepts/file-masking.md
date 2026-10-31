@@ -1,7 +1,19 @@
 ---
 title: File masking
+seoTitle: "Mask PII in files sent to LLMs: DOCX, XLSX, PDF · Shadow"
 description: "How Shadow masks PII in files sent to LLMs: multipart uploads, base64 and data URIs in text, CSV, JSON, DOCX, XLSX, PPTX and PDF formats."
+faq:
+  - q: "Which file formats does Shadow mask?"
+    a: "Plain text, Markdown, CSV, JSON, HTML and XML as text; DOCX, XLSX and PPTX in place; and PDFs, whose text is extracted, masked and sent as text by default."
+  - q: "Are images and scanned PDFs masked?"
+    a: "No. Shadow does not run OCR yet, so images pass through unchanged by default. Set `[files] images = \"block\"` if they may contain sensitive data."
+  - q: "Do Office documents stay valid?"
+    a: "Yes. DOCX, XLSX and PPTX files are edited inside their ZIP container, so styles, tables and layout survive. A value split across differently formatted runs may not be recognised."
+  - q: "What happens to very large files?"
+    a: "Files above `max_bytes` (50 MiB by default) are forwarded unmasked with a warning, or refused when `block_oversize = true`."
 ---
+
+Shadow masks sensitive data inside files sent to LLMs (multipart uploads, base64 attachments and `data:` URIs) with the same detectors, fakes and policy as prompts.
 
 Prompts are not the only way data reaches a model. Files uploaded for retrieval, attached to a message or embedded as base64 often carry far more sensitive content than the prompt itself. Shadow masks them before they leave the machine.
 

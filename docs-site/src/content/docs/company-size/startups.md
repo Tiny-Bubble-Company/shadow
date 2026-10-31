@@ -1,5 +1,6 @@
 ---
 title: "LLM data privacy for startups: protect customer data in AI tools and features"
+seoTitle: "LLM data privacy for startups: protect customer data"
 description: "Keep customer PII and secrets out of OpenAI and Anthropic from day one: engineer laptops, product AI features and security questionnaires. Free and self-hosted."
 keywords:
   - startup llm data privacy

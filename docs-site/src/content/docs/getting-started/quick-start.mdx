@@ -1,11 +1,21 @@
 ---
 title: Quick start
+seoTitle: "Quick start: mask PII in OpenAI and Claude API calls"
 description: "Install Shadow, create a persona, start the local proxy and send your first PII-masked request to OpenAI or Anthropic in about five minutes."
+faq:
+  - q: "Do I need to install a certificate to try Shadow?"
+    a: "No. Gateway mode only needs a base URL such as `http://127.0.0.1:8877/gw/openai/v1`. The local CA is needed only for proxy mode."
+  - q: "How can I test masking without sending anything?"
+    a: "Pipe text into `shadow mask` to see the masked version and into `shadow unmask` to get the original back. `shadow scan file.txt` reports what would be replaced without changing anything."
+  - q: "Does Shadow work with streaming responses?"
+    a: "Yes. Shadow restores SSE and NDJSON streams as they arrive, holding back at most a few characters so that a fake split across events is still restored."
+  - q: "How do I protect names that detectors don't know?"
+    a: "Add them as dictionary terms, for example `shadow terms add \"Project Falcon\" \"org:Globex\" \"person:Jane Doe\"`, and pass your organisation's name with `shadow init --org`."
 ---
 
 import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 
-This guide takes about five minutes. You will install the `shadow` binary, create a persona for your machine, start Shadow in the foreground and send a request through it.
+To mask PII in your first OpenAI or Anthropic API request, install the `shadow` binary, create a persona with `shadow init`, start Shadow with `shadow run` and point your SDK's base URL at it. This guide takes about five minutes.
 
 <Steps>
 

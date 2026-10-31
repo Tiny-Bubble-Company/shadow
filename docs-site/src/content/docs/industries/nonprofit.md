@@ -1,5 +1,6 @@
 ---
 title: "Secure ChatGPT and LLM use for nonprofits: protect donor and beneficiary data for free"
+seoTitle: "Secure LLM use for nonprofits: protect donor data · Shadow"
 description: "Free, open-source way for charities and NGOs to mask donor, volunteer and beneficiary data before staff use OpenAI, Anthropic or Gemini. No account needed."
 keywords:
   - nonprofit chatgpt data privacy

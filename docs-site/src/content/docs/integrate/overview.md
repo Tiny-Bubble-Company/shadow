@@ -1,6 +1,14 @@
 ---
 title: Integration modes
-description: "Choose how to run Shadow: HTTPS proxy for AI tools on a machine, gateway base URL for SDKs, or the embedded Rust library. How each mode works and when to use it."
+seoTitle: "Integration modes: proxy, gateway or Rust library · Shadow"
+description: "Choose how to run Shadow: an HTTPS proxy for every AI tool on a machine, a gateway base URL for SDKs, or the embedded Rust library, and when to use each."
+faq:
+  - q: "Can I use proxy and gateway mode at the same time?"
+    a: "Yes. Both are served from the same port and share the persona and vault, so a value gets the same fake whichever way it arrives."
+  - q: "Which mode needs a certificate?"
+    a: "Only proxy mode, which needs the local CA trusted once. Gateway mode and the Rust library need no certificate."
+  - q: "Does proxy mode touch my other traffic?"
+    a: "No. Shadow decrypts only the known AI API hosts and tunnels everything else byte for byte, so banking, email and package downloads are never touched."
 ---
 
 Shadow runs the same masking engine in three ways. You can mix them on one machine: the proxy and the gateway are served from the same port, and they share the persona and vault.

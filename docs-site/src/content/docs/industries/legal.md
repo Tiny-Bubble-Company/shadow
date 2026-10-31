@@ -1,5 +1,6 @@
 ---
 title: "Secure ChatGPT and LLM use for law firms: protect client confidentiality with Shadow"
+seoTitle: "Secure LLM use for law firms: protect client confidentiality"
 description: "Keep client names, matter codenames and counterparties out of AI prompts and uploaded contracts. Shadow masks them locally and restores the answer."
 keywords:
   - law firm chatgpt confidentiality

@@ -1,5 +1,6 @@
 ---
 title: "Shadow AI governance: how to manage unsanctioned AI tools without banning AI"
+seoTitle: "Shadow AI governance: manage unsanctioned AI tools"
 description: "Shadow AI is employees using unapproved AI tools. Learn how to govern it, and how the open-source Shadow privacy layer makes a sanctioned path safe to use."
 keywords:
   - shadow ai

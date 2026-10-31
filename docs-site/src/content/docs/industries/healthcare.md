@@ -1,5 +1,6 @@
 ---
 title: "Secure ChatGPT and LLM use in healthcare: protect PHI with Shadow"
+seoTitle: "Secure LLM use in healthcare: protect PHI in AI prompts"
 description: "Keep patient names, contact details and identifiers out of OpenAI, Anthropic and Gemini prompts. Shadow masks PHI locally and restores it in the answer."
 keywords:
   - hipaa chatgpt

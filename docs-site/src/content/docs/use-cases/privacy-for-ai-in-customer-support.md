@@ -1,5 +1,6 @@
 ---
 title: "Privacy for AI in customer support: mask customer data in tickets and agents"
+seoTitle: "Privacy for AI in customer support: mask ticket data"
 description: "Use LLMs for ticket replies, summaries and support agents without sending customer names, emails, orders or card numbers to the provider. Restored in answers."
 keywords:
   - ai customer support privacy

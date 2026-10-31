@@ -1,5 +1,6 @@
 ---
 title: "How to redact PDFs, Word and Excel files before uploading them to AI"
+seoTitle: "How to redact PDF, Word and Excel files before AI upload"
 description: "Mask names, emails and IDs in DOCX, XLSX, PPTX, CSV and PDF uploads to OpenAI, Anthropic or Gemini automatically, with Office files kept valid."
 keywords:
   - redact pdf before chatgpt

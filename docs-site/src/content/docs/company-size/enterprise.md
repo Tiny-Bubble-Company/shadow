@@ -1,5 +1,6 @@
 ---
 title: "Enterprise LLM data protection: where Shadow fits next to DLP, SSE and AI gateways"
+seoTitle: "Enterprise LLM data protection beside DLP and SSE · Shadow"
 description: "How enterprises use Shadow to mask PII and secrets in AI API traffic at scale: endpoints, sidecars, existing DLP and gateways, and the gaps to plan for."
 keywords:
   - enterprise llm data protection

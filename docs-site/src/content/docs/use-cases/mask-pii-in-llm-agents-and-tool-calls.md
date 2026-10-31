@@ -1,6 +1,7 @@
 ---
 title: "How to mask PII in LLM agents without breaking tool calls"
-description: "Keep personal data away from the model while agents still email, query and update the real records: recipients pass through, everything else is restored locally."
+seoTitle: "How to mask PII in LLM agents without breaking tool calls"
+description: "Keep personal data from the model while agents still email, query and update real records: recipients pass through, the rest is restored locally."
 keywords:
   - mask pii llm agents
   - pii in tool calls

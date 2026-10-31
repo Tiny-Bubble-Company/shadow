@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Protecto — open-source Protecto alternative for LLM data privacy"
+seoTitle: "Shadow vs Protecto: open-source LLM data privacy alternative"
 description: Shadow vs Protecto (GPTGuard) for masking PII in AI prompts. Compare semantic tokens vs realistic fakes, unmasking, streaming and deployment.
 sidebar:
   label: Protecto

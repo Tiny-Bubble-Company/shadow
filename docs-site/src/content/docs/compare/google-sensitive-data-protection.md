@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Google Sensitive Data Protection — Cloud DLP alternative for LLMs"
+seoTitle: "Shadow vs Google Sensitive Data Protection (Cloud DLP)"
 description: Shadow vs Google Cloud Sensitive Data Protection (Cloud DLP). Google offers reversible FPE; Shadow adds realistic fakes, a local proxy and streaming restore.
 sidebar:
   label: Google Sensitive Data Protection

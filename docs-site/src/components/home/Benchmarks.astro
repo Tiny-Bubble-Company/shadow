@@ -4,7 +4,6 @@ import { LINKS } from './links';
 
 // Held-out test set results from the benchmarks page. Keep in sync with /benchmarks/.
 const rows = [
-	{ name: 'Shadow + open-weight NER sidecar', leak: 0.08, shadow: true },
 	{ name: 'Shadow + Presidio detector', leak: 1.35, shadow: true },
 	{ name: 'Shadow, built-in rules only', leak: 3.08, shadow: true },
 	{ name: 'OpenAI Privacy Filter', leak: 11.01 },
@@ -67,6 +66,10 @@ const stats = [
 			}
 		</ul>
 	</div>
+	<p class="hp-bench__note">
+		On a third-party set of financial documents in seven languages (Gretel), every tool leaks more and GLiNER on its own
+		leaks less than Shadow's built-in rules; the benchmarks page has both results.
+	</p>
 	<p class="hp-section__more">
 		<a href={LINKS.benchmarks}>Methodology, datasets and full results <span aria-hidden="true">→</span></a>
 	</p>

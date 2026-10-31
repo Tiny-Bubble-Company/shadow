@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Skyflow — open-source Skyflow LLM Privacy Vault alternative"
+seoTitle: "Shadow vs Skyflow LLM Privacy Vault: open-source option"
 description: Shadow vs Skyflow LLM Privacy Vault. Compare vault tokens vs realistic fakes, re-identification, files, streaming, deployment and pricing.
 sidebar:
   label: Skyflow

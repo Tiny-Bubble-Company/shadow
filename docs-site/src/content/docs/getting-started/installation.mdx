@@ -1,6 +1,16 @@
 ---
 title: Installation
+seoTitle: "Install Shadow on macOS, Linux, Windows or Docker"
 description: "Install the Shadow binary on macOS, Linux or Windows: one-line install script, Cargo from source, Docker, or a background service that starts at login."
+faq:
+  - q: "Does Shadow have runtime dependencies?"
+    a: "No. `shadow` is a single static binary with no OpenSSL, Python or Node dependency. Building from source needs Rust 1.88 or newer."
+  - q: "Does the install script change system settings?"
+    a: "No. It installs the binary and runs `shadow init`. `shadow install` sets up the background service and trusts the local CA, and it is a dry run unless you add `--apply`."
+  - q: "Where does Shadow keep its data?"
+    a: "In one data directory: `~/Library/Application Support/shadow` on macOS, `~/.local/share/shadow` on Linux and `%APPDATA%\\shadow` on Windows. Override it with `SHADOW_HOME`, `--data-dir` or `data_dir` in `shadow.toml`."
+  - q: "How do I uninstall Shadow?"
+    a: "Run `shadow uninstall --apply` to remove the background service and the CA trust; without `--apply` it only prints the plan. The data directory is left in place."
 ---
 
 import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';

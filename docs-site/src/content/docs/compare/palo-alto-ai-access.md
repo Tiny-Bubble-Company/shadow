@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Palo Alto AI Access Security — open-source alternative for AI APIs"
+seoTitle: "Shadow vs Palo Alto AI Access Security: an alternative"
 description: Shadow vs Palo Alto Networks AI Access Security and Prisma Browser. Palo Alto blocks or allows AI apps; Shadow masks prompts with reversible fakes.
 sidebar:
   label: Palo Alto AI Access

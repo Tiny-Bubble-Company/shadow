@@ -1,5 +1,6 @@
 ---
 title: "Secure ChatGPT and LLM use by industry: protect regulated data with Shadow"
+seoTitle: "Secure LLM use by industry: protect regulated data · Shadow"
 description: "How healthcare, finance, legal, public sector and 14 more industries use ChatGPT, Claude and LLM APIs without sending personal or confidential data."
 keywords:
   - secure llm use by industry
@@ -24,7 +25,7 @@ sidebar:
   order: 0
 ---
 
-Every industry has its own version of the same problem: people get real value from ChatGPT, Claude and LLM APIs, and the prompts that get the best answers are full of data that should not leave the organisation. Shadow is an open-source privacy layer that sits between your tools and the AI provider. It replaces names, emails, customer records, IDs, internal hostnames and secrets with realistic, reversible fakes before a request leaves, and restores the real values in the answer.
+Shadow is an open-source privacy layer that sits between your tools and the AI provider: it replaces names, emails, customer records, IDs, internal hostnames and secrets with realistic, reversible fakes before a request leaves, and restores the real values in the answer. Every industry has its own version of the same problem: people get real value from ChatGPT, Claude and LLM APIs, and the prompts that get the best answers are full of data that should not leave the organisation.
 
 The pages below explain, sector by sector, what leaks, how Shadow handles it, which regulations it helps with, and how to deploy it.
 

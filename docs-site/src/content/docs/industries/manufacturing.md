@@ -1,5 +1,6 @@
 ---
 title: "Secure LLM use in manufacturing: protect trade secrets and supplier data in AI prompts"
+seoTitle: "Secure LLM use in manufacturing: protect trade secrets"
 description: "Mask programme codenames, part names, supplier and customer names before engineers send prompts to OpenAI, Anthropic or Gemini. Self-hosted, open source."
 keywords:
   - manufacturing ai trade secrets

@@ -1,5 +1,6 @@
 ---
 title: "Secure LLM use in energy and utilities: keep OT details and customer data out of AI prompts"
+seoTitle: "Secure LLM use in energy and utilities: OT and customer data"
 description: "Mask OT hostnames, IPs, credentials and customer billing data before utility teams use OpenAI, Anthropic or Gemini. Self-hosted, no telemetry, open source."
 keywords:
   - utilities ai cybersecurity

@@ -1,6 +1,16 @@
 ---
 title: Gateway mode
+seoTitle: "Gateway mode: PII masking via your SDK's base URL · Shadow"
 description: "Mask PII in OpenAI, Anthropic, OpenRouter and Gemini calls by pointing your SDK's base URL at Shadow. Examples in Python, Node.js and curl. No CA needed."
+faq:
+  - q: "Does gateway mode need a certificate?"
+    a: "No. The hop from your app to Shadow is plain HTTP on loopback, and Shadow connects to the provider over TLS."
+  - q: "What happens to my API key?"
+    a: "It travels in the usual header and is passed through to the provider unchanged. Shadow masks the content of the request, not your credentials."
+  - q: "Does streaming work through the gateway?"
+    a: "Yes. Streamed responses are restored as they arrive, including fakes split across events and tool-call arguments."
+  - q: "Why do I get a 404 from Anthropic through the gateway?"
+    a: "The Anthropic SDKs append `/v1/messages` themselves, so their base URL must stop at the route: `http://127.0.0.1:8877/gw/anthropic`. OpenAI-style SDKs use `/gw/openai/v1`."
 ---
 
 import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';

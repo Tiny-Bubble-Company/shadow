@@ -1,6 +1,16 @@
 ---
 title: CLI
-description: "Reference for the shadow command line: init, run, install, status, mask, unmask, scan, vault, terms, hosts, top, activity and dashboard, with every subcommand and flag."
+seoTitle: "Shadow CLI reference: every command, subcommand and flag"
+description: "Reference for the shadow CLI: init, run, install, status, mask, unmask, scan, vault, terms, hosts, top, activity and dashboard, with every flag."
+faq:
+  - q: "How do I see what Shadow would mask without sending anything?"
+    a: "Run `shadow scan <FILE>` to list sensitive values without changing anything or touching the vault, or pipe text through `shadow mask` to see the masked version."
+  - q: "How do I health-check Shadow in a script?"
+    a: "Use `shadow status --quiet`. It prints nothing and exits 0 if the proxy answers, 1 otherwise."
+  - q: "How do I see the real-to-fake pairs?"
+    a: "`shadow vault export --i-understand` prints every pair as JSON. It shows real values in clear text, so don't paste the output into an AI tool."
+  - q: "How do I see what Shadow has masked recently?"
+    a: "Use `shadow top` for a live terminal view, `shadow activity` for a summary, or `shadow dashboard` to open the web dashboard. They show counts and categories, never values."
 ---
 
 ```text

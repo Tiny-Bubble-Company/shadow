@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs LiteLLM — LiteLLM PII masking alternative with streaming restore"
+seoTitle: "Shadow vs LiteLLM: PII masking with streaming restore"
 description: Shadow vs LiteLLM proxy for PII masking. LiteLLM routes models and runs guardrails; Shadow adds reversible fakes and streaming, tool-call restore.
 sidebar:
   label: LiteLLM

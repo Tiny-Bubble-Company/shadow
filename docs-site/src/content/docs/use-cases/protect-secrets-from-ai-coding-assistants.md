@@ -1,5 +1,6 @@
 ---
 title: "How to keep API keys and internal hosts out of AI coding assistants"
+seoTitle: "Keep API keys and internal hosts out of AI coding assistants"
 description: "Stop Claude Code, Aider, Cline and other AI coding tools sending API keys, internal hostnames, IPs and usernames to the model. Set up Shadow in minutes."
 keywords:
   - ai coding assistant secrets leak

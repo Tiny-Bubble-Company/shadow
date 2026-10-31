@@ -1,5 +1,6 @@
 ---
 title: "Secure generative AI in government and the public sector: mask citizen data with Shadow"
+seoTitle: "Secure generative AI in government: mask citizen data"
 description: "Self-hosted, no-telemetry masking of citizen and case data before it reaches an AI provider. Runs inside your boundary; restores answers locally."
 keywords:
   - government generative ai data protection

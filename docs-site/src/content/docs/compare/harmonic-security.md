@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Harmonic Security — open-source Harmonic alternative for AI data protection"
+seoTitle: "Shadow vs Harmonic Security: open-source alternative"
 description: Shadow vs Harmonic Security. Harmonic's browser extension warns, blocks or redirects AI use; Shadow masks API prompts with reversible fakes.
 sidebar:
   label: Harmonic Security

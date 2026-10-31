@@ -1,6 +1,16 @@
 ---
 title: Docker and Kubernetes
+seoTitle: "Shadow in Docker and Kubernetes: a PII masking sidecar"
 description: "Run Shadow as a sidecar container in Docker or Kubernetes to mask PII in your service's LLM calls, with persistent state and controlled egress."
+faq:
+  - q: "Do I need to install a CA in my application image?"
+    a: "No. As a sidecar in gateway mode, your app talks to Shadow over plain HTTP on `localhost:8877` and Shadow connects to the provider over TLS."
+  - q: "What happens if the Shadow volume is lost?"
+    a: "In-flight requests are unaffected, because the mapping for one request is in memory. Persist the data directory to keep fakes stable over time, so the same customer keeps the same fake name."
+  - q: "Can several replicas share one identity?"
+    a: "Yes. Give them a shared `ReadWriteMany` volume, which Shadow merges on save, or provision the same `persona.json`, `vault.key` and initial `vault.bin` from a secret."
+  - q: "Does a NetworkPolicy stop the app from bypassing the sidecar?"
+    a: "No, a NetworkPolicy applies to the whole pod. Route egress through a proxy or firewall that only accepts provider traffic from Shadow, or run Shadow as a separate gateway deployment."
 ---
 
 In containers, Shadow works best as a **sidecar**: one Shadow instance next to each application, reachable on `localhost`, using [gateway mode](/shadow/integrate/gateway-mode/). No CA has to be installed in the application image.

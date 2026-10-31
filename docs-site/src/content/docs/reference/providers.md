@@ -1,6 +1,16 @@
 ---
 title: Supported providers and hosts
+seoTitle: "Supported AI providers, hosts and API formats · Shadow"
 description: "AI providers Shadow supports: OpenAI, Anthropic, Gemini, Azure OpenAI, Bedrock, Mistral and more. Intercepted hosts, gateway routes and API formats."
+faq:
+  - q: "Which AI providers does Shadow intercept?"
+    a: "OpenAI, Anthropic, OpenRouter, Google Gemini and Vertex AI, Mistral, Groq, Together AI, DeepSeek, xAI, Azure OpenAI and Azure AI services, AWS Bedrock runtime, Cohere, Perplexity, Fireworks AI, Cerebras and Voyage AI. `shadow hosts` shows the effective list."
+  - q: "Can I add a self-hosted or internal LLM endpoint?"
+    a: "Yes. Add hosts with `[proxy] extra_hosts` and gateway routes under `[proxy.routes]`. Request bodies in any JSON shape are masked."
+  - q: "Does Shadow work with AWS Bedrock?"
+    a: "Yes with Bedrock API keys (bearer), which are masked normally. Requests signed with AWS SigV4 are forwarded unmasked with a warning, because changing the body would break the signature."
+  - q: "Are WebSocket and Realtime APIs supported?"
+    a: "No. WebSocket, Realtime and gRPC traffic is not parsed and passes through unmasked."
 ---
 
 ## Intercepted hosts (proxy mode)

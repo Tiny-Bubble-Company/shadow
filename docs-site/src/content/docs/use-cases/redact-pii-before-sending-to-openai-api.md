@@ -1,5 +1,6 @@
 ---
 title: "How to redact PII before sending prompts to the OpenAI API"
+seoTitle: "How to redact PII before sending prompts to the OpenAI API"
 description: "Mask names, emails, cards and secrets in OpenAI API requests with one base URL change, and get real values back in responses, streams and tool calls."
 keywords:
   - redact pii before openai api

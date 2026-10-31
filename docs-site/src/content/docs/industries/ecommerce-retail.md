@@ -1,5 +1,6 @@
 ---
 title: "Secure AI for e-commerce and retail: protect customer and payment data with Shadow"
+seoTitle: "Secure AI in e-commerce: protect customer and payment data"
 description: "Use LLMs for customer service, order operations and analytics without sending shopper names, addresses or card numbers to the AI provider."
 keywords:
   - ecommerce ai customer data privacy

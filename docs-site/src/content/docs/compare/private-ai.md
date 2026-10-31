@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Private AI — open-source Private AI alternative for LLM prompts"
+seoTitle: "Shadow vs Private AI: open-source alternative for LLMs"
 description: Shadow vs Private AI for masking PII in LLM prompts. Compare multilingual detection, re-identification, streaming, deployment and price.
 sidebar:
   label: Private AI

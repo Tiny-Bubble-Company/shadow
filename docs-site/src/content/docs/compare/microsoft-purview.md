@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs Microsoft Purview — open-source Purview DSPM for AI alternative"
+seoTitle: "Shadow vs Microsoft Purview DSPM for AI: an alternative"
 description: Shadow vs Microsoft Purview DSPM for AI. Purview warns, blocks and audits Copilot and AI sites; Shadow masks API prompts and restores responses.
 sidebar:
   label: Microsoft Purview

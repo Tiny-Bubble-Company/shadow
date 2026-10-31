@@ -1,5 +1,6 @@
 ---
 title: "AI DLP tools compared: block vs redact vs pseudonymise"
+seoTitle: "AI DLP tools compared: block vs redact vs mask · Shadow"
 description: "AI DLP tools compared by what they do to sensitive data: block, redact or pseudonymise. Netskope, Zscaler, Purview, Nightfall, Harmonic and Shadow."
 sidebar:
   label: AI DLP tools compared

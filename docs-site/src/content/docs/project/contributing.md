@@ -1,6 +1,16 @@
 ---
 title: Contributing
+seoTitle: "Contributing to Shadow: build, test and send a pull request"
 description: "How to contribute to Shadow: build from source, run the tests, work on the docs and detectors, and send a pull request."
+faq:
+  - q: "What do I need to build Shadow?"
+    a: "Rust 1.88 or newer, and nothing else. Run `cargo build --workspace` and `cargo test --workspace`."
+  - q: "Do the tests need network access or API keys?"
+    a: "No. The integration tests run the proxy against a mock upstream, covering gateway routing, TLS interception and SSE restoration."
+  - q: "What must a pull request pass?"
+    a: "CI runs `fmt`, `clippy -D warnings` and the tests on Linux, macOS and Windows. Behaviour changes need tests and updates to the docs and `CHANGELOG.md`."
+  - q: "How do I report a security vulnerability?"
+    a: "Privately, following `SECURITY.md` in the repository. Do not open a public issue."
 ---
 
 Thanks for your interest in Shadow. Bug reports, detector improvements, new provider formats, documentation fixes and test cases are all welcome. The canonical guide is [`CONTRIBUTING.md`](https://github.com/Tiny-Bubble-Company/shadow/blob/main/CONTRIBUTING.md) in the repository; this page summarises it.

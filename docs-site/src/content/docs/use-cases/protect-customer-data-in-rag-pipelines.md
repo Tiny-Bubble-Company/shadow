@@ -1,5 +1,6 @@
 ---
 title: "How to protect customer data in RAG pipelines sent to LLMs"
+seoTitle: "How to protect customer data in RAG pipelines sent to LLMs"
 description: "Keep customer names, emails and IDs in retrieved chunks away from OpenAI or Anthropic. Mask RAG context at generation time with Shadow and restore the answer."
 keywords:
   - rag pii masking

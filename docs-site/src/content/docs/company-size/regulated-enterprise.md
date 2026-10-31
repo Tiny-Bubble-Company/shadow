@@ -1,5 +1,6 @@
 ---
 title: "Generative AI controls for regulated enterprises: evidence-ready PII masking with Shadow"
+seoTitle: "Generative AI controls for regulated enterprises · Shadow"
 description: "For banks, insurers, health systems and public bodies: deploying Shadow as a documented AI data control, with risk assessment, testing and change control."
 keywords:
   - regulated enterprise generative ai controls

@@ -1,5 +1,6 @@
 ---
 title: "Shadow vs NeMo Guardrails — NeMo Guardrails alternative for PII masking"
+seoTitle: "Shadow vs NeMo Guardrails: a PII masking alternative"
 description: Shadow vs NVIDIA NeMo Guardrails for PII. NeMo masks or blocks with labels; Shadow uses reversible fakes and restores responses and tool calls.
 sidebar:
   label: NeMo Guardrails

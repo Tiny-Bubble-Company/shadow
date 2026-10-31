@@ -1,5 +1,6 @@
 ---
 title: "How to anonymise prompts before sending them to Claude"
+seoTitle: "How to anonymise prompts before sending them to Claude"
 description: "Mask personal data, customer names and secrets in Anthropic Claude API requests locally, and restore them in streamed answers and tool use."
 keywords:
   - anonymize prompts claude
