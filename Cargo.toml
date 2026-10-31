@@ -1,5 +1,7 @@
 [workspace]
 members = ["crates/shadow-core", "crates/shadow-proxy", "crates/shadow-cli"]
+# The tray app needs webview system libraries; it is its own workspace (see apps/shadow-tray).
+exclude = ["apps/shadow-tray"]
 resolver = "2"
 
 [workspace.package]
