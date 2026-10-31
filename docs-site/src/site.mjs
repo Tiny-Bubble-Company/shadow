@@ -36,6 +36,8 @@ export const CF_BEACON_TOKEN =
 export const REPO_URL = 'https://github.com/Tiny-Bubble-Company/shadow';
 export const RELEASES_URL = `${REPO_URL}/releases`;
 export const ORG_NAME = 'Tiny Bubble Company';
+/** Where people can ask for help. */
+export const SUPPORT_EMAIL = 'support@getshadow.dev';
 export const ORG_URL = 'https://github.com/Tiny-Bubble-Company';
 
 export const SITE_NAME = 'Shadow';

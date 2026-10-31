@@ -33,6 +33,8 @@ hero:
       icon: external
       variant: minimal
 faq:
+  - q: How do I get help with Shadow?
+    a: "Email support@getshadow.dev with questions about installing, configuring or rolling out Shadow. Bugs and feature requests are welcome as GitHub issues, and security vulnerabilities should be reported privately as described in the security policy."
   - q: How do I stop employees pasting customer data into ChatGPT?
     a: "Give people an AI tool that is safe to paste into instead of one they have to avoid. Route your API-based AI clients (internal chat apps, SDK-based tools, coding assistants, agents) through Shadow, and customer names, emails, IDs and secrets are replaced with fakes before the request leaves the machine, while the answer still comes back with the real values. Shadow intercepts provider APIs such as `api.openai.com` and `api.anthropic.com`, not consumer web apps like chatgpt.com, so pair it with a policy that points staff at an approved API-backed client. See [use cases](/shadow/use-cases/)."
   - q: Is Shadow a Presidio alternative?

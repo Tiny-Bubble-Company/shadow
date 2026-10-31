@@ -67,3 +67,7 @@ No. Shadow runs on macOS, Linux and Windows hosts, servers and containers. Brows
 ### What licence is Shadow under?
 
 Apache-2.0.
+
+### How do I get help?
+
+Email [support@getshadow.dev](mailto:support@getshadow.dev) with questions about installing, configuring or rolling out Shadow. Report bugs and request features as [GitHub issues](https://github.com/Tiny-Bubble-Company/shadow/issues), and report security vulnerabilities privately as described in the [security policy](https://github.com/Tiny-Bubble-Company/shadow/blob/main/SECURITY.md).

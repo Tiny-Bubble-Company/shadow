@@ -520,3 +520,13 @@
 		transition: none;
 	}
 }
+
+.sh-footer__support {
+	margin: 0.9rem 0 0;
+	font-size: var(--sl-text-sm);
+	color: var(--sl-color-gray-3);
+}
+.sh-footer__support a {
+	color: var(--sl-color-text-accent);
+	font-weight: 600;
+}

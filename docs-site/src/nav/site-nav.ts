@@ -4,7 +4,7 @@
 // automatically. Labels come from `sidebar.label`, else a short form of the title.
 
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { REPO_URL, RELEASES_URL } from '../site.mjs';
+import { REPO_URL, RELEASES_URL, SUPPORT_EMAIL } from '../site.mjs';
 import { SECTIONS, idToSlug } from '../seo/sections';
 
 type Entry = CollectionEntry<'docs'>;
@@ -97,6 +97,7 @@ export function sectionGroups(): Promise<Record<string, NavGroup>> {
 }
 
 export const RESOURCE_LINKS: NavLink[] = [
+	{ label: `Email support: ${SUPPORT_EMAIL}`, href: `mailto:${SUPPORT_EMAIL}` },
 	{ label: 'GitHub repository', href: REPO_URL, external: true },
 	{ label: 'Releases and downloads', href: RELEASES_URL, external: true },
 	{ label: 'Apache-2.0 licence', href: `${REPO_URL}/blob/main/LICENSE`, external: true },

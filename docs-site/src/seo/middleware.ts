@@ -8,6 +8,7 @@ import { getCollection } from 'astro:content';
 import {
 	HOME_URL,
 	ORG_NAME,
+	SUPPORT_EMAIL,
 	ORG_URL,
 	RELEASES_URL,
 	REPO_URL,
@@ -161,6 +162,8 @@ export const onRequest = defineRouteMiddleware(async (context) => {
 			url: HOME_URL,
 			logo: { '@type': 'ImageObject', url: abs('logo.png'), width: 512, height: 512 },
 			sameAs: [ORG_URL],
+			email: SUPPORT_EMAIL,
+			contactPoint: { '@type': 'ContactPoint', contactType: 'customer support', email: SUPPORT_EMAIL, availableLanguage: 'English' },
 		},
 		{
 			'@type': 'WebSite',

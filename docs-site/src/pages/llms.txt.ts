@@ -17,6 +17,7 @@ export const GET: APIRoute = async () => {
 		'Benchmark (held-out test set): Shadow\'s built-in rules leaked 3.08% of sensitive values at about 7.5 ms per document with a 100% exact round trip, and 1.35% with the Presidio detector added; standalone, OpenAI Privacy Filter leaked 11.01%, GLiNER multi PII 13.28% and Microsoft Presidio 20.74%.',
 		'',
 		`- Docs home: ${HOME_URL}`,
+		'- Support: support@getshadow.dev',
 		`- Benchmarks: ${new URL('benchmarks/', HOME_URL).href}`,
 		`- Source code: ${REPO_URL}`,
 		`- Full documentation as one Markdown file: ${new URL('llms-full.txt', HOME_URL).href}`,

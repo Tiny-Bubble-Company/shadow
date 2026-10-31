@@ -312,6 +312,10 @@ packaging/            install scripts, launchd / systemd / Windows service, Dock
 docs-site/            documentation site (Starlight)
 ```
 
+## Support
+
+Questions about installing, configuring or rolling out Shadow: [support@getshadow.dev](mailto:support@getshadow.dev). Bugs and feature requests: [GitHub issues](https://github.com/Tiny-Bubble-Company/shadow/issues). Security vulnerabilities: see [SECURITY.md](SECURITY.md).
+
 ## Contributing
 
 Contributions are welcome: detectors, provider formats, docs, tests. See [CONTRIBUTING.md](CONTRIBUTING.md). In short:

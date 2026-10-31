@@ -1388,3 +1388,14 @@
 		width: min(40%, 12rem);
 	}
 }
+
+.sl-markdown-content .hp-cta .hp-cta__support {
+	margin-top: 0.75rem;
+	font-size: var(--sl-text-sm);
+	opacity: 0.85;
+}
+.sl-markdown-content .hp-cta .hp-cta__support a {
+	color: inherit;
+	font-weight: 600;
+	text-decoration: underline;
+}

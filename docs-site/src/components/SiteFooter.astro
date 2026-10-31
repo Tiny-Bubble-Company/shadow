@@ -2,7 +2,7 @@
 // Site-wide footer (home + docs), rendered by PageFrame.astro below every page.
 // Lists come from the docs collection via src/nav/site-nav.ts.
 import { Icon } from '@astrojs/starlight/components';
-import { ORG_NAME, ORG_URL, REPO_URL } from '../site.mjs';
+import { ORG_NAME, ORG_URL, REPO_URL, SUPPORT_EMAIL } from '../site.mjs';
 import { RESOURCE_LINKS, mainNav, sectionGroups, sitePath, type NavGroup } from '../nav/site-nav';
 
 const groups = await sectionGroups();
@@ -53,6 +53,9 @@ const year = new Date().getFullYear();
 					<Icon name="github" size="1rem" /> Star on GitHub
 				</a>
 			</div>
+			<p class="sh-footer__support">
+				Questions or need help? Email <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+			</p>
 		</div>
 
 		<nav class="sh-footer__grid" aria-label="Site map">
