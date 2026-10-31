@@ -24,7 +24,7 @@ faq:
   - q: "Do both work with Claude Code?"
     a: "Yes. Rehydra documents a local proxy for Claude Code and OpenAI and Anthropic clients. Shadow covers Claude Code through proxy mode or by setting the Anthropic base URL to its gateway."
   - q: "Which one is more accurate?"
-    a: "Rehydra does not publish detection benchmarks at the time of review, and it is not in Shadow's benchmark. Shadow publishes its methodology and results: on the held-out set its built-in rules leaked 3.08% of sensitive values (1.35% with the Presidio detector) and round-tripped 100% of documents exactly."
+    a: "Rehydra does not publish detection benchmarks at the time of review, and it is not in Shadow's benchmark. Shadow publishes its methodology and results: on the held-out set its built-in rules leaked 3.08% of sensitive values (1.33% with the Presidio detector) and round-tripped 100% of documents exactly."
 ---
 
 **Rehydra and Shadow are the two open-source projects closest to each other in this space: both mask PII locally before a request reaches an LLM provider, and both restore the original values in responses, streams and tool calls.** Rehydra is a TypeScript SDK and local proxy under MIT that replaces values with XML-style placeholders. Shadow is a Rust binary and library under Apache-2.0 that replaces values with realistic, format-preserving fakes from a persistent persona, adds an intent policy and masks Office files. Pick by language ecosystem and by whether you want placeholders or realistic fakes.

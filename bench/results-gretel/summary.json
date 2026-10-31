@@ -1,0 +1,441 @@
+{
+  "llm_guard": {
+    "leak_rate": 62.5,
+    "partial_name_leak": 60.74,
+    "public_over_masking": null,
+    "text_kept": 98.37,
+    "detection": null,
+    "emails_kept_as_emails": 0.0,
+    "cards_still_luhn_valid": 4.55,
+    "round_trip": 100.0,
+    "latency_ms": {
+      "p50": 409.19,
+      "p95": 1128.12
+    },
+    "leak_by_label": {
+      "ADDRESS": 93.57,
+      "CREDIT_CARD": 22.73,
+      "DATE_OF_BIRTH": 100.0,
+      "EMAIL": 3.0,
+      "IBAN": 7.89,
+      "IP": 2.27,
+      "NATIONAL_ID": 61.11,
+      "ORG": 94.99,
+      "PERSON": 47.45,
+      "PHONE": 4.48,
+      "SECRET": 71.43,
+      "USERNAME": 65.0
+    },
+    "recall_by_label": null,
+    "leak_by_scenario": {
+      "dutch": 71.46,
+      "english": 60.42,
+      "france": 52.17,
+      "german": 62.61,
+      "italian": 71.62,
+      "spanish": 62.66,
+      "swedish": 64.63
+    },
+    "samples": 1000,
+    "values": 5077
+  },
+  "gliner": {
+    "leak_rate": 17.61,
+    "partial_name_leak": 24.24,
+    "public_over_masking": null,
+    "text_kept": 92.96,
+    "detection": {
+      "precision": 35.25,
+      "recall": 85.44,
+      "f1": 49.91
+    },
+    "emails_kept_as_emails": 34.53,
+    "cards_still_luhn_valid": 9.09,
+    "round_trip": null,
+    "latency_ms": {
+      "p50": 2303.33,
+      "p95": 6034.79
+    },
+    "leak_by_label": {
+      "ADDRESS": 7.94,
+      "CREDIT_CARD": 22.73,
+      "DATE_OF_BIRTH": 5.36,
+      "EMAIL": 48.05,
+      "IBAN": 21.05,
+      "IP": 56.82,
+      "NATIONAL_ID": 67.78,
+      "ORG": 6.06,
+      "PERSON": 21.57,
+      "PHONE": 5.97,
+      "SECRET": 23.81,
+      "USERNAME": 30.0
+    },
+    "recall_by_label": {
+      "ADDRESS": 92.99,
+      "CREDIT_CARD": 77.27,
+      "DATE_OF_BIRTH": 96.43,
+      "EMAIL": 59.46,
+      "IBAN": 78.95,
+      "IP": 45.45,
+      "NATIONAL_ID": 34.44,
+      "ORG": 96.53,
+      "PERSON": 82.22,
+      "PHONE": 96.52,
+      "SECRET": 69.05,
+      "USERNAME": 85.0
+    },
+    "leak_by_scenario": {
+      "dutch": 33.17,
+      "english": 12.65,
+      "france": 19.71,
+      "german": 22.39,
+      "italian": 13.3,
+      "spanish": 17.54,
+      "swedish": 29.26
+    },
+    "samples": 1000,
+    "values": 5077
+  },
+  "presidio": {
+    "leak_rate": 43.39,
+    "partial_name_leak": 46.09,
+    "public_over_masking": null,
+    "text_kept": 91.09,
+    "detection": {
+      "precision": 17.77,
+      "recall": 49.26,
+      "f1": 26.12
+    },
+    "emails_kept_as_emails": 0.3,
+    "cards_still_luhn_valid": 0.0,
+    "round_trip": null,
+    "latency_ms": {
+      "p50": 22.72,
+      "p95": 37.56
+    },
+    "leak_by_label": {
+      "ADDRESS": 26.52,
+      "CREDIT_CARD": 31.82,
+      "DATE_OF_BIRTH": 7.14,
+      "EMAIL": 2.4,
+      "IBAN": 21.05,
+      "IP": 2.27,
+      "NATIONAL_ID": 10.0,
+      "ORG": 84.33,
+      "PERSON": 38.65,
+      "PHONE": 11.94,
+      "SECRET": 80.95,
+      "USERNAME": 55.0
+    },
+    "recall_by_label": {
+      "ADDRESS": 25.0,
+      "CREDIT_CARD": 68.18,
+      "DATE_OF_BIRTH": 92.86,
+      "EMAIL": 96.7,
+      "IBAN": 73.68,
+      "IP": 97.73,
+      "NATIONAL_ID": 90.0,
+      "ORG": 13.25,
+      "PERSON": 65.33,
+      "PHONE": 87.06,
+      "SECRET": 4.76,
+      "USERNAME": 45.0
+    },
+    "leak_by_scenario": {
+      "dutch": 43.41,
+      "english": 40.02,
+      "france": 51.01,
+      "german": 42.17,
+      "italian": 42.35,
+      "spanish": 50.88,
+      "swedish": 52.18
+    },
+    "samples": 1000,
+    "values": 5077
+  },
+  "scrubadub": {
+    "leak_rate": 91.06,
+    "partial_name_leak": 99.67,
+    "public_over_masking": null,
+    "text_kept": 98.67,
+    "detection": {
+      "precision": 56.41,
+      "recall": 9.1,
+      "f1": 15.67
+    },
+    "emails_kept_as_emails": 0.3,
+    "cards_still_luhn_valid": 13.64,
+    "round_trip": null,
+    "latency_ms": {
+      "p50": 0.64,
+      "p95": 1.81
+    },
+    "leak_by_label": {
+      "ADDRESS": 99.88,
+      "CREDIT_CARD": 81.82,
+      "DATE_OF_BIRTH": 100.0,
+      "EMAIL": 3.0,
+      "IBAN": 100.0,
+      "IP": 90.91,
+      "NATIONAL_ID": 74.44,
+      "ORG": 99.92,
+      "PERSON": 99.81,
+      "PHONE": 56.22,
+      "SECRET": 95.24,
+      "USERNAME": 80.0
+    },
+    "recall_by_label": {
+      "ADDRESS": 0.0,
+      "CREDIT_CARD": 18.18,
+      "DATE_OF_BIRTH": 0.0,
+      "EMAIL": 97.0,
+      "IBAN": 0.0,
+      "IP": 9.09,
+      "NATIONAL_ID": 27.78,
+      "ORG": 0.48,
+      "PERSON": 0.28,
+      "PHONE": 43.78,
+      "SECRET": 4.76,
+      "USERNAME": 20.0
+    },
+    "leak_by_scenario": {
+      "dutch": 94.15,
+      "english": 89.78,
+      "france": 88.7,
+      "german": 91.96,
+      "italian": 91.8,
+      "spanish": 91.98,
+      "swedish": 94.76
+    },
+    "samples": 1000,
+    "values": 5077
+  },
+  "shadow": {
+    "leak_rate": 30.94,
+    "partial_name_leak": 42.44,
+    "public_over_masking": null,
+    "text_kept": 98.83,
+    "detection": {
+      "precision": 89.08,
+      "recall": 69.75,
+      "f1": 78.24
+    },
+    "emails_kept_as_emails": 97.0,
+    "cards_still_luhn_valid": 81.82,
+    "round_trip": 100.0,
+    "latency_ms": {
+      "p50": 7.02,
+      "p95": 12.0
+    },
+    "leak_by_label": {
+      "ADDRESS": 10.16,
+      "CREDIT_CARD": 18.18,
+      "DATE_OF_BIRTH": 12.5,
+      "EMAIL": 2.7,
+      "IBAN": 5.26,
+      "IP": 4.55,
+      "NATIONAL_ID": 27.78,
+      "ORG": 46.37,
+      "PERSON": 38.79,
+      "PHONE": 3.98,
+      "SECRET": 35.71,
+      "USERNAME": 45.0
+    },
+    "recall_by_label": {
+      "ADDRESS": 89.14,
+      "CREDIT_CARD": 81.82,
+      "DATE_OF_BIRTH": 89.29,
+      "EMAIL": 96.1,
+      "IBAN": 94.74,
+      "IP": 95.45,
+      "NATIONAL_ID": 73.33,
+      "ORG": 54.68,
+      "PERSON": 62.61,
+      "PHONE": 96.02,
+      "SECRET": 64.29,
+      "USERNAME": 55.0
+    },
+    "leak_by_scenario": {
+      "dutch": 46.1,
+      "english": 21.42,
+      "france": 37.97,
+      "german": 39.13,
+      "italian": 36.59,
+      "spanish": 39.6,
+      "swedish": 43.89
+    },
+    "samples": 1000,
+    "values": 5077
+  },
+  "privacy_filter": {
+    "leak_rate": 48.59,
+    "partial_name_leak": 42.07,
+    "public_over_masking": null,
+    "text_kept": 98.89,
+    "detection": {
+      "precision": 62.03,
+      "recall": 51.23,
+      "f1": 56.12
+    },
+    "emails_kept_as_emails": 27.93,
+    "cards_still_luhn_valid": 9.09,
+    "round_trip": null,
+    "latency_ms": {
+      "p50": 433.72,
+      "p95": 1004.55
+    },
+    "leak_by_label": {
+      "ADDRESS": 30.72,
+      "CREDIT_CARD": 22.73,
+      "DATE_OF_BIRTH": 7.14,
+      "EMAIL": 34.23,
+      "IBAN": 7.89,
+      "IP": 18.18,
+      "NATIONAL_ID": 6.67,
+      "ORG": 95.64,
+      "PERSON": 37.76,
+      "PHONE": 29.35,
+      "SECRET": 19.05,
+      "USERNAME": 30.0
+    },
+    "recall_by_label": {
+      "ADDRESS": 58.53,
+      "CREDIT_CARD": 77.27,
+      "DATE_OF_BIRTH": 94.64,
+      "EMAIL": 67.57,
+      "IBAN": 92.11,
+      "IP": 77.27,
+      "NATIONAL_ID": 92.22,
+      "ORG": 5.01,
+      "PERSON": 65.51,
+      "PHONE": 70.15,
+      "SECRET": 78.57,
+      "USERNAME": 85.0
+    },
+    "leak_by_scenario": {
+      "dutch": 55.61,
+      "english": 47.53,
+      "france": 39.71,
+      "german": 48.7,
+      "italian": 48.78,
+      "spanish": 44.11,
+      "swedish": 58.52
+    },
+    "samples": 1000,
+    "values": 5077
+  },
+  "shadow+presidio": {
+    "leak_rate": 23.34,
+    "partial_name_leak": 30.42,
+    "public_over_masking": null,
+    "text_kept": 94.34,
+    "detection": {
+      "precision": 47.2,
+      "recall": 76.82,
+      "f1": 58.47
+    },
+    "emails_kept_as_emails": 97.0,
+    "cards_still_luhn_valid": 81.82,
+    "round_trip": 100.0,
+    "latency_ms": {
+      "p50": 64.42,
+      "p95": 84.97
+    },
+    "leak_by_label": {
+      "ADDRESS": 6.66,
+      "CREDIT_CARD": 18.18,
+      "DATE_OF_BIRTH": 12.5,
+      "EMAIL": 2.4,
+      "IBAN": 5.26,
+      "IP": 2.27,
+      "NATIONAL_ID": 24.44,
+      "ORG": 42.16,
+      "PERSON": 24.85,
+      "PHONE": 3.48,
+      "SECRET": 35.71,
+      "USERNAME": 45.0
+    },
+    "recall_by_label": {
+      "ADDRESS": 90.42,
+      "CREDIT_CARD": 81.82,
+      "DATE_OF_BIRTH": 89.29,
+      "EMAIL": 96.1,
+      "IBAN": 94.74,
+      "IP": 97.73,
+      "NATIONAL_ID": 77.78,
+      "ORG": 59.21,
+      "PERSON": 75.99,
+      "PHONE": 96.02,
+      "SECRET": 64.29,
+      "USERNAME": 60.0
+    },
+    "leak_by_scenario": {
+      "dutch": 32.2,
+      "english": 17.62,
+      "france": 30.72,
+      "german": 24.78,
+      "italian": 24.83,
+      "spanish": 27.82,
+      "swedish": 34.93
+    },
+    "samples": 1000,
+    "values": 5077
+  },
+  "shadow+ner": {
+    "leak_rate": 12.07,
+    "partial_name_leak": 21.71,
+    "public_over_masking": null,
+    "text_kept": 89.0,
+    "detection": {
+      "precision": 30.18,
+      "recall": 88.79,
+      "f1": 45.05
+    },
+    "emails_kept_as_emails": 99.7,
+    "cards_still_luhn_valid": 86.36,
+    "round_trip": 100.0,
+    "latency_ms": {
+      "p50": 5541.43,
+      "p95": 10319.3
+    },
+    "leak_by_label": {
+      "ADDRESS": 1.52,
+      "CREDIT_CARD": 0.0,
+      "DATE_OF_BIRTH": 7.14,
+      "EMAIL": 0.0,
+      "IBAN": 0.0,
+      "IP": 4.55,
+      "NATIONAL_ID": 1.11,
+      "ORG": 14.54,
+      "PERSON": 18.39,
+      "PHONE": 2.49,
+      "SECRET": 14.29,
+      "USERNAME": 45.0
+    },
+    "recall_by_label": {
+      "ADDRESS": 98.13,
+      "CREDIT_CARD": 90.91,
+      "DATE_OF_BIRTH": 92.86,
+      "EMAIL": 97.6,
+      "IBAN": 100.0,
+      "IP": 95.45,
+      "NATIONAL_ID": 97.78,
+      "ORG": 87.24,
+      "PERSON": 83.06,
+      "PHONE": 100.0,
+      "SECRET": 85.71,
+      "USERNAME": 55.0
+    },
+    "leak_by_scenario": {
+      "dutch": 26.83,
+      "english": 5.79,
+      "france": 11.88,
+      "german": 21.3,
+      "italian": 9.31,
+      "spanish": 12.03,
+      "swedish": 27.51
+    },
+    "samples": 1000,
+    "values": 5077
+  }
+}

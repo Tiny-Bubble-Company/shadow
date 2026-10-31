@@ -17,7 +17,7 @@ faq:
   - q: "How do I keep different clients' data apart?"
     a: "Give each client its own data directory with SHADOW_HOME. Each directory has its own persona, vault and key. For most freelancers one persona with every client name added as a term is enough."
   - q: "Does Shadow slow down my assistant?"
-    a: "Masking is local, in-process string work: about 7.5 ms per document on the benchmark set, which is small next to model latency. Streams are held back by at most the length of the longest fake."
+    a: "Masking is local, in-process string work: about 8 ms per document on the benchmark set, which is small next to model latency. Streams are held back by at most the length of the longest fake."
   - q: "What does it cost?"
     a: "Nothing. Shadow is Apache-2.0 open source with no account, no subscription and no telemetry."
 sidebar:

@@ -23,7 +23,7 @@ faq:
   - q: "Is DataFog free?"
     a: "Yes. DataFog is open source under the MIT licence. Shadow is open source under Apache-2.0. Both are free to self-host."
   - q: "Which is faster, DataFog or Shadow?"
-    a: "DataFog publishes its own latency figures for its regex mode and hook. Shadow's built-in rules take about 7.5 ms per document on the held-out benchmark. DataFog itself is not in that benchmark."
+    a: "DataFog publishes its own latency figures for its regex mode and hook. Shadow's built-in rules take about 8 ms per document on the held-out benchmark. DataFog itself is not in that benchmark."
 ---
 
 **DataFog is an open-source (MIT) Python library for detecting and redacting PII, with integrations for LiteLLM and Claude Code. Shadow is an open-source (Apache-2.0) privacy layer for AI traffic that replaces sensitive values with realistic, reversible fakes and restores them in the model's response.** DataFog is a light, flexible choice when one-way redaction is enough. Shadow is built for the full round trip, where the answer has to come back with the real names, emails and IDs.

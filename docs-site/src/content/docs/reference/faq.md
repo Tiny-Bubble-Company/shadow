@@ -22,7 +22,7 @@ In gateway mode, requests to `127.0.0.1:8877` fail. In proxy mode, tools fail to
 
 ### How much latency does it add?
 
-Masking is in-process string work on the request: about 7.5 ms per document with the built-in rules on the [benchmark](/shadow/benchmarks/) set, small next to model latency. Streams are delayed by at most a few characters (the length of the longest fake). Optional detectors add their own call time: the NER sidecar is capped by `timeout_ms`, and Presidio adds a local HTTP round trip.
+Masking is in-process string work on the request: about 8 ms per document with the built-in rules on the [benchmark](/shadow/benchmarks/) set, small next to model latency. Streams are delayed by at most a few characters (the length of the longest fake). Optional detectors add their own call time: the NER sidecar is capped by `timeout_ms`, and Presidio adds a local HTTP round trip.
 
 ### Can I see what was replaced?
 

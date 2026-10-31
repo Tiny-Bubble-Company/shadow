@@ -48,7 +48,7 @@ When you ask the model to write to or act on someone, that recipient is passed t
 
 ## Benchmarks
 
-On the held-out test set of the reproducible benchmark (https://getshadow.dev/benchmarks/), Shadow's built-in rules leaked 3.08% of sensitive values at about 7.5 ms per document, changed 0% of public names and round-tripped 100% of documents exactly. With the Presidio detector added, Shadow leaked 1.35%. Standalone tools leaked more: OpenAI Privacy Filter 11.01%, GLiNER multi PII 13.28%, Microsoft Presidio 20.74%, LLM Guard 29.26% and scrubadub 67.38%.
+On the held-out test set of the reproducible benchmark (https://getshadow.dev/benchmarks/), Shadow's built-in rules leaked 3.08% of sensitive values at about 8 ms per document, changed 0% of public names and round-tripped 100% of documents exactly. With the Presidio detector added, Shadow leaked 1.33%. Standalone tools leaked more: OpenAI Privacy Filter 11.01%, GLiNER multi PII 13.28%, Microsoft Presidio 20.74%, LLM Guard 29.26% and scrubadub 67.38%.
 
 ## Who it is for
 

@@ -24,7 +24,7 @@ faq:
   - q: Is Presidio still maintained by Microsoft?
     a: "As of October 2026 the repository redirects from microsoft/presidio to data-privacy-stack/presidio, and documentation lives at presidio.dataprivacystack.org. It is still MIT-licensed and actively released. Container images moved to ghcr.io/data-privacy-stack."
   - q: Which is more accurate, Presidio or Shadow?
-    a: "Accuracy depends on the dataset and how entity labels are mapped, and published Presidio numbers vary widely. Shadow can run Presidio as an extra detector. On Shadow's held-out benchmark, Presidio alone leaked 20.74% of sensitive values, Shadow's built-in rules 3.08%, and Shadow with Presidio as an extra detector 1.35%. See the Shadow benchmarks page."
+    a: "Accuracy depends on the dataset and how entity labels are mapped, and published Presidio numbers vary widely. Shadow can run Presidio as an extra detector. On Shadow's held-out benchmark, Presidio alone leaked 20.74% of sensitive values, Shadow's built-in rules 3.08%, and Shadow with Presidio as an extra detector 1.33%. See the Shadow benchmarks page."
   - q: Is Presidio free?
     a: Yes. Presidio is open source under the MIT licence. Shadow is open source under Apache-2.0. Both are free to self-host.
 ---
@@ -118,7 +118,7 @@ See [Detection: Presidio](/shadow/concepts/detection/#presidio) for setup.
 
 ## How do they compare on accuracy?
 
-Published Presidio results vary a lot with the dataset and label mapping, so a single number is misleading. Shadow's [benchmark](/shadow/benchmarks/) measures leak rate, over-masking, round-trip exactness and latency, with Presidio as a baseline and as a Shadow detector, and publishes its code and mappings. On the held-out set, Presidio alone leaked 20.74% of sensitive values, Shadow's built-in rules 3.08% (about 7.5 ms per document), and Shadow with Presidio as an extra detector 1.35%. On the third-party Gretel finance set every tool leaks more: Presidio alone 43.39%, Shadow's rules 31% and Shadow with Presidio 23.2%. GLiNER alone did best on that set (17.61%), so Shadow's rules are not the strongest detector everywhere.
+Published Presidio results vary a lot with the dataset and label mapping, so a single number is misleading. Shadow's [benchmark](/shadow/benchmarks/) measures leak rate, over-masking, round-trip exactness and latency, with Presidio as a baseline and as a Shadow detector, and publishes its code and mappings. On the held-out set, Presidio alone leaked 20.74% of sensitive values, Shadow's built-in rules 3.08% (about 8 ms per document), and Shadow with Presidio as an extra detector 1.33%. On the third-party Gretel finance set every tool leaks more: Presidio alone 43.39%, Shadow's rules 30.94% and Shadow with Presidio 23.34%. GLiNER alone did best on that set (17.61%), so Shadow's rules are not the strongest detector everywhere.
 
 ## Sources
 

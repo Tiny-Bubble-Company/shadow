@@ -4,7 +4,8 @@ import { LINKS } from './links';
 
 // Held-out test set results from the benchmarks page. Keep in sync with /benchmarks/.
 const rows = [
-	{ name: 'Shadow + Presidio detector', leak: 1.35, shadow: true },
+	{ name: 'Shadow + NER sidecar', leak: 0.09, shadow: true },
+	{ name: 'Shadow + Presidio detector', leak: 1.33, shadow: true },
 	{ name: 'Shadow, built-in rules only', leak: 3.08, shadow: true },
 	{ name: 'OpenAI Privacy Filter', leak: 11.01 },
 	{ name: 'GLiNER', leak: 13.28 },
@@ -15,7 +16,7 @@ const max = 30;
 const fmt = (n: number) => `${n.toFixed(2)}%`;
 const stats = [
 	{ value: '3.08%', label: 'of sensitive values leaked with built-in rules alone' },
-	{ value: '~7.5 ms', label: 'per document with built-in rules' },
+	{ value: '~8 ms', label: 'per document with built-in rules' },
 	{ value: '0%', label: 'public names changed by mistake' },
 	{ value: '100%', label: 'exact round trip back to the original text' },
 ];

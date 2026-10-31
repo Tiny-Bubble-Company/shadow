@@ -19,7 +19,7 @@ faq:
   - q: "Does it work with Azure OpenAI?"
     a: "Yes. Add a custom gateway route for your Azure resource under [proxy.routes], or use proxy mode, where *.openai.azure.com is intercepted by default."
   - q: "How much latency does masking add?"
-    a: "Built-in masking is local, in-process string work: about 7.5 ms per document on the benchmark set, small next to model latency. Optional detectors such as Presidio or the NER sidecar add a local HTTP call each."
+    a: "Built-in masking is local, in-process string work: about 8 ms per document on the benchmark set, small next to model latency. Optional detectors such as Presidio or the NER sidecar add a local HTTP call each."
 sidebar:
   order: 2
 ---

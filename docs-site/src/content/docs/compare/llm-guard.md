@@ -24,7 +24,7 @@ faq:
   - q: "Is LLM Guard free for commercial use?"
     a: "LLM Guard itself is MIT-licensed. Check the licences of the models it downloads: one optional recognizer model used by the Anonymize scanner is published under CC-BY-NC-4.0, which restricts commercial use."
   - q: "Which is faster, LLM Guard or Shadow?"
-    a: "LLM Guard publishes latency figures for its scanners, which depend on hardware and whether ONNX or a GPU is used. Shadow's built-in detectors are in-process Rust, about 7.5 ms per document on the held-out benchmark; optional NER models add their own time. See the Shadow benchmarks page for measured, reproducible numbers."
+    a: "LLM Guard publishes latency figures for its scanners, which depend on hardware and whether ONNX or a GPU is used. Shadow's built-in detectors are in-process Rust, about 8 ms per document on the held-out benchmark; optional NER models add their own time. See the Shadow benchmarks page for measured, reproducible numbers."
 ---
 
 **LLM Guard, from Protect AI, is an open-source Python toolkit of scanners that check LLM inputs and outputs, including an Anonymize/Deanonymize pair for PII. Shadow is an open-source privacy layer that does one job: it replaces sensitive values with realistic, reversible fakes before requests reach the provider and restores them in responses, streams and tool calls.** If you want a broad guardrail toolkit in Python, LLM Guard is a strong option. If you want PII masking with restoration for every tool on a machine that calls a supported AI API, without changing application code, Shadow is built for that.
@@ -104,7 +104,7 @@ Yes. They solve overlapping but different problems. A common split is LLM Guard 
 
 ## How do they compare on accuracy?
 
-Both tools' detection depends on configuration and models. Shadow's [benchmark](/shadow/benchmarks/) measures leak rate, over-masking, round-trip exactness and latency on a held-out test set, with published code and label mappings. On it, LLM Guard's Anonymize scanner leaked 29.26% of sensitive values, against 3.08% for Shadow's built-in rules (about 7.5 ms per document) and 1.35% for Shadow with the Presidio detector. On the third-party Gretel finance set, LLM Guard leaked 62.5% and Shadow's built-in rules 31%; there GLiNER alone did better than both, at 17.61%. LLM Guard's own documentation publishes latency figures; check them against your hardware.
+Both tools' detection depends on configuration and models. Shadow's [benchmark](/shadow/benchmarks/) measures leak rate, over-masking, round-trip exactness and latency on a held-out test set, with published code and label mappings. On it, LLM Guard's Anonymize scanner leaked 29.26% of sensitive values, against 3.08% for Shadow's built-in rules (about 8 ms per document) and 1.33% for Shadow with the Presidio detector. On the third-party Gretel finance set, LLM Guard leaked 62.5% and Shadow's built-in rules 30.94%; there GLiNER alone did better than both, at 17.61%. LLM Guard's own documentation publishes latency figures; check them against your hardware.
 
 ## Sources
 

@@ -99,7 +99,7 @@ A natural split: use Tonic Textual to de-identify the corpus you index for RAG o
 
 ## How do they compare on accuracy?
 
-Tonic's numbers are vendor-run on Tonic-selected data, and Tonic Textual is not in Shadow's [benchmark](/shadow/benchmarks/). On that benchmark's held-out set, Shadow's built-in rules leaked 3.08% of sensitive values (1.35% with the Presidio detector) and round-tripped 100% of documents exactly.
+Tonic's numbers are vendor-run on Tonic-selected data, and Tonic Textual is not in Shadow's [benchmark](/shadow/benchmarks/). On that benchmark's held-out set, Shadow's built-in rules leaked 3.08% of sensitive values (1.33% with the Presidio detector) and round-tripped 100% of documents exactly.
 
 ## Sources
 
