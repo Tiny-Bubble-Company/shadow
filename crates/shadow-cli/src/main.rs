@@ -1,6 +1,8 @@
 //! `shadow` — endpoint privacy layer for AI clouds.
 
+mod activity;
 mod service;
+mod top;
 mod ui;
 
 use std::io::{Read, Write};
@@ -93,6 +95,33 @@ enum Cmd {
     Terms(TermsCmd),
     /// List intercepted AI hosts and gateway routes.
     Hosts,
+    /// Live terminal dashboard: traffic, protected data, destinations, apps, incidents.
+    Top {
+        /// Show synthetic demo data instead of the running proxy.
+        #[arg(long)]
+        demo: bool,
+    },
+    /// Print an activity summary (for servers and scripts).
+    Activity {
+        /// 1h, 24h, 7d, 30d or today.
+        #[arg(long, short, default_value = "24h")]
+        window: String,
+        /// Print the summary as JSON.
+        #[arg(long)]
+        json: bool,
+        /// Summarise synthetic demo data.
+        #[arg(long)]
+        demo: bool,
+    },
+    /// Open the web dashboard in your browser.
+    Dashboard {
+        /// Open it with synthetic demo data.
+        #[arg(long)]
+        demo: bool,
+        /// Print the URL instead of opening a browser.
+        #[arg(long)]
+        print: bool,
+    },
 }
 
 #[derive(Args)]
@@ -220,6 +249,18 @@ fn real_main(cli: Cli) -> anyhow::Result<()> {
         Cmd::Vault(v) => vault(&open(&cli)?, v),
         Cmd::Terms(t) => terms(&open(&cli)?, t),
         Cmd::Hosts => hosts(&cli),
+        Cmd::Top { demo } => {
+            let source = if *demo {
+                activity::Source::demo()
+            } else {
+                activity::Source::live(&load_config(&cli)?)
+            };
+            top::run(source)
+        }
+        Cmd::Activity { window, json, demo } => {
+            activity::run(&load_config(&cli)?, window, *json, *demo)
+        }
+        Cmd::Dashboard { demo, print } => dashboard(&cli, *demo, *print),
     }
 }
 
@@ -663,6 +704,41 @@ fn terms(shadow: &Shadow, cmd: &TermsCmd) -> anyhow::Result<()> {
                 ui::table(&["KIND", "TERM"], &rows);
             }
         }
+    }
+    Ok(())
+}
+
+fn dashboard(cli: &Cli, demo: bool, print: bool) -> anyhow::Result<()> {
+    let cfg = load_config(cli)?;
+    let port = cfg
+        .proxy
+        .listen
+        .rsplit_once(':')
+        .map(|(_, p)| p.to_string())
+        .unwrap_or_else(|| "8877".into());
+    let url = format!(
+        "http://127.0.0.1:{port}/shadow/ui{}",
+        if demo { "?demo=1" } else { "" }
+    );
+    if print {
+        println!("{url}");
+        return Ok(());
+    }
+    if activity::http_get(&format!("127.0.0.1:{port}"), "/healthz").is_err() {
+        ui::warn("Shadow is not running; start it with `shadow run` (the page retries on its own)");
+    }
+    let status = if cfg!(target_os = "macos") {
+        std::process::Command::new("open").arg(&url).status()
+    } else if cfg!(windows) {
+        std::process::Command::new("cmd")
+            .args(["/C", "start", "", &url])
+            .status()
+    } else {
+        std::process::Command::new("xdg-open").arg(&url).status()
+    };
+    match status {
+        Ok(s) if s.success() => ui::ok(&format!("opened {url}")),
+        _ => println!("Open {url} in your browser."),
     }
     Ok(())
 }
