@@ -1,0 +1,148 @@
+/* Shadow docs theme: violet accent on a deep indigo night, matching assets/banner.svg. */
+
+:root {
+	--sl-font: Inter, 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+		'Helvetica Neue', Arial, sans-serif;
+	--sl-font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, SFMono-Regular, Menlo, Consolas,
+		'Liberation Mono', monospace;
+	--shadow-glow: rgba(124, 108, 255, 0.28);
+}
+
+/* Dark mode (default) */
+:root,
+::backdrop {
+	--sl-color-accent-low: #221c52;
+	--sl-color-accent: #7c6cff;
+	--sl-color-accent-high: #d4ccff;
+	--sl-color-white: #ffffff;
+	--sl-color-gray-1: #ecebf7;
+	--sl-color-gray-2: #c4c1dc;
+	--sl-color-gray-3: #9893bb;
+	--sl-color-gray-4: #5f5a82;
+	--sl-color-gray-5: #3a3660;
+	--sl-color-gray-6: #1d1a3a;
+	--sl-color-black: #0d0c1a;
+}
+
+/* Light mode */
+:root[data-theme='light'],
+[data-theme='light'] ::backdrop {
+	--sl-color-accent-low: #e4e0ff;
+	--sl-color-accent: #5a48e8;
+	--sl-color-accent-high: #2a1f7a;
+	--sl-color-white: #13112a;
+	--sl-color-gray-1: #1f1c3d;
+	--sl-color-gray-2: #35315a;
+	--sl-color-gray-3: #59557c;
+	--sl-color-gray-4: #8a86aa;
+	--sl-color-gray-5: #c5c2dc;
+	--sl-color-gray-6: #edebf8;
+	--sl-color-gray-7: #f6f5fc;
+	--sl-color-black: #ffffff;
+	--shadow-glow: rgba(90, 72, 232, 0.14);
+}
+
+/* Header: subtle translucent bar */
+.header {
+	backdrop-filter: saturate(140%) blur(8px);
+}
+:root:not([data-theme='light']) .header {
+	background-color: rgba(13, 12, 26, 0.82);
+}
+
+.site-title {
+	font-weight: 700;
+	letter-spacing: -0.02em;
+}
+
+/* Headings */
+.sl-markdown-content :is(h1, h2, h3) {
+	letter-spacing: -0.015em;
+}
+.sl-markdown-content h2 {
+	padding-top: 0.25rem;
+}
+
+/* Tables: denser, with a header tint */
+.sl-markdown-content table {
+	font-size: 0.92em;
+}
+.sl-markdown-content th {
+	background-color: var(--sl-color-gray-6);
+}
+
+/* Inline code: accent tint */
+.sl-markdown-content :not(pre) > code {
+	background-color: var(--sl-color-accent-low);
+	color: var(--sl-color-accent-high);
+	border: 0;
+	padding: 0.1em 0.35em;
+	border-radius: 0.3em;
+}
+
+/* Diagrams */
+.sl-markdown-content img[src*='architecture'] {
+	border-radius: 14px;
+	box-shadow: 0 18px 50px -20px var(--shadow-glow);
+}
+
+/* Splash hero */
+[data-has-hero] .page {
+	background:
+		radial-gradient(60rem 30rem at 20% -10%, var(--shadow-glow), transparent 70%),
+		radial-gradient(40rem 24rem at 100% 30%, rgba(56, 189, 248, 0.08), transparent 70%);
+}
+.hero {
+	padding-block: clamp(2rem, 6vw, 4.5rem);
+}
+.hero h1 {
+	font-size: clamp(2.6rem, 6vw, 4rem);
+	letter-spacing: -0.035em;
+	background: linear-gradient(90deg, var(--sl-color-white), var(--sl-color-accent-high));
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+}
+.hero img {
+	filter: drop-shadow(0 20px 60px var(--shadow-glow));
+}
+
+/* Cards on the landing page */
+.card {
+	border-radius: 14px;
+	transition:
+		border-color 0.15s ease,
+		transform 0.15s ease;
+}
+.card:hover {
+	border-color: var(--sl-color-accent);
+	transform: translateY(-2px);
+}
+
+/* Real -> fake demo block on the landing page */
+.translation {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+	gap: 0.4rem 1rem;
+	align-items: center;
+	font-family: var(--sl-font-mono);
+	font-size: 0.9rem;
+	padding: 1.1rem 1.25rem;
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 14px;
+	background: var(--sl-color-gray-6);
+	overflow-wrap: anywhere;
+}
+.translation .arrow {
+	color: var(--sl-color-accent);
+}
+.translation .fake {
+	color: var(--sl-color-accent-high);
+}
+.translation .head {
+	font-family: var(--sl-font);
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--sl-color-gray-3);
+}

@@ -1,0 +1,62 @@
+name: Bug report
+description: Something in Shadow does not work as documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. **Do not include real personal data, real secrets or vault contents.** Replace values with obvious fakes.
+        Security vulnerabilities go through [SECURITY.md](https://github.com/Tiny-Bubble-Company/shadow/blob/main/SECURITY.md), not here.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Commands, config and a minimal request (with fake data) that show the problem.
+      placeholder: |
+        1. shadow init --org "Example GmbH"
+        2. echo "..." | shadow mask
+        3. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options:
+        - Proxy (HTTPS_PROXY / PAC)
+        - Gateway (/gw/...)
+        - Library (shadow-core)
+        - CLI only (mask / scan / ...)
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Shadow version
+      description: Output of `shadow --version`, or the commit.
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS and client
+      description: e.g. macOS 15.1, OpenAI Python SDK 1.x
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant configuration
+      description: The relevant parts of shadow.toml, with sensitive values removed.
+      render: toml
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Output of `shadow status` and a `RUST_LOG=debug shadow run` excerpt, with sensitive values removed.
+      render: text

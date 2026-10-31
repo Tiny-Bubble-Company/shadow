@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://tiny-bubble-company.github.io/shadow/
+    about: Guides, configuration and CLI reference.
+  - name: Report a security vulnerability
+    url: https://github.com/Tiny-Bubble-Company/shadow/security/advisories/new
+    about: Please report vulnerabilities privately.

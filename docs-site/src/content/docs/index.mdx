@@ -1,0 +1,76 @@
+---
+title: Shadow
+description: Privacy layer for AI traffic. Your data leaves under a different name.
+template: splash
+editUrl: false
+hero:
+  title: Shadow
+  tagline: The privacy layer for AI traffic. Shadow swaps names, emails, customers and secrets for realistic, reversible fakes before a request leaves your machine, and restores them in the answer.
+  image:
+    file: ../../assets/logo.svg
+    alt: Shadow logo, a crescent partly covered by a shadow
+  actions:
+    - text: Get started
+      link: /shadow/getting-started/quick-start/
+      icon: right-arrow
+    - text: How it works
+      link: /shadow/concepts/how-it-works/
+      variant: minimal
+    - text: GitHub
+      link: https://github.com/Tiny-Bubble-Company/shadow
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+<div class="translation" aria-label="Example translation">
+	<span class="head">You write</span><span></span><span class="head">The provider sees</span>
+	<span>{'jane@acme.com'}</span><span class="arrow">→</span><span class="fake">{'hui.zhao@zhilan.cn'}</span>
+	<span>Acme GmbH</span><span class="arrow">→</span><span class="fake">Zhilan Technology Co., Ltd.</span>
+	<span>Project Falcon</span><span class="arrow">→</span><span class="fake">Velora Quilent</span>
+	<span>4111 1111 1111 1111</span><span class="arrow">→</span><span class="fake">4837 2191 9471 3480</span>
+	<span>/Users/jdoe/src/billing</span><span class="arrow">→</span><span class="fake">/Users/huizhao/src/billing</span>
+</div>
+
+The answer comes back with every fake turned back into the real value, streamed responses included. Your tools never notice. The provider never sees the original.
+
+## Why Shadow
+
+<CardGrid>
+	<Card title="Translate, don't block" icon="random">
+		DLP gateways block requests, and people route around them. Shadow keeps the prompt
+		coherent: a fake email is still an email and a fake IBAN still passes mod-97, so the
+		model still gives a useful answer.
+	</Card>
+	<Card title="Runs on the endpoint" icon="laptop">
+		A single Rust binary on macOS, Linux or Windows, or a library inside your service.
+		No cloud, no account, no telemetry. The mapping lives in an encrypted vault on the
+		machine.
+	</Card>
+	<Card title="Works with any tool" icon="puzzle">
+		Use it as an HTTPS proxy for every app, as a gateway base URL for SDKs, or embed
+		`shadow-core` in Rust. Non-AI traffic is tunnelled without decryption.
+	</Card>
+	<Card title="Stream and tool-call aware" icon="comment-alt">
+		Fakes split across SSE events are reassembled and restored. Tool-call arguments are
+		restored on your machine before your tools run, so agents keep working.
+	</Card>
+	<Card title="Intent-aware policy" icon="setting">
+		Each request is classified as act, report, code or converse. Reports get typed
+		tokens, actions keep working through local tools, and secrets are always redacted.
+	</Card>
+	<Card title="Files too" icon="document">
+		Uploaded text, CSV, JSON, DOCX, XLSX, PPTX and PDF content is masked before it leaves,
+		and Office documents stay valid documents.
+	</Card>
+</CardGrid>
+
+## Start here
+
+<CardGrid>
+	<LinkCard title="Quick start" description="Install, start the proxy and send your first protected request in five minutes." href="/shadow/getting-started/quick-start/" />
+	<LinkCard title="Choose an integration mode" description="Proxy, gateway or embedded library: which one fits your setup." href="/shadow/integrate/overview/" />
+	<LinkCard title="Intent-aware policy" description="How Shadow decides between a fake, a token, the real value or a redaction." href="/shadow/concepts/intent-policy/" />
+	<LinkCard title="Security model" description="What Shadow protects, what it does not, and why." href="/shadow/reference/security/" />
+</CardGrid>

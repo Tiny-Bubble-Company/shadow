@@ -1,0 +1,136 @@
+---
+title: Installation
+description: Install Shadow on macOS, Linux or Windows, from source with Cargo, in Docker, or as a background service.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+Shadow is a single static binary called `shadow`. It has no runtime dependencies: no OpenSSL, no Python, no Node. Building from source needs Rust 1.88 or newer.
+
+## Install script
+
+<Tabs syncKey="os">
+<TabItem label="macOS / Linux">
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+```
+
+The script:
+
+1. detects your platform (`aarch64` or `x86_64`, `apple-darwin` or `unknown-linux-gnu`);
+2. downloads `shadow-<target>.tar.gz` from the latest GitHub release if one exists, otherwise builds from source with `cargo install`;
+3. installs the binary to `~/.local/bin/shadow` (override with `SHADOW_BIN_DIR`);
+4. runs `shadow init` to create the persona, vault key and CA.
+
+It never changes system settings. That is what `shadow install --apply` is for.
+
+</TabItem>
+<TabItem label="Windows">
+
+```powershell
+irm https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.ps1 | iex
+```
+
+The script installs `shadow.exe` to `%LOCALAPPDATA%\Shadow`, adds that folder to your user `PATH`, and runs `shadow init`. It downloads a release zip when available and falls back to `cargo install`. Only 64-bit Windows is supported.
+
+</TabItem>
+</Tabs>
+
+<Aside>
+Prefer to read a script before running it? Download it first, inspect it, then run it with `sh install.sh`. Set `SHADOW_REPO` to install from a fork or mirror.
+</Aside>
+
+## From source with Cargo
+
+```sh
+cargo install --locked --git https://github.com/Tiny-Bubble-Company/shadow shadow-cli
+shadow init
+```
+
+Or from a clone:
+
+```sh
+git clone https://github.com/Tiny-Bubble-Company/shadow
+cd shadow
+cargo build --release -p shadow-cli
+./target/release/shadow --version
+```
+
+## Docker
+
+The repository ships a two-stage `Dockerfile` that builds Shadow and runs it as an unprivileged user (UID 10001) with its data in `/data`.
+
+```sh
+docker build -f packaging/Dockerfile -t shadow .
+docker run -d --name shadow \
+  -p 127.0.0.1:8877:8877 \
+  -v shadow-data:/data \
+  shadow
+```
+
+The container runs `shadow run --listen 0.0.0.0:8877`, has a health check based on `shadow status --quiet`, and keeps the persona, vault and CA in the `/data` volume. Keep that volume: it holds the mapping needed to restore responses. See [Docker and Kubernetes](/shadow/integrate/docker-kubernetes/) for sidecar patterns.
+
+## Run as a background service
+
+`shadow install` sets Shadow up to start at login and trusts the local CA. It is a **dry run by default**: it prints every file it would write and every command it would run. Add `--apply` to perform the steps.
+
+```sh
+shadow install            # show the plan
+shadow install --apply    # do it
+```
+
+What it does per platform:
+
+| Platform | Service | CA trust |
+|---|---|---|
+| macOS | LaunchAgent `~/Library/LaunchAgents/dev.shadow.proxy.plist`, loaded with `launchctl bootstrap gui/<uid>` | `security add-trusted-cert -r trustRoot` into your login keychain |
+| Linux | systemd user unit `~/.config/systemd/user/shadow.service`, `systemctl --user enable --now` | Copies the CA to `/usr/local/share/ca-certificates` and runs `update-ca-certificates` (Debian, Ubuntu), or to `/etc/pki/ca-trust/source/anchors` and runs `update-ca-trust` (Fedora, RHEL). Uses `sudo`. |
+| Windows | Scheduled Task `Shadow` that runs at logon with limited rights | `certutil -user -addstore Root`; also sets `SHADOW_HOME` for your user |
+
+With `--apply`, it also writes `env.sh` (or `env.ps1` on Windows) to the data directory with the proxy variables for your shell profile.
+
+To remove everything:
+
+```sh
+shadow uninstall           # dry run
+shadow uninstall --apply
+```
+
+The systemd unit is hardened (`NoNewPrivileges`, `ProtectSystem=strict`, write access only to the data directory). For a system-wide server install, copy `packaging/linux/shadow.service` to `/etc/systemd/system/`, add a `User=` line and point `SHADOW_HOME` at a directory that user owns. On Windows, `packaging/windows/install-service.ps1` registers the same Scheduled Task from PowerShell; wrap `shadow.exe run` with NSSM or WinSW if you need a machine-wide Windows service.
+
+## Data directory
+
+Everything Shadow keeps lives in one directory:
+
+| OS | Default |
+|---|---|
+| macOS | `~/Library/Application Support/shadow` |
+| Linux | `~/.local/share/shadow` |
+| Windows | `%APPDATA%\shadow` |
+
+Override it with `SHADOW_HOME`, `--data-dir`, or `data_dir` in `shadow.toml`.
+
+| File | Contents |
+|---|---|
+| `shadow.toml` | Configuration ([reference](/shadow/reference/configuration/)) |
+| `persona.json` | The fake identity of this machine |
+| `vault.bin` | Encrypted real↔fake mapping |
+| `vault.key` | 32-byte vault key, mode `0600` |
+| `terms.json` | Terms added with `shadow terms add` |
+| `ca/ca.pem`, `ca/ca.key` | Local CA certificate and key (`0600`) |
+| `ca/bundle.pem` | System roots plus the Shadow CA, for runtimes that replace their trust store |
+
+## Verify the install
+
+```sh
+shadow --version
+shadow status
+```
+
+`shadow status` reports whether the proxy answers on its listen address, the persona, the vault size, the CA fingerprint, whether the model detector is on, and whether an upstream proxy is configured.
+
+## Optional components
+
+- **NER sidecar.** A small PyTorch model in `ml/` that finds free-text names. See [Detection](/shadow/concepts/detection/#local-ner-sidecar).
+- **Presidio.** Microsoft's PII analyzer as an extra detector. See [Detection](/shadow/concepts/detection/#presidio).

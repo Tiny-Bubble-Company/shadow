@@ -1,0 +1,149 @@
+---
+title: Proxy mode
+description: Use Shadow as an HTTPS forward proxy for every tool on a machine. Trusting the local CA, intercepted hosts, bypass and PAC files.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+In proxy mode, tools send their traffic to Shadow with the standard `HTTPS_PROXY` setting. For each connection, Shadow looks at the destination host:
+
+- **Known AI host** (for example `api.openai.com`): Shadow terminates TLS with a certificate from its local CA, masks the request, forwards it to the real host over a fresh TLS connection, and restores the response.
+- **Any other host**: Shadow opens a plain TCP tunnel and copies bytes in both directions. It never sees the content, because it never holds a certificate for that host.
+
+TLS is terminated only on your machine, before the request is encrypted again for the provider.
+
+## 1. Start Shadow
+
+```sh
+shadow run                      # foreground
+# or, as a background service with the CA trusted:
+shadow install --apply
+```
+
+## 2. Trust the local CA
+
+`shadow init` creates a CA at `<data dir>/ca/ca.pem`. Its private key is created with mode `0600` and never leaves the machine. The CA is constrained (path length 0) and valid for 10 years. Leaf certificates are minted in memory per host.
+
+`shadow install --apply` adds the CA to the OS trust store. To do it by hand:
+
+<Tabs syncKey="os">
+<TabItem label="macOS">
+```sh
+security add-trusted-cert -r trustRoot \
+  -k ~/Library/Keychains/login.keychain-db \
+  ~/Library/Application\ Support/shadow/ca/ca.pem
+```
+</TabItem>
+<TabItem label="Debian / Ubuntu">
+```sh
+sudo cp ~/.local/share/shadow/ca/ca.pem /usr/local/share/ca-certificates/shadow-local-ca.crt
+sudo update-ca-certificates
+```
+</TabItem>
+<TabItem label="Fedora / RHEL">
+```sh
+sudo cp ~/.local/share/shadow/ca/ca.pem /etc/pki/ca-trust/source/anchors/shadow-local-ca.pem
+sudo update-ca-trust
+```
+</TabItem>
+<TabItem label="Windows">
+```powershell
+certutil -user -addstore Root "$env:APPDATA\shadow\ca\ca.pem"
+```
+</TabItem>
+</Tabs>
+
+The running proxy also serves the CA at `http://127.0.0.1:8877/shadow/ca.pem`, which is handy in containers.
+
+### Runtimes with their own trust store
+
+Several runtimes ignore the OS trust store. Point them at Shadow's files:
+
+| Runtime | Variable | Value |
+|---|---|---|
+| Node.js | `NODE_EXTRA_CA_CERTS` | `ca/ca.pem` (adds to the built-in roots) |
+| Python `requests` | `REQUESTS_CA_BUNDLE` | `ca/bundle.pem` |
+| Python `httpx`, OpenSSL-based tools | `SSL_CERT_FILE` | `ca/bundle.pem` |
+| curl | `CURL_CA_BUNDLE` | `ca/bundle.pem` |
+
+`bundle.pem` contains the system roots plus the Shadow CA, because these variables *replace* the trust store rather than extend it.
+
+## 3. Set the proxy environment
+
+`shadow install` prints the exact lines for your data directory, and `--apply` writes them to `<data dir>/env.sh` (or `env.ps1`):
+
+<Tabs syncKey="os">
+<TabItem label="macOS / Linux">
+```sh
+export HTTPS_PROXY=http://127.0.0.1:8877
+export NO_PROXY=localhost,127.0.0.1
+export NODE_EXTRA_CA_CERTS="$HOME/Library/Application Support/shadow/ca/ca.pem"
+export REQUESTS_CA_BUNDLE="$HOME/Library/Application Support/shadow/ca/bundle.pem"
+export SSL_CERT_FILE="$HOME/Library/Application Support/shadow/ca/bundle.pem"
+export CURL_CA_BUNDLE="$HOME/Library/Application Support/shadow/ca/bundle.pem"
+```
+On Linux the paths are under `~/.local/share/shadow`.
+</TabItem>
+<TabItem label="Windows">
+```powershell
+$env:HTTPS_PROXY = "http://127.0.0.1:8877"
+$env:NO_PROXY = "localhost,127.0.0.1"
+$env:NODE_EXTRA_CA_CERTS = "$env:APPDATA\shadow\ca\ca.pem"
+$env:REQUESTS_CA_BUNDLE = "$env:APPDATA\shadow\ca\bundle.pem"
+$env:SSL_CERT_FILE = "$env:APPDATA\shadow\ca\bundle.pem"
+$env:CURL_CA_BUNDLE = "$env:APPDATA\shadow\ca\bundle.pem"
+```
+</TabItem>
+</Tabs>
+
+Add `source "<data dir>/env.sh"` to `~/.zshrc` or `~/.bashrc` to make it permanent.
+
+## System-wide with a PAC file
+
+Apps that use the OS proxy settings (browsers, many desktop apps) can use the PAC file Shadow serves at `/proxy.pac`. It sends only the intercepted hosts through Shadow and everything else direct:
+
+```sh
+# macOS
+networksetup -setautoproxyurl "Wi-Fi" http://127.0.0.1:8877/proxy.pac
+```
+
+On Windows, set it under *Settings → Network → Proxy → Use setup script*. On GNOME, under *Settings → Network → Network Proxy → Automatic*.
+
+## Which hosts are intercepted
+
+Run `shadow hosts` to list the patterns in effect. The built-in list covers OpenAI, Anthropic, OpenRouter, Google Gemini and Vertex AI, Azure OpenAI and Azure AI services, Mistral, Groq, Together, DeepSeek, xAI, AWS Bedrock runtime, Cohere, Perplexity, Fireworks, Cerebras and Voyage AI. The full list is in [Supported providers](/shadow/reference/providers/).
+
+Add hosts, such as a self-hosted LLM gateway, with `extra_hosts`. Exclude hosts with `bypass_hosts`. Both accept `*` globs:
+
+```toml
+[proxy]
+extra_hosts = ["llm.internal.example.com", "*.inference.example.net"]
+bypass_hosts = ["api.cohere.com"]
+```
+
+A bypassed host is tunnelled like any non-AI host: never decrypted, never masked.
+
+## Plain HTTP
+
+Absolute-form HTTP requests (`http://host/...` sent to the proxy) are forwarded too. They are masked only if the host is on the intercept list.
+
+## Egress through a relay
+
+Translation hides content, not your IP address. To make AI traffic leave from somewhere else, for example a relay in the persona's region, set an upstream proxy. It applies to intercepted traffic only:
+
+```toml
+[proxy]
+upstream_proxy = "socks5h://relay.example.net:1080"   # http://, socks5:// or socks5h://
+```
+
+## Bypassing Shadow
+
+If Shadow is stopped, tools configured with `HTTPS_PROXY` fail to connect. To bypass it temporarily, unset the variable for one command:
+
+```sh
+env -u HTTPS_PROXY your-tool
+```
+
+<Aside type="caution" title="Certificate pinning">
+Apps that pin their TLS certificates reject any CA they don't expect, including Shadow's. They fail in proxy mode. Use gateway mode for those tools where possible, or add their host to `bypass_hosts`.
+</Aside>

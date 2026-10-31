@@ -1,0 +1,136 @@
+---
+title: Quick start
+description: Install Shadow, create a persona, start the proxy and send your first protected request.
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+This guide takes about five minutes. You will install the `shadow` binary, create a persona for your machine, start Shadow in the foreground and send a request through it.
+
+<Steps>
+
+1. **Install Shadow**
+
+   <Tabs syncKey="os">
+   <TabItem label="macOS / Linux">
+   ```sh
+   curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+   ```
+   </TabItem>
+   <TabItem label="Windows">
+   ```powershell
+   irm https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.ps1 | iex
+   ```
+   </TabItem>
+   <TabItem label="Cargo">
+   ```sh
+   cargo install --locked --git https://github.com/Tiny-Bubble-Company/shadow shadow-cli
+   ```
+   </TabItem>
+   </Tabs>
+
+   The install script downloads a release binary when one exists for your platform and otherwise builds from source with `cargo`. It never changes system settings. See [Installation](/shadow/getting-started/installation/) for Docker and service setups.
+
+2. **Create the persona, vault key and local CA**
+
+   ```sh
+   shadow init --org "Acme GmbH"
+   ```
+
+   `--org` names your organisation. Shadow protects it (and the bare name `Acme`) and maps it to the persona's company. You can pass `--org` several times, and `--region JP` to choose where the persona lives.
+
+   ```text
+   ◆ Persona — what AI providers see
+     company         Xinghe Technology Co., Ltd. (xinghe.cn)
+     person          Ying Chen <ying.chen@xinghe.cn>
+     location        Chengdu, China · Asia/Shanghai · zh-CN
+     user id         user-941ea3e72322
+     username        yingchen
+     hostname        xinghe-srv-11
+     colleagues      Tao Zhu, Hui Yang, Lei Li, Yong Xu
+   ```
+
+   Your persona will differ: it is generated randomly once and then kept.
+
+3. **Try masking offline**
+
+   ```sh
+   echo "Mail jane@acme.com re Acme GmbH, card 4111 1111 1111 1111, see /Users/jdoe/src" | shadow mask
+   ```
+
+   ```text
+   Mail tsun@xinghe.cn re Xinghe Technology Co., Ltd., card 4261 8002 0172 9224, see /Users/jwang/src
+   ```
+
+   Pipe the output into `shadow unmask` and you get the original back. Nothing is sent anywhere by these commands.
+
+4. **Start Shadow**
+
+   ```sh
+   shadow run
+   ```
+
+   Shadow listens on `127.0.0.1:8877` as both an HTTPS proxy and a gateway. Leave it running and open a second terminal.
+
+5. **Send a protected request**
+
+   The quickest path is **gateway mode**, which needs no certificate setup. Point the OpenAI base URL at Shadow:
+
+   ```sh
+   curl http://127.0.0.1:8877/gw/openai/v1/chat/completions \
+     -H "Authorization: Bearer $OPENAI_API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"Write a one-line greeting to jane@acme.com from Acme GmbH."}]}'
+   ```
+
+   The provider receives the persona's email and company. The response you get back contains `jane@acme.com` and `Acme GmbH`. With `shadow run` in the foreground, the log shows how many values were replaced for each request, never the values themselves.
+
+   Most SDKs read a base URL from the environment, so existing tools often need just one variable:
+
+   ```sh
+   export OPENAI_BASE_URL=http://127.0.0.1:8877/gw/openai/v1
+   export ANTHROPIC_BASE_URL=http://127.0.0.1:8877/gw/anthropic
+   ```
+
+6. **Verify**
+
+   ```sh
+   shadow status            # proxy health, persona, vault size, CA fingerprint
+   shadow identity          # the persona providers see
+   shadow vault stats       # how many values are protected, by kind
+   shadow scan prompt.txt   # what Shadow would replace in a file, without changing it
+   ```
+
+</Steps>
+
+## Cover every tool: proxy mode
+
+Gateway mode works for anything that accepts a base URL. To cover tools that don't, such as IDE extensions, desktop apps and scripts, use Shadow as an HTTPS proxy. That needs the local CA to be trusted once:
+
+```sh
+shadow install            # dry run: prints every step it would take
+shadow install --apply    # background service + CA trust + env file
+```
+
+Then add the printed environment (also written to `<data dir>/env.sh`) to your shell profile:
+
+```sh
+export HTTPS_PROXY=http://127.0.0.1:8877
+export NO_PROXY=localhost,127.0.0.1
+```
+
+Only known AI hosts are decrypted. Everything else passes through a blind tunnel. Details in [Proxy mode](/shadow/integrate/proxy-mode/).
+
+<Aside type="tip" title="Protect your own vocabulary">
+Detectors find structured values on their own. Add the names they cannot know about, such as codenames, customers and people:
+
+```sh
+shadow terms add "Project Falcon" "org:Globex" "person:Jane Doe"
+```
+</Aside>
+
+## What next
+
+- [Choose an integration mode](/shadow/integrate/overview/) for each of your tools.
+- Read about [intent-aware policy](/shadow/concepts/intent-policy/) before using agents with tools.
+- Review the [configuration reference](/shadow/reference/configuration/).

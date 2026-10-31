@@ -6,3 +6,8 @@ __pycache__/
 .shadow/
 vault.key
 vault.bin
+
+# docs site
+docs-site/node_modules/
+docs-site/dist/
+docs-site/.astro/

@@ -90,3 +90,34 @@ strip_headers = [
 [proxy.routes]
 # azure = "https://my-resource.openai.azure.com"
 # bedrock = "https://bedrock-runtime.eu-central-1.amazonaws.com"
+
+# ---------------------------------------------------------------------------------------
+# Intent-aware policy, file masking and Presidio. Shown commented out with their defaults
+# (except where noted); see https://tiny-bubble-company.github.io/shadow/reference/configuration/
+
+# [policy]
+# intent = true                  # classify each request: act | report | code | converse
+# [policy.act]
+# targets = "surrogate"          # surrogate | keep: values an action is aimed at (local tools)
+# remote_tool_targets = "keep"   # when the action runs in the provider's cloud; every keep is logged
+# [policy.report]
+# person = "token"               # typed placeholders such as [PERSON_0001], restored in the answer
+# email = "token"
+# phone = "token"
+# address = "token"
+# default = "surrogate"
+# [policy.always]                # empty by default; applies to every request
+# secret = "redact"              # opt in: irreversible [REDACTED_SECRET]
+
+# [files]
+# enabled = true
+# pdf = "text"                   # text | block | pass
+# images = "pass"                # pass | block (no OCR yet)
+# max_bytes = 52428800
+
+# [presidio]                     # docker run -p 127.0.0.1:5002:3000 mcr.microsoft.com/presidio-analyzer
+# enabled = true                 # default false
+# url = "http://127.0.0.1:5002/analyze"
+# language = "en"
+# min_score = 0.5
+# entities = []                  # empty = all

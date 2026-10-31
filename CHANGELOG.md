@@ -1,0 +1,35 @@
+# Changelog
+
+All notable changes to Shadow are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- **Intent-aware policy.** Each request is classified as `act`, `report`, `code` or `converse`, and every detected value gets a treatment: `surrogate` (default), `token` (typed placeholders such as `[PERSON_0001]`), `keep` (for action targets in provider-hosted tools, always logged) or `redact` (opt-in, irreversible). Configured under `[policy]`, `[policy.act]`, `[policy.report]` and `[policy.always]`.
+- **Session API** in `shadow-core`: `Shadow::session_for(&request_json)` and `Shadow::session(RequestContext { .. })`, with `mask`, `mask_json`, `unmask`, `unmask_json`, `stream_unmasker`, `classification` and `summary`.
+- **File masking.** `multipart/form-data` uploads, base64 file payloads in JSON (OpenAI `input_file.file_data`, Anthropic `document` blocks, Gemini `inline_data`) and `data:` URIs. Text, Markdown, CSV, JSON, HTML and XML masked as text; DOCX, XLSX and PPTX masked in place; PDF text extracted, masked and sent as text; images passed through or blocked. Configured under `[files]`.
+- **Presidio integration.** A Microsoft Presidio Analyzer can be used as an additional detector. Findings are merged with the built-in detectors; Shadow fails open if Presidio is unavailable. Configured under `[presidio]`.
+- **Documentation site** built with Astro Starlight in `docs-site/`, with a GitHub Pages workflow.
+- New README, logo and banner, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, issue and pull request templates.
+
+### Removed
+
+- The single-page `docs/index.html`, replaced by the documentation site.
+
+## [0.1.0]
+
+Initial release.
+
+### Added
+
+- `shadow-core`: detection of emails, phones, person names, street addresses, IBANs (mod-97), payment cards (Luhn), national IDs (SSN, NINO, Aadhaar), IPv4/IPv6, MACs, internal hostnames, secrets and home-directory usernames; dictionary terms and local machine facts; a persistent persona with 11 regions; format-preserving fakes; a ChaCha20-Poly1305 encrypted vault with atomic, multi-process-safe writes; JSON and streaming unmaskers; the `Detector` trait for custom detectors.
+- `shadow-proxy`: HTTPS forward proxy with a local CA that terminates TLS only for known AI hosts; `/gw/<provider>` gateway with 14 built-in routes; PAC file; SSE and NDJSON restoration with split-fake reassembly for OpenAI, Anthropic, Gemini, Cohere and Ollama-style streams; identifier and header scrubbing; upstream proxy support; SigV4 detection.
+- `shadow` CLI: `init`, `run`, `install` / `uninstall` (dry run by default), `status`, `identity`, `mask`, `unmask`, `scan`, `vault`, `terms`, `hosts`.
+- Optional PyTorch NER sidecar in `ml/`.
+- Packaging: install scripts for macOS, Linux and Windows; launchd, systemd and Scheduled Task integration; Dockerfile.
+
+[Unreleased]: https://github.com/Tiny-Bubble-Company/shadow/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/Tiny-Bubble-Company/shadow/releases/tag/v0.1.0

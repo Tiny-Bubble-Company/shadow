@@ -1,0 +1,207 @@
+---
+title: Gateway mode
+description: Point an SDK's base URL at Shadow. Routes per provider and examples for OpenAI, Anthropic, OpenRouter and Gemini in Python, Node.js and curl.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+In gateway mode, Shadow acts as an explicit reverse proxy. You change the base URL of your SDK or tool, and nothing else:
+
+```text
+http://127.0.0.1:8877/gw/<route>/<path>   →   <route base>/<path>
+```
+
+For example, `http://127.0.0.1:8877/gw/openai/v1/chat/completions` is forwarded to `https://api.openai.com/v1/chat/completions`. Query strings are kept. Your API key travels in the usual header and is passed through to the provider.
+
+No certificate is involved: the hop from your app to Shadow is plain HTTP on loopback, and Shadow connects to the provider over TLS.
+
+## Built-in routes
+
+| Route | Upstream base | Base URL for OpenAI-style SDKs |
+|---|---|---|
+| `openai` | `https://api.openai.com` | `http://127.0.0.1:8877/gw/openai/v1` |
+| `anthropic` | `https://api.anthropic.com` | `http://127.0.0.1:8877/gw/anthropic` (Anthropic SDK) |
+| `openrouter` | `https://openrouter.ai/api` | `http://127.0.0.1:8877/gw/openrouter/v1` |
+| `gemini`, `google` | `https://generativelanguage.googleapis.com` | `http://127.0.0.1:8877/gw/gemini` |
+| `mistral` | `https://api.mistral.ai` | `http://127.0.0.1:8877/gw/mistral/v1` |
+| `groq` | `https://api.groq.com/openai` | `http://127.0.0.1:8877/gw/groq/v1` |
+| `together` | `https://api.together.xyz` | `http://127.0.0.1:8877/gw/together/v1` |
+| `deepseek` | `https://api.deepseek.com` | `http://127.0.0.1:8877/gw/deepseek/v1` |
+| `xai` | `https://api.x.ai` | `http://127.0.0.1:8877/gw/xai/v1` |
+| `cohere` | `https://api.cohere.com` | `http://127.0.0.1:8877/gw/cohere` |
+| `perplexity` | `https://api.perplexity.ai` | `http://127.0.0.1:8877/gw/perplexity` |
+| `fireworks` | `https://api.fireworks.ai/inference` | `http://127.0.0.1:8877/gw/fireworks/v1` |
+| `cerebras` | `https://api.cerebras.ai` | `http://127.0.0.1:8877/gw/cerebras/v1` |
+
+`shadow hosts` prints the routes in effect, including your own.
+
+## Custom routes
+
+Add routes for Azure OpenAI, AWS Bedrock (API-key auth), a self-hosted model server or an internal LLM gateway under `[proxy.routes]`. A custom route with the same name as a built-in overrides it.
+
+```toml
+[proxy.routes]
+azure = "https://my-resource.openai.azure.com"
+bedrock = "https://bedrock-runtime.eu-central-1.amazonaws.com"
+llm = "https://llm.internal.example.com"
+```
+
+`http://127.0.0.1:8877/gw/azure/openai/deployments/gpt-4o/chat/completions?api-version=2024-10-21` then goes to your Azure resource.
+
+## Examples
+
+### OpenAI
+
+<Tabs syncKey="lang">
+<TabItem label="Python">
+```python
+from openai import OpenAI
+
+client = OpenAI(base_url="http://127.0.0.1:8877/gw/openai/v1")  # api_key from OPENAI_API_KEY
+
+reply = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "Draft a renewal reminder to jane@acme.com"}],
+)
+print(reply.choices[0].message.content)   # mentions jane@acme.com, the provider never saw it
+```
+</TabItem>
+<TabItem label="Node.js">
+```ts
+import OpenAI from "openai";
+
+const client = new OpenAI({ baseURL: "http://127.0.0.1:8877/gw/openai/v1" });
+
+const stream = await client.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [{ role: "user", content: "Summarise the ticket from Jane Doe at Acme GmbH" }],
+  stream: true,
+});
+for await (const chunk of stream) process.stdout.write(chunk.choices[0]?.delta?.content ?? "");
+```
+</TabItem>
+<TabItem label="curl">
+```sh
+curl http://127.0.0.1:8877/gw/openai/v1/chat/completions \
+  -H "Authorization: Bearer $OPENAI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"Hello from jane@acme.com"}]}'
+```
+</TabItem>
+<TabItem label="Environment">
+```sh
+# Read by the official OpenAI SDKs and many tools built on them
+export OPENAI_BASE_URL=http://127.0.0.1:8877/gw/openai/v1
+```
+</TabItem>
+</Tabs>
+
+### Anthropic
+
+The Anthropic SDKs append `/v1/messages` themselves, so the base URL stops at the route.
+
+<Tabs syncKey="lang">
+<TabItem label="Python">
+```python
+import anthropic
+
+client = anthropic.Anthropic(base_url="http://127.0.0.1:8877/gw/anthropic")
+
+msg = client.messages.create(
+    model="claude-sonnet-4-5",
+    max_tokens=512,
+    messages=[{"role": "user", "content": "Write a short note to Jane Doe about Project Falcon"}],
+)
+print(msg.content[0].text)
+```
+</TabItem>
+<TabItem label="Node.js">
+```ts
+import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic({ baseURL: "http://127.0.0.1:8877/gw/anthropic" });
+
+const msg = await client.messages.create({
+  model: "claude-sonnet-4-5",
+  max_tokens: 512,
+  messages: [{ role: "user", content: "Write a short note to Jane Doe about Project Falcon" }],
+});
+```
+</TabItem>
+<TabItem label="curl">
+```sh
+curl http://127.0.0.1:8877/gw/anthropic/v1/messages \
+  -H "x-api-key: $ANTHROPIC_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"claude-sonnet-4-5","max_tokens":256,"messages":[{"role":"user","content":"Hi, I am Jane Doe"}]}'
+```
+</TabItem>
+<TabItem label="Environment">
+```sh
+export ANTHROPIC_BASE_URL=http://127.0.0.1:8877/gw/anthropic
+```
+</TabItem>
+</Tabs>
+
+### OpenRouter
+
+OpenRouter speaks the OpenAI protocol, so use the OpenAI SDK with the `openrouter` route:
+
+<Tabs syncKey="lang">
+<TabItem label="Python">
+```python
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="http://127.0.0.1:8877/gw/openrouter/v1",
+    api_key=os.environ["OPENROUTER_API_KEY"],
+)
+```
+</TabItem>
+<TabItem label="Node.js">
+```ts
+const client = new OpenAI({
+  baseURL: "http://127.0.0.1:8877/gw/openrouter/v1",
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
+```
+</TabItem>
+<TabItem label="curl">
+```sh
+curl http://127.0.0.1:8877/gw/openrouter/v1/chat/completions \
+  -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"openai/gpt-4o-mini","messages":[{"role":"user","content":"Hi from jane@acme.com"}]}'
+```
+</TabItem>
+</Tabs>
+
+### Google Gemini
+
+```sh
+curl "http://127.0.0.1:8877/gw/gemini/v1beta/models/gemini-2.5-flash:generateContent" \
+  -H "x-goog-api-key: $GEMINI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"contents":[{"parts":[{"text":"Write to jane@acme.com about the Acme GmbH renewal"}]}]}'
+```
+
+With the Google Gen AI SDK, set the base URL through its HTTP options (`http_options={"base_url": "http://127.0.0.1:8877/gw/gemini"}` in Python).
+
+## Gateway endpoints
+
+Besides `/gw/...`, the same port serves:
+
+| Path | Returns |
+|---|---|
+| `/` or `/shadow/status` | JSON status: version, persona region/country/company/hostname, vault stats, routes, CA fingerprint |
+| `/healthz` | `ok` |
+| `/proxy.pac` | PAC file for [proxy mode](/shadow/integrate/proxy-mode/#system-wide-with-a-pac-file) |
+| `/shadow/ca.pem` | The local CA certificate |
+
+Errors from Shadow itself, such as an unknown route, are returned as OpenAI-style JSON (`{"error": {"message": ..., "type": "shadow_error"}}`), so SDKs surface them cleanly.
+
+<Aside type="caution" title="Keep the gateway on loopback">
+Anyone who can reach the gateway can use it to talk to providers with their own keys through your persona, and the responses are unmasked with your vault. Shadow warns when you listen on a non-loopback address. In containers, publish the port only to `127.0.0.1` or keep it inside the pod.
+</Aside>

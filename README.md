@@ -1,176 +1,170 @@
-# Shadow
+<p align="center">
+  <img src="assets/banner.svg" alt="Shadow: privacy layer for AI traffic. Your data leaves under a different name." width="100%">
+</p>
 
-**Your machine talks to AI. Shadow makes sure it does so under a different name.**
+<p align="center">
+  <strong>Shadow masks names, emails, customers and secrets with realistic, reversible fakes before a request reaches an AI provider, then restores them in the answer.</strong>
+</p>
 
-Shadow is an endpoint-level privacy layer between any machine (macOS, Linux, Windows; laptops or servers) and AI clouds such as OpenAI, Anthropic, OpenRouter, Gemini, Mistral, Groq, Together, DeepSeek, xAI, Azure OpenAI, Cohere and Perplexity. It runs as a small background service. It finds the sensitive values in every outbound AI request, swaps them for realistic fakes from a persistent **persona**, and swaps the fakes back in the response. Streamed responses are translated the same way. Your tools never notice, and the provider never sees the real values.
+<p align="center">
+  <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-7C6CFF?style=flat-square"></a>
+  <img alt="Rust 1.88+" src="https://img.shields.io/badge/rust-1.88%2B-B7410E?style=flat-square&logo=rust&logoColor=white">
+  <img alt="Platforms: macOS, Linux, Windows" src="https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-3A3660?style=flat-square">
+  <a href="https://tiny-bubble-company.github.io/shadow/"><img alt="Docs" src="https://img.shields.io/badge/docs-tiny--bubble--company.github.io%2Fshadow-5A48E8?style=flat-square"></a>
+</p>
 
-```
-you  ──"Email jane@acme.com about Project Falcon for Acme GmbH"──▶  Shadow
-Shadow ──"Email hui.zhao@zhilan.cn about Velora Quilent for Zhilan Technology Co., Ltd."──▶  api.openai.com
-api.openai.com ──"Sure — drafting a note to hui.zhao@zhilan.cn…"──▶  Shadow
-Shadow ──"Sure — drafting a note to jane@acme.com…"──▶  you
-```
-
-Single static binary · Rust · Apache-2.0 · no cloud, no account, no telemetry.
+<p align="center">
+  <a href="https://tiny-bubble-company.github.io/shadow/"><b>Docs</b></a> ·
+  <a href="#quick-start"><b>Quick start</b></a> ·
+  <a href="#how-it-works"><b>How it works</b></a> ·
+  <a href="#use-it-from-your-app"><b>Integrations</b></a> ·
+  <a href="CONTRIBUTING.md"><b>Contributing</b></a>
+</p>
 
 ---
 
+Shadow is an endpoint privacy layer between your apps and AI clouds: OpenAI, Anthropic, Gemini, Azure OpenAI, OpenRouter, Mistral, Groq and more. It runs on your machine as a local proxy or gateway, or inside your Rust service as a library. It finds sensitive values in every outbound request, swaps them for format-preserving fakes from a persistent **persona**, keeps the mapping in an encrypted local vault, and translates responses back, including streamed responses and tool calls.
+
+```text
+you      ──"Email jane@acme.com about Project Falcon for Acme GmbH"──────────────────────▶ Shadow
+Shadow   ──"Email hui.zhao@zhilan.cn about Velora Quilent for Zhilan Technology Co., Ltd."──▶ provider
+provider ──"Sure, drafting a note to hui.zhao@zhilan.cn…"────────────────────────────────▶ Shadow
+Shadow   ──"Sure, drafting a note to jane@acme.com…"─────────────────────────────────────▶ you
+```
+
+Single Rust binary · Apache-2.0 · no cloud, no account, no telemetry.
+
 ## Why
 
-- Prompts carry far more than the question: names, emails, customer lists, internal hostnames, file paths with your username, API keys pasted by accident, IBANs in an invoice.
-- Policies and DLP gateways tend to *block*. Blocking breaks the tool, so people route around it.
-- Shadow *translates* instead. The model still gets a coherent, realistic prompt, because a fake email is still an email and a fake IBAN still passes mod-97. You still get a useful answer back, in your own terms.
+Prompts carry far more than the question: colleagues' names, customer lists, invoices with IBANs, internal hostnames, file paths with your username, API keys pasted by accident. Policies say "don't paste that", and people paste it anyway because the tool is useful.
 
-## How it works
+Most DLP gateways **block**, which breaks the tool, so people route around them. Plain redaction (`<PERSON>`) keeps the request flowing but destroys meaning: the model can't tell two people apart or write to the right address.
 
-```mermaid
-flowchart LR
-  A[App / SDK / CLI] -- HTTPS_PROXY or /gw/... --> S
-  subgraph S[Shadow on the endpoint]
-    D[Detectors<br/>regex · checksum · dictionary · optional NER] --> T[Translate<br/>real → fake]
-    T <--> V[(Vault<br/>encrypted, local)]
-    P[Persona<br/>company · people · region] --> T
-    R[Reverse translate<br/>fake → real, SSE-aware] <--> V
-  end
-  T -- masked request --> C[(AI cloud)]
-  C -- response / SSE --> R --> A
-  A -. other hosts: blind tunnel .-> X[(Internet)]
-```
+Shadow **translates**. A fake email is still an email. A fake card still passes Luhn. A fake IBAN still passes mod-97. The model gets a coherent prompt about a company that does not exist, and you get a useful answer about yours.
 
-1. **Intercept.** Shadow listens on `127.0.0.1:8877`. As an HTTPS proxy it terminates TLS only for known AI hosts, using a local CA you trust once. Every other host is tunnelled byte for byte. As a gateway (`/gw/openai/...`) it needs no CA at all.
-2. **Detect.** Built-in detectors cover emails, phones, person names, street addresses, IBANs (mod-97), payment cards (Luhn), national IDs (SSN, NINO, Aadhaar), IPv4/IPv6, MACs, internal hostnames and URL hosts, API keys and tokens (OpenAI, Anthropic, GitHub, AWS, Slack, Google, JWTs, private keys, `password=…`), and usernames inside home-directory paths. A dictionary covers your organisation names, codenames, customers and projects, plus local machine facts: OS user, hostname, git `user.name` and `user.email`, local domain. An optional local PyTorch NER model can be added on top.
-3. **Translate.** Each value maps to a format-preserving fake drawn from the persona. The same real value always gets the same fake, and no two reals share a fake, so reversal is unambiguous. The mapping is persisted.
-4. **Scrub identifiers.** OpenAI `user` / `safety_identifier` and Anthropic `metadata.user_id` become the persona's user id. Identifying headers are stripped (`OpenAI-Organization`, `X-Forwarded-For`, `x-stainless-os`, ...) or rewritten (`X-Request-Origin` → the persona hostname).
-5. **Restore.** Responses are unmasked before they reach the caller. That includes SSE streams where a fake is split across events (`"Wei"` … `" Zhang"`).
+## Before and after
 
-### The persona
+| What you send | What the provider sees |
+|---|---|
+| `jane@acme.com` | `hui.zhao@zhilan.cn` |
+| `Acme GmbH` | `Zhilan Technology Co., Ltd.` |
+| `Project Falcon` | `Velora Quilent` |
+| `4111 1111 1111 1111` | `4837 2191 9471 3480` (valid Luhn) |
+| `DE89 3704 0044 0532 0130 00` | another German IBAN (valid mod-97) |
+| `/Users/jdoe/src/billing` | `/Users/huizhao/src/billing` |
+| `sk-proj-…` (an API key) | a fake key of the same shape, or `[REDACTED_SECRET]` if you opt in |
+| 400 customer rows in a report | `[PERSON_0001]`, `[EMAIL_0001]`, … restored in the answer |
 
-On first run Shadow creates a persistent fake identity for the machine: company name and domain, country, city, timezone and locale, a primary person, colleagues, a username, a user id and a hostname. By default the region is picked **far from the real one**: a machine in Europe gets a persona in, say, China, Japan or Brazil. Set `[persona] region = "JP"` to choose. Your organisation name maps to the persona company, and your git identity maps to the persona's primary person.
+The same real value always gets the same fake, and no two real values share one, so restoring is exact.
 
-```
-$ shadow identity
-◆ Persona — what AI providers see
-  company         Zhilan Technology Co., Ltd. (zhilan.cn)
-  person          Hui Zhao <hui.zhao@zhilan.cn>
-  location        Shenzhen, China · Asia/Shanghai · zh-CN
-  user id         user-b1f9a96f7997
-  hostname        zhilan-dev-78
-```
+## Features
 
-### The vault
+| | |
+|---|---|
+| **Reversible, format-preserving fakes** | Emails, phones, names, addresses, IBANs, cards, national IDs, IPs, MACs, hostnames, secrets, paths, from one coherent persona |
+| **Three integration modes** | HTTPS proxy for every tool, `/gw/<provider>` gateway with no CA, or the `shadow-core` Rust library |
+| **Stream-aware** | Restores SSE and NDJSON streams on the fly, even when a fake is split across events |
+| **Agent-safe** | Tool-call arguments are restored on your machine before your tools run |
+| **Intent-aware policy** | Classifies requests as `act`, `report`, `code` or `converse` and picks a surrogate, token, keep or redact per value |
+| **File masking** | Text, CSV, JSON, HTML, XML; DOCX, XLSX, PPTX masked in place; PDF text extracted and masked |
+| **Pluggable detection** | Regex, checksums, your dictionary, local machine facts, an optional local NER model, and Microsoft Presidio |
+| **Local and encrypted** | ChaCha20-Poly1305 vault, `0600` key, atomic multi-process writes; nothing leaves except the masked request |
+| **Minimal interception** | Only known AI hosts are decrypted; all other traffic is tunnelled byte for byte |
+| **Identity scrubbing** | OpenAI `user`, Anthropic `metadata.user_id`, org and OS headers replaced or stripped |
 
-The real↔fake mapping never leaves the machine. It lives in `vault.bin`, which is encrypted with ChaCha20-Poly1305. The key sits in `vault.key`, created with mode `0600`. Every write is atomic (temp file + rename) and thread-safe. Several processes can share a data dir, because each save merges the other processes' entries in first.
+## Quick start
 
-## Install
-
-**macOS / Linux**
+**Install**
 
 ```sh
+# macOS / Linux
 curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
-# or from source:
-cargo install --locked --git https://github.com/Tiny-Bubble-Company/shadow shadow-cli
-```
 
-**Windows (PowerShell)**
-
-```powershell
+# Windows (PowerShell)
 irm https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.ps1 | iex
-```
 
-**Docker sidecar**
+# From source (Rust 1.88+)
+cargo install --locked --git https://github.com/Tiny-Bubble-Company/shadow shadow-cli
 
-```sh
+# Docker
 docker build -f packaging/Dockerfile -t shadow .
 docker run -d --name shadow -p 127.0.0.1:8877:8877 -v shadow-data:/data shadow
 ```
 
-Building needs Rust ≥ 1.88 and nothing else: no OpenSSL, no Python.
+The install scripts use a release binary when one is published for your platform and otherwise build with `cargo`. They never change system settings.
 
-## Quick start (60 seconds)
+**Set up and try it offline**
 
 ```sh
-shadow init --org "Acme GmbH"                  # persona + vault key + local CA
+shadow init --org "Acme GmbH"          # persona + vault key + local CA
 echo "Mail jane@acme.com re Acme GmbH, card 4111 1111 1111 1111" | shadow mask
-# → Mail hui.chen@zhilan.cn re Zhilan Technology Co., Ltd., card 4837 2191 9471 3480
-
-shadow run                                     # foreground, 127.0.0.1:8877
-OPENAI_BASE_URL=http://127.0.0.1:8877/gw/openai/v1 your-tool …   # gateway mode
-
-shadow install            # dry run: prints exactly what would change
-shadow install --apply    # LaunchAgent / systemd --user / Scheduled Task + trust CA
+# Mail tsun@xinghe.cn re Xinghe Technology Co., Ltd., card 4261 8002 0172 9224
 ```
 
-## Gateway mode vs. OS proxy mode
-
-| | Gateway mode | OS / env proxy mode |
-|---|---|---|
-| How | Point the SDK base URL at `http://127.0.0.1:8877/gw/<provider>` | `HTTPS_PROXY=http://127.0.0.1:8877` or the PAC file at `/proxy.pac` |
-| CA trust needed | No | Yes (`shadow install --apply`) |
-| Covers | Tools that let you set a base URL | Every tool that honours proxy env vars or system proxy |
-| Non-AI traffic | Not involved | Tunnelled untouched (never decrypted) |
-
-Built-in routes: `openai`, `anthropic`, `openrouter`, `gemini`/`google`, `mistral`, `groq`, `together`, `deepseek`, `xai`, `cohere`, `perplexity`, `fireworks`, `cerebras`. Add your own, such as Azure, Bedrock or a self-hosted gateway, under `[proxy.routes]`.
-
-For proxy mode, `shadow install` prints the environment to export:
+**Run it and send a protected request**
 
 ```sh
+shadow run                             # foreground, 127.0.0.1:8877
+
+# Gateway mode: no certificate needed
+export OPENAI_BASE_URL=http://127.0.0.1:8877/gw/openai/v1
+export ANTHROPIC_BASE_URL=http://127.0.0.1:8877/gw/anthropic
+```
+
+**Cover every tool on the machine (proxy mode)**
+
+```sh
+shadow install            # dry run: prints exactly what would change
+shadow install --apply    # background service + trust the local CA + env file
 export HTTPS_PROXY=http://127.0.0.1:8877
-export NO_PROXY=localhost,127.0.0.1
-export NODE_EXTRA_CA_CERTS=~/Library/Application\ Support/shadow/ca/ca.pem
-export REQUESTS_CA_BUNDLE=~/Library/Application\ Support/shadow/ca/bundle.pem   # system roots + Shadow CA
-export SSL_CERT_FILE=~/Library/Application\ Support/shadow/ca/bundle.pem
 ```
 
-## CLI
+**Verify**
 
-| Command | What it does |
-|---|---|
-| `shadow init [--region CN] [--org "Acme GmbH"]… [--force]` | Create persona, vault key and CA (`--force` starts over) |
-| `shadow run [--listen 127.0.0.1:8877]` | Foreground proxy + gateway |
-| `shadow install [--apply]` / `shadow uninstall [--apply]` | Service + CA trust; dry run by default |
-| `shadow status [--quiet]` | Config, persona, vault, CA fingerprint, proxy health |
-| `shadow identity [--json]` | Show the persona |
-| `shadow mask` / `shadow unmask` `[--json]` | stdin → stdout |
-| `shadow scan <file> [--reveal] [--json]` | Report findings without changing anything |
-| `shadow vault stats` · `export --i-understand` · `forget <value>` | Inspect the vault |
-| `shadow terms add <term>…` · `terms list` | Protect codenames, customers, people (`person:Jane Doe`) |
-| `shadow hosts` | Intercepted hosts and gateway routes |
-
-## Configuration
-
-`<data dir>/shadow.toml`. Every key is optional; see [`shadow.example.toml`](shadow.example.toml) for the full reference.
-
-```toml
-organization = ["Acme GmbH"]                 # first one ↔ persona company
-terms = ["Project Falcon", "person:Jane Doe", "org:Globex"]
-internal_domains = ["acme.com", "acme.internal"]
-allow_domains = []                           # public domains never masked
-allow_terms = []                             # values never masked
-
-[persona]
-region = "auto"                              # or CN, JP, KR, BR, US, DE, IN, AU, MX, ZA, CA
-
-[detectors]
-email = true                                 # … phone, person, address, iban, credit_card,
-local_facts = true                           # national_id, ip, mac, hostname, secret, path
-
-[model_detector]                             # optional local NER sidecar (ml/)
-enabled = false
-url = "http://127.0.0.1:8878/detect"
-
-[proxy]
-listen = "127.0.0.1:8877"
-upstream_proxy = "socks5h://relay.example.net:1080"   # optional egress in persona region
-strip_headers = ["openai-organization", "x-forwarded-for", "x-stainless-os"]
-[proxy.persona_headers]
-"x-request-origin" = "{hostname}"
-[proxy.routes]
-azure = "https://my-resource.openai.azure.com"
+```sh
+shadow status             # proxy health, persona, vault, CA fingerprint
+shadow identity           # the persona providers see
+shadow scan prompt.txt    # what would be masked, without changing anything
 ```
 
-Data dir: `$SHADOW_HOME`, else `~/Library/Application Support/shadow` (macOS), `~/.local/share/shadow` (Linux), `%APPDATA%\shadow` (Windows).
+Full walkthrough: [Quick start](https://tiny-bubble-company.github.io/shadow/getting-started/quick-start/).
 
-## Embedding the library
+## Use it from your app
+
+**OpenAI SDK (Python)**
+
+```python
+from openai import OpenAI
+
+client = OpenAI(base_url="http://127.0.0.1:8877/gw/openai/v1")
+reply = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "Draft a renewal reminder to jane@acme.com"}],
+)
+print(reply.choices[0].message.content)   # mentions jane@acme.com; the provider never saw it
+```
+
+**OpenAI SDK (Node.js)**
+
+```ts
+import OpenAI from "openai";
+const client = new OpenAI({ baseURL: "http://127.0.0.1:8877/gw/openai/v1" });
+```
+
+**Anthropic SDK**
+
+```python
+import anthropic
+client = anthropic.Anthropic(base_url="http://127.0.0.1:8877/gw/anthropic")
+```
+
+**Any tool that honours a proxy**
+
+```sh
+HTTPS_PROXY=http://127.0.0.1:8877 your-tool
+```
+
+**Embedded in Rust**
 
 ```toml
 [dependencies]
@@ -180,55 +174,143 @@ shadow-core = { git = "https://github.com/Tiny-Bubble-Company/shadow" }
 ```rust
 use shadow_core::{Shadow, ShadowConfig};
 
-let shadow = Shadow::open(ShadowConfig::from_dir("/var/lib/myapp/shadow").with_terms(vec!["Acme GmbH".into()]))?;
-let masked = shadow.mask("Ping jane@acme.com about Acme GmbH");      // Masked { text, replacements, kinds }
-let answer = call_llm(&masked.text)?;
-let restored = shadow.unmask(&answer);
+let shadow = Shadow::open(
+    ShadowConfig::from_dir("/var/lib/myapp/shadow").with_organization(vec!["Acme GmbH".into()]),
+)?;
 
-let mut body = serde_json::json!({"model": "gpt-4o", "messages": [{"role": "user", "content": "…"}]});
-shadow.mask_json(&mut body);                       // masks string leaves, skips model/role/type
-let mut s = shadow.stream_unmasker();              // for streamed text
-let out = s.push("Hi Wei Zh") + &s.push("ang!") + &s.finish();
+// Simple: realistic surrogates for everything.
+let masked = shadow.mask("Ping jane@acme.com about Acme GmbH");
+let answer = shadow.unmask(&call_llm(&masked.text)?);
+
+// Per request, with the intent-aware policy and tool calls.
+let session = shadow.session_for(&request_json);
+session.mask_json(&mut request_json);
+let mut response = send(&request_json)?;
+session.unmask_json(&mut response);           // tool-call arguments come back real
 ```
 
-Custom detectors implement `shadow_core::Detector` and are passed to `Shadow::open_with_detectors`.
+Gateway routes are built in for `openai`, `anthropic`, `openrouter`, `gemini`, `mistral`, `groq`, `together`, `deepseek`, `xai`, `cohere`, `perplexity`, `fireworks` and `cerebras`; add Azure, Bedrock or your own under `[proxy.routes]`. See [Integrations](https://tiny-bubble-company.github.io/shadow/integrate/overview/).
 
-## Threat model and honest limitations
+## How it works
 
-Shadow protects the **content** of AI requests from the AI provider, from anyone the provider shares data with, and from logs, training sets and breaches downstream of it. It does not make you anonymous.
+```mermaid
+flowchart LR
+  A[App · SDK · CLI · agent] -- "HTTPS_PROXY or /gw/…" --> D
+  subgraph S["Shadow (on your machine)"]
+    D[Detect<br/>regex · checksum · dictionary<br/>NER · Presidio] --> P[Policy<br/>act · report · code · converse]
+    P --> T[Translate<br/>surrogate · token · keep · redact]
+    T <--> V[(Vault<br/>encrypted)]
+    R[Restore<br/>JSON · SSE · tool calls] <--> V
+    PE[Persona] --> T
+  end
+  T -- masked request --> C[(AI provider)]
+  C -- response / stream --> R --> A
+  A -. other hosts: blind tunnel .-> X[(Internet)]
+```
 
-- **Source IP is not hidden by translation.** Providers still see your egress IP and your API key's account. Set `upstream_proxy` to send intercepted AI traffic through a relay, for example one in the persona's region. The API key still identifies the account.
-- **Detection is best effort.** Regex, checksum and dictionary detectors miss unusual formats and free-form names that aren't in the dictionary. Add terms, or enable the optional NER model in `ml/`. Run `shadow scan` on representative prompts.
-- **Not scanned:** images, audio, PDFs and other binary uploads, multipart bodies, WebSocket/Realtime APIs, and gRPC. These are forwarded unchanged.
-- **TLS-pinning apps** (some desktop apps, mobile apps) reject the local CA and will fail in proxy mode. Use gateway mode where possible.
-- **Signed requests** (AWS SigV4 for Bedrock) can't be modified without breaking the signature. Shadow detects them and forwards them unmasked with a warning. Bedrock API keys (bearer) work.
-- **Meaning can shift.** A model may reason about the fake (a persona in Shenzhen gets answers about Chinese holidays). Choose a region that suits you, or pin `region`.
-- **Short, generic fakes** that a model happens to produce on its own are translated back too, which is rarely a problem.
-- **The endpoint is trusted.** Anyone with your user account can read `vault.key` and the vault. Full-disk encryption is recommended.
-- **The CA key is powerful.** `ca/ca.key` is created `0600`. Uninstalling removes the CA trust. Never share the data dir.
+1. **Intercept.** Shadow listens on `127.0.0.1:8877`. As an HTTPS proxy, it terminates TLS only for known AI hosts, using a local CA you trust once; every other host is tunnelled untouched. As a gateway (`/gw/openai/...`) it needs no CA.
+2. **Classify.** Each request gets an intent: `act`, `report`, `code` or `converse`.
+3. **Detect.** Built-in detectors, your dictionary, local machine facts and optional NER or Presidio find sensitive spans in every JSON string and uploaded file.
+4. **Translate.** Each value gets the treatment the policy picks, by default a stable fake from the persona, recorded in the vault.
+5. **Scrub.** Identifying fields and headers are replaced with persona values or removed.
+6. **Restore.** Responses, SSE streams and tool-call arguments are translated back before they reach your app.
 
-## FAQ
+Details: [How it works](https://tiny-bubble-company.github.io/shadow/concepts/how-it-works/).
 
-**Does Shadow send anything anywhere?** Only the translated requests you were already sending, to the providers you were already using. There is no telemetry.
+### Intent-aware policy
 
-**What happens if Shadow is down?** In gateway mode, requests fail. In proxy mode, tools fail to connect; remove `HTTPS_PROXY` to bypass. The service restarts on failure.
+"Email jane@acme.com about the renewal": with a **local** tool, the model sees a fake address and writes the tool call to the fake; Shadow restores `jane@acme.com` in the tool arguments on your machine before the tool runs. The action works and the provider never sees the address. With a **provider-hosted** tool (hosted MCP, server-side tools) Shadow can't restore values in the provider's cloud, so the target is kept by default and logged.
 
-**Can I see what was replaced?** `RUST_LOG=info shadow run` logs counts per request, never values. `shadow vault export --i-understand` shows the mapping.
+"Build a churn report from this customer list": **report** intent. Names, emails and phones become typed tokens such as `[PERSON_0001]` that the model treats as opaque IDs, restored in the answer.
 
-**Is the mapping reversible by the provider?** No. Fakes are random and the mapping exists only in your encrypted vault.
+```toml
+[policy]
+intent = true
+[policy.act]
+targets = "surrogate"          # local tools: mask, restore in the tool call
+remote_tool_targets = "keep"   # provider-hosted tools
+[policy.report]
+person = "token"
+email = "token"
+default = "surrogate"
+[policy.always]
+# secret = "redact"            # opt in to irreversible redaction
+```
 
-**Multiple machines, one identity?** Copy `persona.json`, `vault.bin` and `vault.key` to the other machine, or point several tools at one data dir.
+[Read more](https://tiny-bubble-company.github.io/shadow/concepts/intent-policy/)
 
-**Can Shadow be a model?** Yes. `ml/` contains a small PyTorch token-classification model (BiLSTM + char-CNN) and a localhost sidecar. Enable `[model_detector]`. The Rust build never needs Python.
+### Files
 
-## Development
+Multipart uploads, base64 file payloads in JSON (OpenAI `input_file`, Anthropic `document`, Gemini `inline_data`) and `data:` URIs are masked before they leave. Office files stay valid documents; PDF text is sent masked; images pass through (no OCR yet) or can be blocked. [Read more](https://tiny-bubble-company.github.io/shadow/concepts/file-masking/)
+
+### Presidio
+
+Shadow can call a [Microsoft Presidio](https://microsoft.github.io/presidio/) Analyzer as an extra detector and merge its findings with its own. Presidio detects; Shadow keeps the fakes, vault and persona. It fails open if Presidio is down.
 
 ```sh
-cargo test --workspace          # unit + integration tests (mock upstream, SSE, MITM)
-cargo clippy --workspace --all-targets
+docker run -d -p 127.0.0.1:5002:3000 mcr.microsoft.com/presidio-analyzer
 ```
 
-Layout: `crates/shadow-core` (detection, persona, vault, translation), `crates/shadow-proxy` (CA, MITM, gateway, SSE), `crates/shadow-cli` (`shadow` binary), `ml/` (optional NER), `packaging/` (launchd, systemd, Windows, installers, Dockerfile), `docs/index.html` (documentation site).
+```toml
+[presidio]
+enabled = true
+url = "http://127.0.0.1:5002/analyze"
+```
+
+[Read more](https://tiny-bubble-company.github.io/shadow/concepts/detection/#presidio)
+
+## How Shadow compares
+
+| | Blocking DLP gateway | Redaction only (e.g. Presidio anonymizer) | **Shadow** |
+|---|---|---|---|
+| Request still goes through | No, blocked | Yes | Yes |
+| Model sees coherent data | n/a | No, placeholders | Yes, realistic fakes from one persona |
+| Answer refers to your real data | n/a | No | Yes, restored |
+| Streaming responses | n/a | Usually not handled | Restored on the fly |
+| Agents and tool calls | Blocked | Arguments contain placeholders | Arguments restored locally |
+| Runs where | Network or cloud | Library or service | On the endpoint, or in-process |
+| Non-AI traffic | Often inspected | n/a | Never decrypted |
+
+## Security model
+
+Shadow protects the **content** of AI requests from the provider, its subprocessors, logs, training sets and breaches. It trusts the endpoint it runs on. It does not hide your IP address or the account behind your API key (use `upstream_proxy` to route AI traffic through a relay). Detection is best effort: add your own terms and test with `shadow scan`. Images are not OCR'd; WebSocket/Realtime APIs and gRPC are not processed; SigV4-signed requests are forwarded unmasked with a warning; certificate-pinning apps reject the local CA in proxy mode.
+
+Read the full [security model](https://tiny-bubble-company.github.io/shadow/reference/security/). Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
+
+## Documentation
+
+- [Introduction](https://tiny-bubble-company.github.io/shadow/getting-started/introduction/) · [Installation](https://tiny-bubble-company.github.io/shadow/getting-started/installation/)
+- [Proxy mode](https://tiny-bubble-company.github.io/shadow/integrate/proxy-mode/) · [Gateway mode](https://tiny-bubble-company.github.io/shadow/integrate/gateway-mode/) · [Embed in Rust](https://tiny-bubble-company.github.io/shadow/integrate/rust/) · [Docker and Kubernetes](https://tiny-bubble-company.github.io/shadow/integrate/docker-kubernetes/)
+- [Configuration](https://tiny-bubble-company.github.io/shadow/reference/configuration/) · [CLI](https://tiny-bubble-company.github.io/shadow/reference/cli/) · [Providers](https://tiny-bubble-company.github.io/shadow/reference/providers/) · [FAQ](https://tiny-bubble-company.github.io/shadow/reference/faq/)
+
+The source of the docs is in [`docs-site/`](docs-site/).
+
+## Roadmap
+
+Release binaries and a published container image, local OCR for images and scanned PDFs, WebSocket/Realtime support, an optional local audit log, more persona regions, and language bindings for `shadow-core`. See the [roadmap](https://tiny-bubble-company.github.io/shadow/project/roadmap/).
+
+## Repository layout
+
+```text
+crates/shadow-core    detection, persona, vault, policy, translation
+crates/shadow-proxy   CA, forward proxy, gateway, files, SSE translation
+crates/shadow-cli     the `shadow` binary
+ml/                   optional PyTorch NER sidecar
+packaging/            install scripts, launchd / systemd / Windows service, Dockerfile
+docs-site/            documentation site (Starlight)
+```
+
+## Contributing
+
+Contributions are welcome: detectors, provider formats, docs, tests. See [CONTRIBUTING.md](CONTRIBUTING.md). In short:
+
+```sh
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
+cargo fmt --all
+```
+
+This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md).
 
 ## License
 
