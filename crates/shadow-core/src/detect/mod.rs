@@ -9,6 +9,7 @@ pub mod dictionary;
 pub mod model;
 mod names;
 pub mod patterns;
+pub mod presidio;
 
 use serde::{Deserialize, Serialize};
 

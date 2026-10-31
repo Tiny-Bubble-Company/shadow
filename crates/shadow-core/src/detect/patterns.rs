@@ -4,7 +4,9 @@ use std::sync::LazyLock;
 
 use regex::Regex;
 
-use super::checksum::{iban_valid, luhn_valid};
+use super::checksum::{
+    abn_valid, btc_base58_valid, btc_bech32_valid, iban_valid, luhn_valid, nhs_valid, tfn_valid,
+};
 use super::names::{FIRST_NAMES, INTERNAL_TLDS, PUBLIC_DOMAINS, TLDS};
 use super::{Detector, Finding, Kind};
 use crate::config::ShadowConfig;
@@ -38,6 +40,19 @@ re!(
     r"\b[A-CEGHJ-PR-TW-Z][A-CEGHJ-NPR-TW-Z] ?\d{2} ?\d{2} ?\d{2} ?[A-D]\b"
 );
 re!(AADHAAR, r"\b[2-9]\d{3} \d{4} \d{4}\b");
+// US ITIN: 9xx, then a group in 50-65, 70-88, 90-92 or 94-99, then four digits.
+re!(
+    ITIN,
+    r"\b9\d{2}([- ]?)(?:5\d|6[0-5]|7\d|8[0-8]|9[0-2]|9[4-9])([- ]?)\d{4}\b"
+);
+// India PAN: 3 letters, holder type (A,B,C,F,G,H,J,L,P,T), surname/name initial, 4 digits, letter.
+re!(PAN, r"\b[A-Z]{3}[ABCFGHJLPT][A-Z]\d{4}[A-Z]\b");
+re!(NHS, r"\b\d{3}([ \-]?)\d{3}([ \-]?)\d{4}\b");
+re!(TFN, r"\b\d{3}([ \-]?)\d{3}([ \-]?)\d{3}\b");
+re!(ABN, r"\b\d{2}( ?)\d{3}( ?)\d{3}( ?)\d{3}\b");
+re!(BTC_BASE58, r"\b[13][1-9A-HJ-NP-Za-km-z]{25,34}\b");
+re!(BTC_BECH32, r"(?i)\bbc1[ac-hj-np-z02-9]{11,87}\b");
+re!(ETH, r"\b0x[0-9a-fA-F]{40}\b");
 re!(
     IPV4,
     r"\b(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\b"
@@ -192,7 +207,7 @@ impl Detector for IbanDetector {
     }
 }
 
-/// National identifiers: US SSN, UK NINO, Indian Aadhaar.
+/// National identifiers: US SSN/ITIN, UK NINO/NHS, Indian Aadhaar/PAN, Australian TFN/ABN.
 pub struct NationalIdDetector;
 impl Detector for NationalIdDetector {
     fn name(&self) -> &'static str {
@@ -212,6 +227,72 @@ impl Detector for NationalIdDetector {
             .collect();
         out.extend(spans(&NINO, text, Kind::NationalId, "national_id"));
         out.extend(spans(&AADHAAR, text, Kind::NationalId, "national_id"));
+        out.extend(
+            ITIN.captures_iter(text)
+                .filter(|c| c[1] == c[2])
+                .map(|c| c.get(0).unwrap())
+                .map(|m| Finding::new(m.start(), m.end(), Kind::NationalId, "national_id")),
+        );
+        out.extend(spans(&PAN, text, Kind::NationalId, "national_id"));
+        // Bare digit runs pass a mod-11/mod-89 check by chance fairly often, so the
+        // unformatted forms need a nearby keyword; the official spaced forms do not.
+        let checked =
+            |re: &Regex, valid: fn(&str) -> bool, keywords: &[&str], out: &mut Vec<Finding>| {
+                for c in re.captures_iter(text) {
+                    let m = c.get(0).unwrap();
+                    let seps: Vec<&str> = c.iter().skip(1).flatten().map(|g| g.as_str()).collect();
+                    let spaced = seps.iter().all(|s| *s == " ");
+                    let consistent = seps.windows(2).all(|w| w[0] == w[1]);
+                    if consistent
+                        && valid(m.as_str())
+                        && (spaced || has_context(text, m.start(), keywords))
+                    {
+                        out.push(Finding::new(
+                            m.start(),
+                            m.end(),
+                            Kind::NationalId,
+                            "national_id",
+                        ));
+                    }
+                }
+            };
+        checked(&NHS, nhs_valid, &["nhs"], &mut out);
+        checked(&TFN, tfn_valid, &["tfn", "tax file"], &mut out);
+        checked(&ABN, abn_valid, &["abn", "business number"], &mut out);
+        out
+    }
+}
+
+/// True if one of `keywords` (lowercase) appears in the ~48 bytes before `start`.
+fn has_context(text: &str, start: usize, keywords: &[&str]) -> bool {
+    let mut from = start.saturating_sub(48);
+    while !text.is_char_boundary(from) {
+        from += 1;
+    }
+    let window = text[from..start].to_lowercase();
+    keywords.iter().any(|k| window.contains(k))
+}
+
+/// Cryptocurrency wallet addresses: Bitcoin (base58check legacy/P2SH, bech32/bech32m
+/// segwit, all checksum-validated) and Ethereum (`0x` + 40 hex).
+pub struct CryptoWalletDetector;
+impl Detector for CryptoWalletDetector {
+    fn name(&self) -> &'static str {
+        "crypto"
+    }
+    fn detect(&self, text: &str) -> Vec<Finding> {
+        let mut out: Vec<Finding> = BTC_BASE58
+            .find_iter(text)
+            .filter(|m| btc_base58_valid(m.as_str()))
+            .map(|m| Finding::new(m.start(), m.end(), Kind::Secret, "crypto"))
+            .collect();
+        out.extend(
+            BTC_BECH32
+                .find_iter(text)
+                .filter(|m| btc_bech32_valid(m.as_str()))
+                .map(|m| Finding::new(m.start(), m.end(), Kind::Secret, "crypto")),
+        );
+        out.extend(spans(&ETH, text, Kind::Secret, "crypto"));
         out
     }
 }
@@ -485,6 +566,7 @@ pub fn builtin(cfg: &ShadowConfig) -> Vec<Box<dyn Detector>> {
     }
     if t.secret {
         v.push(Box::new(SecretDetector));
+        v.push(Box::new(CryptoWalletDetector));
     }
     if t.path {
         v.push(Box::new(PathDetector));
@@ -561,6 +643,61 @@ mod tests {
             ),
             vec!["sk-proj-abcdefghijklmnopqrstuvwx1234", "Hunter2!xyz"]
         );
+    }
+
+    #[test]
+    fn presidio_style_national_ids() {
+        let d = NationalIdDetector;
+        // UK NHS: spaced form needs no context; bare form needs "NHS" nearby.
+        assert_eq!(kinds(&d, "patient 943 476 5919 seen"), vec!["943 476 5919"]);
+        assert!(kinds(&d, "patient 943 476 5918 seen").is_empty());
+        assert_eq!(kinds(&d, "NHS no: 9434765919"), vec!["9434765919"]);
+        assert!(kinds(&d, "order 9434765919").is_empty());
+        // US ITIN (SSN detector skips 9xx).
+        assert_eq!(kinds(&d, "ITIN 912-70-1234"), vec!["912-70-1234"]);
+        assert_eq!(kinds(&d, "ITIN 912 94 1234"), vec!["912 94 1234"]);
+        assert!(kinds(&d, "id 912-93-1234").is_empty());
+        assert!(kinds(&d, "id 912-45-1234").is_empty());
+        assert!(kinds(&d, "id 912-70 1234").is_empty());
+        // India PAN: 4th char must be a valid holder type.
+        assert_eq!(kinds(&d, "PAN ABCPD1234E."), vec!["ABCPD1234E"]);
+        assert!(kinds(&d, "code ABCXD1234E").is_empty());
+        assert!(kinds(&d, "code abcpd1234e").is_empty());
+        // Australian TFN / ABN.
+        assert_eq!(kinds(&d, "TFN 123 456 782"), vec!["123 456 782"]);
+        assert_eq!(kinds(&d, "my tfn is 123456782"), vec!["123456782"]);
+        assert!(kinds(&d, "TFN 123 456 789").is_empty());
+        assert!(kinds(&d, "ref 123456782").is_empty());
+        assert_eq!(kinds(&d, "ABN 51 824 753 556"), vec!["51 824 753 556"]);
+        assert_eq!(kinds(&d, "ABN: 51824753556"), vec!["51824753556"]);
+        assert!(kinds(&d, "ABN 51 824 753 557").is_empty());
+        assert!(kinds(&d, "id 51824753556").is_empty());
+    }
+
+    #[test]
+    fn crypto_wallets() {
+        let d = CryptoWalletDetector;
+        assert_eq!(
+            kinds(&d, "send to 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa now"),
+            vec!["1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"]
+        );
+        assert_eq!(
+            kinds(&d, "p2sh 3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy"),
+            vec!["3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy"]
+        );
+        assert!(kinds(&d, "bad 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNb").is_empty());
+        assert_eq!(
+            kinds(&d, "segwit bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq."),
+            vec!["bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq"]
+        );
+        assert!(kinds(&d, "bad bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdp").is_empty());
+        assert_eq!(
+            kinds(&d, "eth 0xde0B295669a9FD93d5F28D9Ec85E40f4cb697BAe ok"),
+            vec!["0xde0B295669a9FD93d5F28D9Ec85E40f4cb697BAe"]
+        );
+        assert!(kinds(&d, "short 0xde0B295669a9FD93d5F28D9Ec85E40f4cb697BA").is_empty());
+        let b = builtin(&ShadowConfig::from_dir("/tmp"));
+        assert!(b.iter().any(|d| d.name() == "crypto"));
     }
 
     #[test]

@@ -1,0 +1,22 @@
+# Microsoft Presidio Analyzer as an optional extra detector for Shadow.
+#
+#   docker compose -f packaging/presidio/docker-compose.yml up -d
+#
+# Then set `[presidio] enabled = true` in shadow.toml (see README.md next to this file).
+# The analyzer listens on port 3000 inside the container; it is published on
+# 127.0.0.1:5002 only, so it is not reachable from the network.
+services:
+  presidio-analyzer:
+    # Pinned for reproducibility (verified on mcr.microsoft.com). Bump deliberately;
+    # `latest` also works.
+    image: mcr.microsoft.com/presidio-analyzer:2.2.362
+    container_name: shadow-presidio-analyzer
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5002:3000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:3000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s

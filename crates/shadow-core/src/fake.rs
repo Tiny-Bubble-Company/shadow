@@ -156,6 +156,14 @@ impl<'a> Faker<'a> {
             .collect()
     }
 
+    /// Same length, characters drawn from `alphabet` (keeps a value's character set).
+    fn draw_from(&mut self, s: &str, alphabet: &str) -> String {
+        let a: Vec<char> = alphabet.chars().collect();
+        s.chars()
+            .map(|_| a[self.rng.gen_range(0..a.len())])
+            .collect()
+    }
+
     fn person_name(&mut self, words: usize) -> String {
         let r = self.persona.region_data();
         let last = *r.last.choose(&mut self.rng).unwrap();
@@ -386,6 +394,11 @@ impl<'a> Faker<'a> {
                         };
                         first = false;
                         d
+                    } else if c.is_ascii_uppercase() {
+                        // IDs such as India's PAN carry name initials in their letters.
+                        (b'A' + self.rng.gen_range(0..26)) as char
+                    } else if c.is_ascii_lowercase() {
+                        (b'a' + self.rng.gen_range(0..26)) as char
                     } else {
                         c
                     }
@@ -445,6 +458,38 @@ impl<'a> Faker<'a> {
                 })
                 .collect::<Vec<_>>()
                 .join("\n");
+        }
+        // Wallet addresses keep their shape: 0x + hex, bc1 + bech32, legacy base58.
+        if let Some(hex) = real
+            .strip_prefix("0x")
+            .filter(|h| h.chars().all(|c| c.is_ascii_hexdigit()))
+        {
+            return format!("0x{}", self.draw_from(hex, "0123456789abcdef"));
+        }
+        if let Some(rest) = real
+            .strip_prefix("bc1")
+            .or_else(|| real.strip_prefix("BC1"))
+        {
+            return format!(
+                "{}{}",
+                &real[..3],
+                self.draw_from(rest, "qpzry9x8gf2tvdw0s3jn54khce6mua7l")
+            );
+        }
+        if (real.starts_with('1') || real.starts_with('3'))
+            && (26..=35).contains(&real.len())
+            && real
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() && !"0OIl".contains(c))
+        {
+            return format!(
+                "{}{}",
+                &real[..1],
+                self.draw_from(
+                    &real[1..],
+                    "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+                )
+            );
         }
         let prefix = SECRET_PREFIXES
             .iter()

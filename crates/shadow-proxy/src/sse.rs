@@ -9,9 +9,53 @@
 //! the channel or, if needed, into a synthesized copy of the channel's last event.
 
 use std::collections::BTreeMap;
+use std::sync::Arc;
 
 use serde_json::Value;
-use shadow_core::{Shadow, StreamUnmasker};
+use shadow_core::{Session, Shadow, StreamUnmasker};
+
+/// What translates a response back: the engine (fakes only) or one request's session
+/// (fakes plus that request's tokens such as `[EMAIL_0001]`).
+#[derive(Clone)]
+pub enum Translator {
+    Shadow(Shadow),
+    Session(Arc<Session>),
+}
+
+impl From<Shadow> for Translator {
+    fn from(s: Shadow) -> Self {
+        Translator::Shadow(s)
+    }
+}
+
+impl From<Arc<Session>> for Translator {
+    fn from(s: Arc<Session>) -> Self {
+        Translator::Session(s)
+    }
+}
+
+impl Translator {
+    pub fn unmask(&self, text: &str) -> String {
+        match self {
+            Translator::Shadow(s) => s.unmask(text),
+            Translator::Session(s) => s.unmask(text),
+        }
+    }
+
+    pub fn unmask_json(&self, v: &mut Value) {
+        match self {
+            Translator::Shadow(s) => s.unmask_json(v),
+            Translator::Session(s) => s.unmask_json(v),
+        }
+    }
+
+    pub fn stream_unmasker(&self) -> StreamUnmasker {
+        match self {
+            Translator::Shadow(s) => s.stream_unmasker(),
+            Translator::Session(s) => s.stream_unmasker(),
+        }
+    }
+}
 
 /// How events are framed on the wire.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -37,7 +81,7 @@ struct Channel {
 
 /// Incremental event-stream unmasker.
 pub struct EventStreamUnmasker {
-    shadow: Shadow,
+    shadow: Translator,
     framing: Framing,
     line_buf: Vec<u8>,
     fields: Vec<String>,
@@ -213,9 +257,9 @@ fn terminal(v: &Value) -> Vec<String> {
 
 impl EventStreamUnmasker {
     /// New unmasker for one response stream.
-    pub fn new(shadow: Shadow, framing: Framing) -> Self {
+    pub fn new(translator: impl Into<Translator>, framing: Framing) -> Self {
         Self {
-            shadow,
+            shadow: translator.into(),
             framing,
             line_buf: vec![],
             fields: vec![],

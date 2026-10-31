@@ -33,6 +33,12 @@ pub struct ShadowConfig {
     pub model_detector: ModelDetectorConfig,
     /// Proxy / gateway settings used by `shadow-proxy`.
     pub proxy: ProxyConfig,
+    /// Intent-aware treatment of detected values (see [`crate::policy`]).
+    pub policy: PolicyConfig,
+    /// Masking the contents of uploaded files (see [`crate::files`]).
+    pub files: FilesConfig,
+    /// Optional Microsoft Presidio Analyzer as an extra detector.
+    pub presidio: PresidioConfig,
 }
 
 /// Persona settings.
@@ -106,6 +112,145 @@ impl Default for ModelDetectorConfig {
             url: "http://127.0.0.1:8878/detect".into(),
             timeout_ms: 300,
             min_score: 0.6,
+        }
+    }
+}
+
+/// How a detected value is sent to the model.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Treatment {
+    /// A realistic, format-preserving fake from the persona; restored in responses and tool calls.
+    Surrogate,
+    /// A typed placeholder such as `[PERSON_0007]`; restored in responses and tool calls.
+    Token,
+    /// The real value. Only for action targets the provider itself acts on; always logged.
+    Keep,
+    /// Removed for good (`[REDACTED_SECRET]`); never restored.
+    Redact,
+}
+
+/// Intent-aware policy: which [`Treatment`] each kind of value gets, per request intent.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct PolicyConfig {
+    /// Classify each request's intent (act / report / code / converse). Off = surrogate everything.
+    pub intent: bool,
+    pub act: ActPolicy,
+    /// Treatment per kind (`person`, `email`, ...) when the request is a report over data;
+    /// `default` covers the rest.
+    pub report: BTreeMap<String, Treatment>,
+    /// Treatment per kind that applies whatever the intent, e.g. `secret = "redact"`.
+    pub always: BTreeMap<String, Treatment>,
+}
+
+/// Values an action is aimed at (the recipient of an email, the number to call).
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ActPolicy {
+    /// When the tool runs locally: Shadow restores the real value in the tool call on this
+    /// machine, so a surrogate is safe and the action still works.
+    pub targets: Treatment,
+    /// When the action runs in the provider's cloud (hosted MCP servers, server-side tools),
+    /// Shadow can't restore values there; `keep` sends the real target so the action works.
+    pub remote_tool_targets: Treatment,
+}
+
+impl Default for ActPolicy {
+    fn default() -> Self {
+        Self {
+            targets: Treatment::Surrogate,
+            remote_tool_targets: Treatment::Keep,
+        }
+    }
+}
+
+impl Default for PolicyConfig {
+    fn default() -> Self {
+        let report = [
+            "person",
+            "email",
+            "phone",
+            "address",
+            "national_id",
+            "iban",
+            "credit_card",
+        ]
+        .iter()
+        .map(|k| (k.to_string(), Treatment::Token))
+        .chain([("default".to_string(), Treatment::Surrogate)])
+        .collect();
+        // Secrets get fakes like everything else, so "fix this config" comes back with your
+        // real key restored locally; set `secret = "redact"` to strip them instead.
+        Self {
+            intent: true,
+            act: ActPolicy::default(),
+            report,
+            always: BTreeMap::new(),
+        }
+    }
+}
+
+/// What to do with PDFs and images inside requests.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FileAction {
+    /// PDFs: extract the text, mask it, send it as text.
+    Text,
+    /// Refuse the request with an error explaining why.
+    Block,
+    /// Forward untouched.
+    Pass,
+}
+
+/// File content masking.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct FilesConfig {
+    pub enabled: bool,
+    pub pdf: FileAction,
+    /// Images can't be read without OCR; pass them through or block them.
+    pub images: FileAction,
+    /// Files larger than this are forwarded untouched (with a warning) or blocked if `block_oversize`.
+    pub max_bytes: usize,
+    pub block_oversize: bool,
+}
+
+impl Default for FilesConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            pdf: FileAction::Text,
+            images: FileAction::Pass,
+            max_bytes: 50 * 1024 * 1024,
+            block_oversize: false,
+        }
+    }
+}
+
+/// Microsoft Presidio Analyzer (https://microsoft.github.io/presidio/) as an extra detector.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct PresidioConfig {
+    pub enabled: bool,
+    /// The analyzer's `/analyze` endpoint.
+    pub url: String,
+    pub language: String,
+    pub min_score: f32,
+    /// Presidio entity names to ask for; empty means all.
+    pub entities: Vec<String>,
+    pub timeout_ms: u64,
+}
+
+impl Default for PresidioConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            url: "http://127.0.0.1:5002/analyze".into(),
+            language: "en".into(),
+            min_score: 0.5,
+            entities: vec![],
+            timeout_ms: 800,
         }
     }
 }
@@ -198,6 +343,9 @@ impl ShadowConfig {
             detectors: DetectorToggles::default(),
             model_detector: ModelDetectorConfig::default(),
             proxy: ProxyConfig::default(),
+            policy: PolicyConfig::default(),
+            files: FilesConfig::default(),
+            presidio: PresidioConfig::default(),
         }
     }
 

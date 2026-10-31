@@ -18,6 +18,8 @@
 pub mod config;
 pub mod detect;
 mod fake;
+pub mod files;
+pub mod intent;
 pub mod local;
 pub mod persona;
 pub mod translate;
@@ -31,8 +33,9 @@ use std::time::{Duration, Instant};
 use anyhow::Context;
 use serde_json::Value;
 
-pub use config::ShadowConfig;
+pub use config::{ShadowConfig, Treatment};
 pub use detect::{Detector, Finding, Kind};
+pub use intent::{Classification, Intent, RequestContext, ToolInfo};
 pub use local::LocalFacts;
 pub use persona::Persona;
 pub use translate::{Masked, StreamUnmasker};
@@ -115,6 +118,9 @@ impl Shadow {
                 Ok(d) => detectors.push(Box::new(d)),
                 Err(e) => tracing::warn!("model detector disabled: {e:#}"),
             }
+        }
+        if let Some(d) = detect::presidio::presidio_detector(&config) {
+            detectors.push(d);
         }
         detectors.extend(extra);
 
@@ -308,8 +314,35 @@ impl Shadow {
         detect::resolve_overlaps(all, text.len())
     }
 
-    /// Replace every sensitive value in `text` with its (persisted) fake.
+    /// Replace every sensitive value in `text` with its (persisted) fake. Secrets are redacted.
+    /// For intent-aware masking of a whole request, use [`Shadow::session`].
     pub fn mask(&self, text: &str) -> Masked {
+        self.session(RequestContext::default()).mask(text)
+    }
+
+    /// A masking session for one request: classifies its intent and applies the policy.
+    pub fn session(&self, ctx: RequestContext) -> Session {
+        let personal = intent::personal(&self.scan(&ctx.instruction));
+        let class = intent::classify(&ctx, personal);
+        Session {
+            shadow: self.clone(),
+            class,
+            instruction: ctx.instruction,
+            tokens: Mutex::new(Tokens::default()),
+        }
+    }
+
+    /// A session for an OpenAI, Anthropic or Gemini request body.
+    pub fn session_for(&self, body: &Value) -> Session {
+        self.session(intent::context_from_json(body))
+    }
+
+    /// The masking loop: each finding is replaced by `decide`'s text, or by its persona fake.
+    fn mask_with(
+        &self,
+        text: &str,
+        decide: &mut dyn FnMut(&Finding, &str) -> Option<String>,
+    ) -> Masked {
         self.maybe_refresh();
         let findings = self.scan(text);
         if findings.is_empty() {
@@ -324,6 +357,7 @@ impl Shadow {
         let mut out = String::with_capacity(text.len() + 16);
         let mut kinds = BTreeSet::new();
         let mut last = 0;
+        let mut replaced = 0;
         {
             let mut faker = Faker::new(
                 &self.inner.persona,
@@ -333,8 +367,19 @@ impl Shadow {
             for f in &findings {
                 let real = &text[f.start..f.end];
                 out.push_str(&text[last..f.start]);
-                out.push_str(&faker.fake_for(f.kind, real));
-                kinds.insert(f.kind.as_str().to_string());
+                match decide(f, real) {
+                    Some(r) if r == real => out.push_str(real),
+                    Some(r) => {
+                        out.push_str(&r);
+                        replaced += 1;
+                        kinds.insert(f.kind.as_str().to_string());
+                    }
+                    None => {
+                        out.push_str(&faker.fake_for(f.kind, real));
+                        replaced += 1;
+                        kinds.insert(f.kind.as_str().to_string());
+                    }
+                }
                 last = f.end;
             }
         }
@@ -346,7 +391,7 @@ impl Shadow {
         }
         Masked {
             text: out,
-            replacements: findings.len(),
+            replacements: replaced,
             kinds: kinds.into_iter().collect(),
         }
     }
@@ -477,6 +522,153 @@ impl Shadow {
     /// Currently protected dictionary terms with their kinds.
     pub fn terms(&self) -> Vec<(String, Kind)> {
         self.read().terms.clone()
+    }
+}
+
+/// One request being masked: its intent, the policy decisions, and the typed tokens it handed
+/// out (kept only for this request, so the answer can be translated back).
+pub struct Session {
+    shadow: Shadow,
+    class: Classification,
+    instruction: String,
+    tokens: Mutex<Tokens>,
+}
+
+#[derive(Default)]
+struct Tokens {
+    by_real: std::collections::HashMap<String, String>,
+    pairs: Vec<(String, String)>,
+    counters: std::collections::HashMap<&'static str, usize>,
+    summary: SessionSummary,
+    /// Unmasker over vault + tokens, valid while neither changes: (vault generation, tokens).
+    cached: Option<(u64, usize, Arc<Unmasker>)>,
+}
+
+/// What a session did, for logs: counts only, never values.
+#[derive(Clone, Debug, Default, serde::Serialize)]
+pub struct SessionSummary {
+    pub surrogates: usize,
+    pub tokens: usize,
+    pub kept: usize,
+    pub redacted: usize,
+}
+
+impl Session {
+    pub fn classification(&self) -> &Classification {
+        &self.class
+    }
+
+    pub fn summary(&self) -> SessionSummary {
+        self.lock().summary.clone()
+    }
+
+    fn lock(&self) -> std::sync::MutexGuard<'_, Tokens> {
+        self.tokens.lock().unwrap_or_else(|e| e.into_inner())
+    }
+
+    /// Mask `text` under this request's policy.
+    pub fn mask(&self, text: &str) -> Masked {
+        let cfg = &self.shadow.inner.config.policy;
+        let instruction = self.instruction.as_str();
+        let class = &self.class;
+        let mut toks = self.lock();
+        self.shadow.mask_with(text, &mut |f, real| {
+            let target = intent::is_action_target(
+                class,
+                !instruction.is_empty() && instruction.contains(real),
+                f.kind,
+            );
+            match intent::treatment(cfg, class, f.kind, target) {
+                Treatment::Surrogate => {
+                    toks.summary.surrogates += 1;
+                    None
+                }
+                Treatment::Keep => {
+                    toks.summary.kept += 1;
+                    tracing::info!(
+                        kind = f.kind.as_str(),
+                        intent = class.intent.as_str(),
+                        "kept an action target unmasked: the provider runs this tool"
+                    );
+                    Some(real.to_string())
+                }
+                Treatment::Redact => {
+                    toks.summary.redacted += 1;
+                    Some(format!("[REDACTED_{}]", f.kind.as_str().to_uppercase()))
+                }
+                Treatment::Token => {
+                    toks.summary.tokens += 1;
+                    if let Some(t) = toks.by_real.get(real) {
+                        return Some(t.clone());
+                    }
+                    let label = f.kind.as_str().to_uppercase();
+                    let n = toks.counters.entry(f.kind.as_str()).or_default();
+                    *n += 1;
+                    let token = format!("[{label}_{n:04}]");
+                    toks.by_real.insert(real.to_string(), token.clone());
+                    toks.pairs.push((token.clone(), real.to_string()));
+                    Some(token)
+                }
+            }
+        })
+    }
+
+    /// Mask every eligible string leaf of a JSON request body in place.
+    pub fn mask_json(&self, v: &mut Value) -> usize {
+        let mut n = 0;
+        walk_strings_mut(v, None, &mut |s| {
+            let m = self.mask(s);
+            if m.replacements > 0 {
+                n += m.replacements;
+                *s = m.text;
+            }
+        });
+        n
+    }
+
+    fn unmasker(&self) -> Arc<Unmasker> {
+        let base = self.shadow.unmasker();
+        let mut toks = self.lock();
+        if toks.pairs.is_empty() {
+            return base;
+        }
+        let st = self.shadow.read();
+        let key = (st.vault.generation, toks.pairs.len());
+        if let Some((g, n, u)) = &toks.cached {
+            if (*g, *n) == key {
+                return u.clone();
+            }
+        }
+        let mut pairs: Vec<(String, String)> = st
+            .vault
+            .entries()
+            .iter()
+            .map(|e| (e.fake.clone(), e.real.clone()))
+            .collect();
+        drop(st);
+        pairs.extend(toks.pairs.iter().cloned());
+        let u = Arc::new(Unmasker::new(pairs));
+        toks.cached = Some((key.0, key.1, u.clone()));
+        u
+    }
+
+    /// Translate fakes and this request's tokens back to real values.
+    pub fn unmask(&self, text: &str) -> String {
+        self.unmasker().apply(text)
+    }
+
+    pub fn unmask_json(&self, v: &mut Value) {
+        let un = self.unmasker();
+        walk_all_strings_mut(v, &mut |s| {
+            if un.contains_fake(s) {
+                *s = un.apply(s);
+            }
+        });
+    }
+
+    /// A streaming unmasker for this request's response.
+    pub fn stream_unmasker(&self) -> StreamUnmasker {
+        StreamUnmasker::new(self.unmasker())
     }
 }
 
