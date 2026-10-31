@@ -277,6 +277,7 @@
     svg.appendChild(grid);
     var n = Math.max(1, tl.length), slot = iw / n, bw = Math.max(2, Math.min(22, slot * 0.68));
     var every = Math.max(1, Math.ceil(n / Math.max(2, Math.floor(iw / 78))));
+    var lastTick = "", lastTickX = -1e9;
     tl.forEach(function (p, i) {
       var x = padL + i * slot + (slot - bw) / 2;
       var clean = Math.max(0, p.requests - p.masked - p.blocked);
@@ -293,9 +294,14 @@
       hit.addEventListener("mouseleave", hideTip);
       col.appendChild(hit);
       svg.appendChild(col);
-      if (i % every === 0) {
-        axis.appendChild(s("text", { x: (padL + i * slot + slot / 2).toFixed(1), y: H - 6, "text-anchor": "middle", text: tickLabel(p.t, sum.window) }));
+      // Hourly windows: evenly spaced ticks. Day windows: one tick where the day changes.
+      var label = tickLabel(p.t, sum.window), tx = padL + i * slot + slot / 2;
+      var daily = sum.window === "7d" || sum.window === "30d";
+      if (daily ? label !== lastTick && tx - lastTickX >= 56 : i % every === 0) {
+        axis.appendChild(s("text", { x: tx.toFixed(1), y: H - 6, "text-anchor": "middle", text: label }));
+        lastTickX = tx;
       }
+      lastTick = label;
     });
     svg.appendChild(axis);
     box.appendChild(svg);
