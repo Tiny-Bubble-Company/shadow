@@ -39,6 +39,38 @@ pub struct ShadowConfig {
     pub files: FilesConfig,
     /// Optional Microsoft Presidio Analyzer as an extra detector.
     pub presidio: PresidioConfig,
+    /// The privacy-safe activity feed behind the dashboard, `shadow top` and the tray app.
+    pub activity: ActivityConfig,
+}
+
+/// Activity feed (see [`crate::activity`]): counts and categories only, never values.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ActivityConfig {
+    /// Record activity events at all.
+    pub enabled: bool,
+    /// Append events to `<data_dir>/activity/activity.jsonl` (0600) so history survives
+    /// restarts. Off = in memory only.
+    pub persist: bool,
+    /// Drop events older than this many days.
+    pub retention_days: u32,
+    /// Rotate the log file when it grows past this size (one previous file is kept).
+    pub max_file_mb: u64,
+    /// Serve `/shadow/activity*` and `/shadow/ui` to non-loopback peers. Off by default;
+    /// only turn it on behind your own access control (e.g. a Docker port bound to localhost).
+    pub allow_remote: bool,
+}
+
+impl Default for ActivityConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            persist: true,
+            retention_days: 30,
+            max_file_mb: 16,
+            allow_remote: false,
+        }
+    }
 }
 
 /// Persona settings.
@@ -346,6 +378,7 @@ impl ShadowConfig {
             policy: PolicyConfig::default(),
             files: FilesConfig::default(),
             presidio: PresidioConfig::default(),
+            activity: ActivityConfig::default(),
         }
     }
 
@@ -403,6 +436,10 @@ impl ShadowConfig {
     /// Path of the vault key (0600).
     pub fn key_path(&self) -> PathBuf {
         self.data_dir.join("vault.key")
+    }
+    /// Directory of the activity log.
+    pub fn activity_dir(&self) -> PathBuf {
+        self.data_dir.join("activity")
     }
     /// Path of runtime-added terms.
     pub fn terms_path(&self) -> PathBuf {

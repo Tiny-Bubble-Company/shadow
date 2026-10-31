@@ -44,18 +44,25 @@ impl Unmasker {
 
     /// Replace every fake in `text` with its real value.
     pub fn apply(&self, text: &str) -> String {
+        self.apply_counted(text).0
+    }
+
+    /// Like [`Unmasker::apply`], also returning how many values were restored.
+    pub fn apply_counted(&self, text: &str) -> (String, usize) {
         let Some(ac) = &self.ac else {
-            return text.to_string();
+            return (text.to_string(), 0);
         };
         let mut out = String::with_capacity(text.len());
         let mut last = 0;
+        let mut n = 0;
         for m in ac.find_iter(text) {
             out.push_str(&text[last..m.start()]);
             out.push_str(&self.reals[m.pattern().as_usize()]);
             last = m.end();
+            n += 1;
         }
         out.push_str(&text[last..]);
-        out
+        (out, n)
     }
 
     /// True if `text` contains any fake.
@@ -70,6 +77,7 @@ impl Unmasker {
 pub struct StreamUnmasker {
     un: Arc<Unmasker>,
     buf: String,
+    restored: usize,
 }
 
 impl StreamUnmasker {
@@ -78,6 +86,7 @@ impl StreamUnmasker {
         Self {
             un,
             buf: String::new(),
+            restored: 0,
         }
     }
 
@@ -104,6 +113,7 @@ impl StreamUnmasker {
             out.push_str(&self.buf[last..m.start()]);
             out.push_str(&self.un.reals[m.pattern().as_usize()]);
             last = m.end();
+            self.restored += 1;
         }
         if last < cut {
             out.push_str(&self.buf[last..cut]);
@@ -116,7 +126,14 @@ impl StreamUnmasker {
     /// Flush everything still held back.
     pub fn finish(&mut self) -> String {
         let rest = std::mem::take(&mut self.buf);
-        self.un.apply(&rest)
+        let (out, n) = self.un.apply_counted(&rest);
+        self.restored += n;
+        out
+    }
+
+    /// Values restored so far (counts only).
+    pub fn restored(&self) -> usize {
+        self.restored
     }
 
     /// Bytes currently held back.

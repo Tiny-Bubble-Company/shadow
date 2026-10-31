@@ -121,3 +121,13 @@ strip_headers = [
 # language = "en"
 # min_score = 0.5
 # entities = []                  # empty = all
+
+# Activity feed behind the dashboard (http://127.0.0.1:8877/shadow/ui), `shadow top` and the
+# tray app. Counts and categories only: real values, fakes, prompts and file names are never
+# recorded. Shown with their defaults.
+# [activity]
+# enabled = true
+# persist = true                 # append to <data_dir>/activity/activity.jsonl (0600)
+# retention_days = 30
+# max_file_mb = 16               # rotate past this size; one previous file is kept
+# allow_remote = false           # serve the dashboard/API to non-loopback peers

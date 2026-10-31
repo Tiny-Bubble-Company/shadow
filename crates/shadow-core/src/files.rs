@@ -59,6 +59,26 @@ impl fmt::Display for FileError {
 
 impl std::error::Error for FileError {}
 
+impl FileError {
+    /// A stable, value-free category for activity logs (the message itself may contain a
+    /// file name, so it is never recorded): `image_blocked`, `pdf_blocked`,
+    /// `unreadable_pdf`, `file_too_large` or `file_policy`.
+    pub fn category(&self) -> &'static str {
+        let FileError::Blocked(r) = self;
+        if r == IMAGES_BLOCKED {
+            "image_blocked"
+        } else if r.starts_with("PDFs are blocked") {
+            "pdf_blocked"
+        } else if r == NO_TEXT_LAYER || r.starts_with("could not read this PDF") {
+            "unreadable_pdf"
+        } else if r.contains("byte limit") {
+            "file_too_large"
+        } else {
+            "file_policy"
+        }
+    }
+}
+
 const CONVERTED_PDF: &str = "converted PDF to masked text";
 const NO_TEXT_LAYER: &str = "this PDF has no text layer (scanned?); Shadow can't mask it";
 const IMAGES_BLOCKED: &str = "images are blocked by policy: Shadow can't read text in images";

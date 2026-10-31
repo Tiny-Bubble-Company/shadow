@@ -15,6 +15,7 @@
 //! # anyhow::Ok(())
 //! ```
 
+pub mod activity;
 pub mod config;
 pub mod detect;
 mod fake;
@@ -401,6 +402,11 @@ impl Shadow {
         self.unmasker().apply(text)
     }
 
+    /// Like [`Shadow::unmask`], also returning how many values were restored.
+    pub fn unmask_counted(&self, text: &str) -> (String, usize) {
+        self.unmasker().apply_counted(text)
+    }
+
     /// True if `text` contains any known fake.
     pub fn contains_fake(&self, text: &str) -> bool {
         self.unmasker().contains_fake(text)
@@ -420,14 +426,9 @@ impl Shadow {
         n
     }
 
-    /// Unmask every string leaf of a JSON value in place.
-    pub fn unmask_json(&self, v: &mut Value) {
-        let un = self.unmasker();
-        walk_all_strings_mut(v, &mut |s| {
-            if un.contains_fake(s) {
-                *s = un.apply(s);
-            }
-        });
+    /// Unmask every string leaf of a JSON value in place. Returns values restored.
+    pub fn unmask_json(&self, v: &mut Value) -> usize {
+        unmask_json_with(&self.unmasker(), v)
     }
 
     /// Replace identifying request fields with persona values: OpenAI `user` /
@@ -544,13 +545,17 @@ struct Tokens {
     cached: Option<(u64, usize, Arc<Unmasker>)>,
 }
 
-/// What a session did, for logs: counts only, never values.
+/// What a session did, for logs and the activity feed: counts only, never values.
 #[derive(Clone, Debug, Default, serde::Serialize)]
 pub struct SessionSummary {
     pub surrogates: usize,
     pub tokens: usize,
     pub kept: usize,
     pub redacted: usize,
+    /// Values protected (surrogate, token or redact) per kind, e.g. `{"email": 2}`.
+    pub kinds: std::collections::BTreeMap<String, usize>,
+    /// Names of the detectors that found the protected values.
+    pub detectors: BTreeSet<String>,
 }
 
 impl Session {
@@ -578,7 +583,18 @@ impl Session {
                 !instruction.is_empty() && instruction.contains(real),
                 f.kind,
             );
-            match intent::treatment(cfg, class, f.kind, target) {
+            let treatment = intent::treatment(cfg, class, f.kind, target);
+            if treatment != Treatment::Keep {
+                *toks
+                    .summary
+                    .kinds
+                    .entry(f.kind.as_str().to_string())
+                    .or_default() += 1;
+                if !toks.summary.detectors.contains(f.detector) {
+                    toks.summary.detectors.insert(f.detector.to_string());
+                }
+            }
+            match treatment {
                 Treatment::Surrogate => {
                     toks.summary.surrogates += 1;
                     None
@@ -657,19 +673,32 @@ impl Session {
         self.unmasker().apply(text)
     }
 
-    pub fn unmask_json(&self, v: &mut Value) {
-        let un = self.unmasker();
-        walk_all_strings_mut(v, &mut |s| {
-            if un.contains_fake(s) {
-                *s = un.apply(s);
-            }
-        });
+    /// Like [`Session::unmask`], also returning how many values were restored.
+    pub fn unmask_counted(&self, text: &str) -> (String, usize) {
+        self.unmasker().apply_counted(text)
+    }
+
+    /// Unmask every string leaf of a JSON value in place. Returns values restored.
+    pub fn unmask_json(&self, v: &mut Value) -> usize {
+        unmask_json_with(&self.unmasker(), v)
     }
 
     /// A streaming unmasker for this request's response.
     pub fn stream_unmasker(&self) -> StreamUnmasker {
         StreamUnmasker::new(self.unmasker())
     }
+}
+
+fn unmask_json_with(un: &Unmasker, v: &mut Value) -> usize {
+    let mut n = 0;
+    walk_all_strings_mut(v, &mut |s| {
+        if un.contains_fake(s) {
+            let (out, k) = un.apply_counted(s);
+            *s = out;
+            n += k;
+        }
+    });
+    n
 }
 
 fn read_terms_file(path: &Path) -> Vec<String> {

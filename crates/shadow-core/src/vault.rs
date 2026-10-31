@@ -270,6 +270,18 @@ fn load_or_create_key(path: &Path) -> anyhow::Result<[u8; 32]> {
     Ok(key)
 }
 
+/// Create `dir` (and parents) if missing; on Unix the leaf directory is set to mode 0700.
+pub fn create_private_dir(dir: &Path) -> anyhow::Result<()> {
+    std::fs::create_dir_all(dir).with_context(|| format!("creating {}", dir.display()))?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o700))
+            .with_context(|| format!("restricting {}", dir.display()))?;
+    }
+    Ok(())
+}
+
 /// Write `data` to `path` atomically (temp file in the same dir + rename).
 /// With `private`, the file is created with mode 0600 on Unix.
 pub fn write_atomic(path: &Path, data: &[u8], private: bool) -> anyhow::Result<()> {
