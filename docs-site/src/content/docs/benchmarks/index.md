@@ -1,6 +1,11 @@
 ---
 title: "Shadow benchmarks"
 description: "Measured accuracy, leak rate and latency of Shadow's PII detection and masking on public datasets, with methodology and reproducible scripts."
+head:
+  - tag: meta
+    attrs:
+      name: robots
+      content: noindex, follow
 sidebar:
   label: Overview
   order: 0
