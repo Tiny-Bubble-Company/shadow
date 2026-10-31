@@ -23,7 +23,7 @@ sidebar:
   order: 5
 ---
 
-Enterprises already have DLP, a secure web gateway or SSE platform, and often an AI gateway. Shadow fills a specific gap between them: API traffic to AI providers from developer machines, internal applications, agents and pipelines, where blocking breaks the work and placeholders break the answers. It replaces sensitive values with consistent, reversible fakes on the endpoint or next to the workload, so detected values reach the provider only as fakes and the tools keep working. The only real values sent by design are those a provider-hosted action needs, each one logged, and you can turn that off.
+Enterprises already have DLP, a secure web gateway or SSE platform, and often an AI gateway. Shadow fills a specific gap between them: API traffic to AI providers from developer machines, internal applications, agents and pipelines, where blocking breaks the work and placeholders break the answers. It replaces sensitive values with consistent, reversible fakes on the endpoint or next to the workload, so detected values reach the provider only as fakes and the tools keep working. The only real values sent by design are the recipient of a message or action the user asks for, and those a provider-hosted action needs, each one logged, and you can turn both off.
 
 ## Where Shadow fits in the stack
 

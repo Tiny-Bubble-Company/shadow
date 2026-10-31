@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- **Intent-aware policy.** Each request is classified as `act`, `report`, `code` or `converse`, and every detected value gets a treatment: `surrogate` (default), `token` (typed placeholders such as `[PERSON_0001]`), `keep` (for action targets in provider-hosted tools, always logged) or `redact` (opt-in, irreversible). Configured under `[policy]`, `[policy.act]`, `[policy.report]` and `[policy.always]`.
+- **Intent-aware policy.** Each request is classified as `act`, `report`, `code` or `converse`, and every detected value gets a treatment: `surrogate` (default), `token` (typed placeholders such as `[PERSON_0001]`), `keep` (for message recipients and action targets in provider-hosted tools, always logged) or `redact` (opt-in, irreversible). Configured under `[policy]`, `[policy.act]`, `[policy.report]` and `[policy.always]`.
 - **Session API** in `shadow-core`: `Shadow::session_for(&request_json)` and `Shadow::session(RequestContext { .. })`, with `mask`, `mask_json`, `unmask`, `unmask_json`, `stream_unmasker`, `classification` and `summary`.
 - **File masking.** `multipart/form-data` uploads, base64 file payloads in JSON (OpenAI `input_file.file_data`, Anthropic `document` blocks, Gemini `inline_data`) and `data:` URIs. Text, Markdown, CSV, JSON, HTML and XML masked as text; DOCX, XLSX and PPTX masked in place; PDF text extracted, masked and sent as text; images passed through or blocked. Configured under `[files]`.
 - **Activity dashboard.** A privacy-safe activity feed (counts and categories only, never values) served on loopback at `/shadow/ui`, plus `shadow top`, `shadow activity` and `shadow dashboard`, and a menu-bar / tray app in `apps/shadow-tray`.
@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- **Message recipients are passed through.** A request whose goal is to contact or act on someone is now `act`, including compose requests ("draft/write/compose/prepare a reply, email, letter, reminder, invitation..."). The recipient phrase (the words after "to", "for" or "at" following the verb, or right after "email", "call" and similar) is kept: names, emails, phones, companies, addresses, IBANs and usernames in it reach the provider as written, so the model greets, researches and addresses the right person. Each keep is logged. Everything else in the request (other people, health data, IDs, cards, secrets, hostnames) is still masked. `[policy.act] targets` now defaults to `"keep"`; set `targets = "surrogate"` for the previous behaviour, where the model sees a stand-in recipient and Shadow restores the real one in the answer and in tool-call arguments.
 - **Goal-preserving intent.** Action verbs are also detected after "to", "and", "then" and "you" ("can you send...", "draft it and email..."). For provider-hosted actions with `remote_tool_targets = "keep"`, usernames and IBANs named in the instruction are kept real, and a follow-up that names no email or phone keeps the emails, phones and people anywhere in the request (earlier messages, pasted documents, tool results). Secrets, cards, national IDs, hostnames and IPs stay masked; every keep is logged.
 
 ### Removed

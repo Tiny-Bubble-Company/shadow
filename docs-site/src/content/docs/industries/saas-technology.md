@@ -108,7 +108,7 @@ The fix comes back referring to your real hostname and path.
 
 ### Support macro drafting
 
-An agent pastes a ticket thread and asks for a reply. The customer's name, email and company become fakes; the model writes naturally about them, and the reply is restored with the real customer before the agent sends it.
+An agent pastes a ticket thread and asks for a reply to the customer. The customer named as the recipient ("Reply to Jane Doe at Globex") passes through as written and is logged, so the model greets the right person; colleagues, other customers, hostnames and keys in the thread become fakes and are restored in the reply before the agent sends it.
 
 ### Product AI feature
 

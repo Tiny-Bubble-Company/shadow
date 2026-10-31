@@ -34,7 +34,7 @@ In a regulated enterprise, a privacy control is only as useful as the evidence b
 | What is not covered? | The documented gaps: dates, internal IDs unless configured, images, consumer web chat, Realtime APIs |
 | Who can reverse the pseudonyms? | Only holders of the data directory: `vault.key` on the endpoint or in a Kubernetes secret |
 | What happens on failure? | Traffic fails closed. Optional detectors fail open to the built-ins, with a warning |
-| Is anything sent in clear text by design? | Only `keep` decisions for provider-hosted tool targets, each logged with kind and reason; configurable off |
+| Is anything sent in clear text by design? | Only `keep` decisions: the recipient when a user asks the model to write to or act on someone, and provider-hosted tool targets, each logged with kind and reason; both configurable off |
 | How is the control changed? | `shadow.toml` in version control, reviewed, deployed by pipeline or MDM |
 
 ## How Shadow supports common requirements
@@ -68,6 +68,7 @@ url = "http://127.0.0.1:5002/analyze"
 entities = ["PERSON", "EMAIL_ADDRESS", "PHONE_NUMBER", "IBAN_CODE", "CREDIT_CARD", "US_SSN", "US_BANK_NUMBER", "UK_NINO"]
 
 [policy.act]
+targets = "surrogate"               # fake message recipients too; the model writes to a stand-in
 remote_tool_targets = "surrogate"   # never send action targets in clear; hosted actions may fail
 
 [policy.always]
@@ -104,7 +105,7 @@ Public results on standard datasets are on the [benchmarks](/shadow/benchmarks/)
 - [ ] Data flow diagram showing where masking happens and where keys live
 - [ ] Reviewed configuration per workload and population
 - [ ] Test corpus and recorded `shadow scan` results
-- [ ] Decision record for `remote_tool_targets`, secrets and files
+- [ ] Decision record for `targets` (message recipients), `remote_tool_targets`, secrets and files
 - [ ] Egress controls verified by a negative test (direct provider access fails)
 - [ ] Change-control process for `shadow.toml` and Shadow upgrades
 - [ ] AI provider contracts (DPA, BAA where relevant) still in place

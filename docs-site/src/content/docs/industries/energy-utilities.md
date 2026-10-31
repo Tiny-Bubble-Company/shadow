@@ -114,7 +114,7 @@ The protocol details stay, so the model can still diagnose the problem, and the 
 
 ### Customer payment-plan letter
 
-A customer service agent asks for a letter to Sarah Murphy at 21 Mill Lane, phone 555-0142, IBAN `DE89 3704 0044 0532 0130 00`. The provider sees a fake name, address and phone, and a different IBAN that still passes mod-97. The letter comes back with the real details.
+A customer service agent asks to draft a letter to Sarah Murphy at 21 Mill Lane, phone 555-0142, IBAN `DE89 3704 0044 0532 0130 00`, about her new payment plan. Sarah is the recipient, so her name, address, phone and IBAN pass through as written and each keep is logged; the model writes to the right customer. Anything after "about", such as a colleague's name or a meter account holder, is masked and restored in the letter. Set `[policy.act] targets = "surrogate"` to send a stand-in customer and a mod-97-valid fake IBAN instead, restored in the letter.
 
 ### Outage report over a work-order export
 

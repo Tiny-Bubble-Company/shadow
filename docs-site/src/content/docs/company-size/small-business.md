@@ -107,12 +107,12 @@ A staff member asks the approved assistant to reply to a complaint:
 ```text
 They type:   Reply to Jane Doe (jane.doe@contoso.example, +1 415 555 0134) about order 1182,
              refunded to card ending 1111.
-AI sees:     Reply to Ying Chen (ying.chen@xinghe.cn, +86 28 5512 7740) about order 1182,
+AI sees:     Reply to Jane Doe (jane.doe@contoso.example, +1 415 555 0134) about order 1182,
              refunded to card ending 1111.
-They read:   Dear Jane Doe, ... (the real name, restored)
+They read:   Dear Jane Doe, ...
 ```
 
-The order number and the last four card digits are sent as they are; only full card numbers are detected. The fakes shown are illustrative.
+Jane is the person the reply is for, so her name, email and phone are sent as written (and logged): the AI has to know who it is writing to. Anything else in the request, such as a colleague's name or a full card number, would be replaced with a fake and restored in the answer. The order number and the last four card digits are sent as they are; only full card numbers are detected. To hide the customer too, set `targets = "surrogate"` under `[policy.act]` in `shadow.toml`.
 
 ## Rollout checklist
 

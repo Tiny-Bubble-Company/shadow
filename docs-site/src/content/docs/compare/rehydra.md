@@ -71,7 +71,7 @@ Shadow holds back at most the length of the longest fake minus one byte per stre
 
 ### Provider-hosted tools
 
-Shadow's intent policy distinguishes tools your code runs from tools the provider runs (hosted MCP, server-side tools) and decides, per configuration, whether the action target is faked or kept and logged. See [tool calls](/shadow/concepts/tool-calls/).
+Shadow's intent policy distinguishes tools your code runs from tools the provider runs (hosted MCP, server-side tools) and decides, per configuration, whether the action target is faked or kept and logged. By default the recipient of a message or action is kept, so the model writes to the right person. See [tool calls](/shadow/concepts/tool-calls/).
 
 ### Files
 

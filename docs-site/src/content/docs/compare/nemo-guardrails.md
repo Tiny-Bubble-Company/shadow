@@ -66,7 +66,7 @@ Shadow restores fakes in [server-sent event streams](/shadow/concepts/how-it-wor
 
 ### Intent-aware policy
 
-Shadow decides per request whether values become fakes, typed tokens (`[PERSON_0007]` for bulk reports), a logged `keep` for provider-hosted action targets, or a redaction. See [intent-aware policy](/shadow/concepts/intent-policy/).
+Shadow decides per request whether values become fakes, typed tokens (`[PERSON_0007]` for bulk reports), a logged `keep` for message recipients and provider-hosted action targets, or a redaction. See [intent-aware policy](/shadow/concepts/intent-policy/).
 
 ### Covers tools you don't control
 

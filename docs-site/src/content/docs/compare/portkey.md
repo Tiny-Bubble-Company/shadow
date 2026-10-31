@@ -63,11 +63,11 @@ Portkey's [PII redaction docs](https://portkey.ai/docs/product/guardrails/pii-re
 
 ### Where does the data go before it is masked?
 
-With hosted partner guardrails, the unmasked prompt is sent to a guardrail service to be checked. Shadow detects locally with built-in detectors and, optionally, local NER models or Presidio on loopback. Plaintext is never sent to a guardrail service; only the masked request leaves the host, apart from the values a provider-hosted action needs, which are kept real by default and logged. No account, no telemetry.
+With hosted partner guardrails, the unmasked prompt is sent to a guardrail service to be checked. Shadow detects locally with built-in detectors and, optionally, local NER models or Presidio on loopback. Plaintext is never sent to a guardrail service; only the masked request leaves the host, apart from message recipients and the values a provider-hosted action needs, which are kept real by default and logged. No account, no telemetry.
 
 ### Realistic fakes and intent
 
-Shadow's fakes come from a persistent [persona](/shadow/concepts/personas/), so prompts stay coherent and consistent across sessions. The [intent policy](/shadow/concepts/intent-policy/) uses typed tokens for bulk reports and a logged `keep` for provider-hosted action targets.
+Shadow's fakes come from a persistent [persona](/shadow/concepts/personas/), so prompts stay coherent and consistent across sessions. The [intent policy](/shadow/concepts/intent-policy/) uses typed tokens for bulk reports and a logged `keep` for message recipients and provider-hosted action targets.
 
 ### Files
 

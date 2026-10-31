@@ -100,11 +100,11 @@ her son Leo Silva's missed assignments at Lincoln Middle School.
 Seen by the provider (persona varies):
 
 ```text
-Write a supportive email to Mei Tanaka (mei.tanaka@hoshino.co.jp, +81 3 5550 4821) about
+Write a supportive email to Ana Silva (ana.silva@mail.example, +1 415 555 0147) about
 her son Ren Tanaka's missed assignments at Hoshino Gakuen.
 ```
 
-The draft comes back addressed to Ana Silva about Leo Silva, with the right school name. If the model shortens a fake to a first name ("Dear Mei,"), Shadow restores that too, because fake first and last names are restored on their own.
+Ana Silva is the recipient, so her name, email and phone pass through as written and each keep is logged; the model writes to the right parent. The student and the school come after "about", so the provider sees fakes, and the draft comes back about Leo Silva at Lincoln Middle School ("Ren" on its own is restored too, because fake first and last names are restored on their own). Set `[policy.act] targets = "surrogate"` if parent contact details must not reach the provider.
 
 ### Grade analysis
 

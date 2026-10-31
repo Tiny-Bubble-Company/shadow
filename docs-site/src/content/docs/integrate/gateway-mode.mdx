@@ -61,7 +61,7 @@ client = OpenAI(base_url="http://127.0.0.1:8877/gw/openai/v1")  # api_key from O
 
 reply = client.chat.completions.create(
     model="gpt-4o-mini",
-    messages=[{"role": "user", "content": "Draft a renewal reminder to jane@acme.com"}],
+    messages=[{"role": "user", "content": "Summarise this ticket from jane@acme.com: card declined twice"}],
 )
 print(reply.choices[0].message.content)   # mentions jane@acme.com, the provider never saw it
 ```

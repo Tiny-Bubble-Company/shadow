@@ -256,6 +256,12 @@ const MESSAGE_NOUNS: &[&str] = &[
     "card",
     "post",
     "announcement",
+    "apology",
+    "thank-you",
+    "thanks",
+    "congratulations",
+    "condolences",
+    "proposal",
 ];
 
 /// Words that end the recipient part of an instruction: what follows is the content.
@@ -678,11 +684,13 @@ mod tests {
             "Hey, can you remind Jane about Friday?",
             "Draft a renewal reminder to Jane Doe",
             "Write a letter to Mr Okafor about his results",
+            "Draft an apology to Jane for the delay",
         ] {
             assert_eq!(classify(&ctx(asks), 1).intent, Intent::Act, "{asks}");
         }
         for mentions in [
             "Write a function that parses emails",
+            "Write a function to update Jane's record",
             "Summarise the email Jane sent me",
             "How do I send a POST request in Python?",
         ] {

@@ -53,6 +53,7 @@ Shadow sits between the tool and the provider. For every outbound request it det
 | Internal hostnames, IPs, API keys | `hostname`, `ip` and `secret` detectors, plus `internal_domains` |
 | Bulk patient lists in reports | The `report` intent swaps people, emails, phones and addresses for typed tokens such as `[PERSON_0004]` |
 | Uploaded DOCX, XLSX, PPTX, PDF text | [File masking](/shadow/concepts/file-masking/) |
+| The patient or family member a letter or reply is addressed to | Passed through as the recipient so the model writes to the right person, each keep logged; health details and other people in the request stay masked. Set `[policy.act] targets = "surrogate"` to fake the recipient too |
 
 A starting configuration for a health system:
 

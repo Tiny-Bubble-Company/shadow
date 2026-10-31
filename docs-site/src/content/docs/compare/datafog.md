@@ -69,7 +69,7 @@ DataFog integrates through LiteLLM or a Claude Code hook. Shadow intercepts at t
 
 ### Intent policy and files
 
-Shadow's [intent policy](/shadow/concepts/intent-policy/) chooses fakes for conversation, typed tokens such as `[PERSON_0007]` for bulk reports, and keep for targets of provider-hosted actions. [File masking](/shadow/concepts/file-masking/) covers DOCX, XLSX and PPTX uploads in place.
+Shadow's [intent policy](/shadow/concepts/intent-policy/) chooses fakes for conversation, typed tokens such as `[PERSON_0007]` for bulk reports, and keep for message recipients and provider-hosted action targets. [File masking](/shadow/concepts/file-masking/) covers DOCX, XLSX and PPTX uploads in place.
 
 ### No Python runtime
 

@@ -66,7 +66,7 @@ Shadow restores fakes in [SSE and NDJSON streams](/shadow/concepts/how-it-works/
 
 ### Intent-aware policy
 
-Shadow picks a treatment per value based on what the request is for: fakes in conversation, typed tokens for bulk reports, kept targets for provider-hosted actions. See [intent-aware policy](/shadow/concepts/intent-policy/).
+Shadow picks a treatment per value based on what the request is for: fakes in conversation, typed tokens for bulk reports, kept recipients and provider-hosted action targets. See [intent-aware policy](/shadow/concepts/intent-policy/).
 
 ### Files
 

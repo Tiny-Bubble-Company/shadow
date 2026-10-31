@@ -112,7 +112,7 @@ The [intent-aware policy](/shadow/concepts/intent-policy/). Treatments are `surr
 
 | Key | Type | Default | Description |
 |---|---|---|---|
-| `targets` | `surrogate` \| `keep` | `"surrogate"` | Treatment of the values an action is aimed at when the tool runs locally |
+| `targets` | `keep` \| `surrogate` | `"keep"` | Treatment of the recipient of a message or action (the person you ask the model to write to or act on): names, emails, phones, companies, addresses, IBANs and usernames in the recipient phrase. `keep` passes them through so the model writes to the right person; each keep is logged. `surrogate` sends a stand-in and restores the real recipient in the answer and in tool-call arguments |
 | `remote_tool_targets` | `surrogate` \| `keep` | `"keep"` | Treatment of what an action needs when the tool runs in the provider's cloud (hosted MCP, server-side tools): the contact details, people, companies, addresses, usernames and IBANs named in the instruction (and, for a follow-up that names no email or phone, the email, phone and person values anywhere in the request, including pasted documents and tool results). Secrets, cards, national IDs, hostnames and IPs stay masked. Each keep is logged |
 
 ### `[policy.report]`

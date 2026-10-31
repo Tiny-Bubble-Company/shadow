@@ -10,11 +10,11 @@ keywords:
   - anonymize tickets for llm
 faq:
   - q: "Can support agents use AI to draft replies without exposing customer data?"
-    a: "Yes, if the drafting tool calls the model through Shadow. The customer's name, email, phone, address and payment details are replaced with realistic fakes, and the draft comes back with the real values in place."
+    a: "Yes, if the drafting tool calls the model through Shadow. The customer you reply to is the recipient: by default their name and email pass through as written, so the model greets the right person, and each keep is logged. Colleagues, other customers, card numbers and other details are replaced with realistic fakes and restored in the draft. Set [policy.act] targets = \"surrogate\" to fake the recipient too."
   - q: "Does Shadow work with Zendesk, Intercom or Freshdesk AI features?"
     a: "Not with features that run inside the help-desk vendor's cloud, because that traffic never passes through your machines. It works with AI features you build yourself on the OpenAI, Anthropic or other supported APIs, for example a help-desk app or webhook service that calls the model through the Shadow gateway."
   - q: "Will an AI support agent still be able to issue refunds or send emails?"
-    a: "Yes, if the tools run in your code. The model sees fakes and calls tools with fakes; Shadow restores the real email address or order details in the tool-call arguments on your side before the tool runs."
+    a: "Yes, if the tools run in your code. The customer the agent acts on is passed through, so the model calls the tool with their real email; any other masked values in the arguments are restored on your side before the tool runs."
   - q: "Can we analyse thousands of tickets with an LLM safely?"
     a: "Yes. Requests that summarise or analyse many records are classified as report, so people, emails, phones and addresses become typed tokens such as [PERSON_0001]. The model groups and counts them, and the report is restored with real values locally."
   - q: "Are payment card numbers in tickets protected?"
@@ -23,7 +23,7 @@ sidebar:
   order: 14
 ---
 
-To use AI in customer support without exposing customers, mask their personal data before each request reaches the model and restore it in the reply. Shadow does that for ticket summaries, reply drafts, support agents and ticket analytics built on provider APIs: names, emails, phones, addresses, order references you register, and card numbers become reversible fakes, tool calls such as refunds still reach the real customer, and streamed replies come back with the real details.
+To use AI in customer support without exposing customers, mask their personal data before each request reaches the model and restore it in the reply. Shadow does that for ticket summaries, reply drafts, support agents and ticket analytics built on provider APIs: names, emails, phones, addresses, order references you register, and card numbers become reversible fakes, and streamed replies come back with the real details. When the goal is to reply to or act on a customer, that customer is the recipient and passes through as written (logged), so the reply greets the right person and tool calls such as refunds reach them.
 
 ## What customer data reaches the model in support workflows?
 
@@ -48,7 +48,7 @@ Support data is high-volume and personal by nature, and it usually flows through
 | Agent and colleague names | Name detector, plus `person:` terms for unusual names |
 | Ticket exports in reports | Typed tokens via the `report` intent |
 | Attached CSV, DOCX, XLSX, PDF text | [File masking](/shadow/concepts/file-masking/) |
-| Customer email in a `send_email` tool call | Restored locally before the tool runs ([tool calls](/shadow/concepts/tool-calls/)) |
+| The customer you reply to or act on | Passed through as the recipient and logged; `targets = "surrogate"` fakes it and restores it locally ([intent policy](/shadow/concepts/intent-policy/)) |
 
 Order numbers, ticket IDs and loyalty IDs are not personal data on their own and are not detected by the built-in detectors. If they are sensitive for you, there is no custom regex setting in `shadow.toml`; use the NER sidecar for account-style numbers, or a custom detector if you embed Shadow in Rust.
 
@@ -90,7 +90,7 @@ terms = ["org:Globex Ltd", "Acme Plus"]   # partner and plan names
 internal_domains = ["acme.example", "support.acme.internal"]
 
 [policy.act]
-targets = "surrogate"            # local tools: restored in the tool call
+targets = "keep"                 # the customer you write to passes through, logged ("surrogate" hides them)
 remote_tool_targets = "surrogate" # never send real targets to provider-hosted tools
 
 [policy.report]
@@ -107,7 +107,7 @@ secret = "redact"
 
 ### 4. Run tools in your own code
 
-Keep actions such as `issue_refund`, `send_email` and `lookup_order` as local tools your service executes. That is the only way to keep both privacy and a working action. Provider-hosted tools cannot have values restored inside the provider's cloud.
+Keep actions such as `issue_refund`, `send_email` and `lookup_order` as local tools your service executes. Other values in their arguments (and the recipient, with `targets = "surrogate"`) are restored on your side before they run. Provider-hosted tools cannot have values restored inside the provider's cloud.
 
 ### 5. Test on real-looking tickets
 
@@ -121,18 +121,20 @@ shadow scan export.csv --json
 What the support tool sends (fictional):
 
 ```text
-Customer Jane Doe (jane.doe@acme.example) says ticket #88213 was charged twice on
-card ending 1111. Call her on +44 20 7946 0958. Order shipped to 221 Baker Street, London.
+Draft an apology to Jane Doe (jane.doe@acme.example) and refund ticket #88213.
+It was charged twice on card ending 1111; our agent Tom Reyes confirmed it.
+The order shipped to 221 Baker Street, London.
 ```
 
-What the provider sees (output from `shadow mask` on one machine; yours will differ):
+What the provider sees (persona values differ per machine):
 
 ```text
-Customer Yong Sun (xiu.wang@lingxi.cn) says ticket #88213 was charged twice on
-card ending 1111. Call her on +86 40 2223 8912. Order shipped to 192 Keyuan Road, London.
+Draft an apology to Jane Doe (jane.doe@acme.example) and refund ticket #88213.
+It was charged twice on card ending 1111; our agent Lei Li confirmed it.
+The order shipped to 192 Keyuan Road, London.
 ```
 
-The model drafts an apology and calls `issue_refund(customer_email="xiu.wang@lingxi.cn", ...)`. Shadow restores `jane.doe@acme.example` in the tool arguments before your refund code runs, so the refund and the confirmation reach the real customer. In the draft reply, every full fake ("Yong Sun", the fake phone and address) comes back as Jane's real details. A salutation with the first name alone ("Dear Yong") is restored too; other fragments, such as part of the fake address, would stay fake.
+Jane Doe and her email are the recipient, so they pass through as written and each keep is logged: the model greets her by name and calls `issue_refund(customer_email="jane.doe@acme.example", ...)` with her real address. Tom Reyes and the delivery address are not the recipient, so the provider sees fakes, and Shadow restores them in the draft reply. With `targets = "surrogate"`, Jane would be a fake as well and Shadow would restore her email in the tool arguments and her name in the draft.
 
 Note that the last four card digits and the ticket number are sent as is: they are not full identifiers, and the built-in detectors do not treat them as such.
 

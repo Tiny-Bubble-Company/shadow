@@ -114,7 +114,7 @@ Being honest about the gaps helps you choose:
 - **No OCR.** Text inside images and scanned PDFs is not detected. See [file masking](/shadow/concepts/file-masking/#limitations).
 - **Only AI API traffic.** Proxy mode intercepts a [list of AI API hosts](/shadow/reference/providers/) (plus any you add). It does not see what people type into chatgpt.com, claude.ai or gemini.google.com in a browser, phone apps, Microsoft 365 Copilot or GitHub Copilot.
 - **Detection is best effort.** Regex, checksums, dictionaries and optional NER models miss things: the built-in rules leak 3.08% of sensitive values on the held-out [benchmark](/shadow/benchmarks/), 0.08% with the open-weight NER sidecar.
-- **Provider-hosted actions see real targets.** When the provider itself runs a tool (a hosted MCP server, web search), Shadow keeps real the contact details the action needs, by default, and logs each one. See [intent policy](/shadow/concepts/intent-policy/).
+- **Recipients and provider-hosted actions see real targets.** When you ask the model to write to or act on someone, Shadow passes that recipient through as written so the model addresses the right person; when the provider itself runs a tool (a hosted MCP server, web search), it keeps real the contact details the action needs. Both are defaults, configurable, and each keep is logged. See [intent policy](/shadow/concepts/intent-policy/).
 - **It protects content, not identity.** Providers still see your IP address and the account behind your API key. See the [security model](/shadow/reference/security/).
 
 ## Category guides

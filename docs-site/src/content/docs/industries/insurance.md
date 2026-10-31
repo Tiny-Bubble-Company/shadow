@@ -118,7 +118,7 @@ An underwriter attaches an XLSX of 1,200 claims and asks for a breakdown of the 
 
 ### Letter drafting with an agent
 
-A claims assistant built on the OpenAI SDK offers a local `send_letter` tool. The model sees a fake address and writes the tool call to it; Shadow restores the real address in the tool-call arguments before your code sends the letter. See [tool calls and agents](/shadow/concepts/tool-calls/).
+A claims assistant built on the OpenAI SDK offers a local `send_letter` tool. When the adjuster names the policyholder ("Send the settlement letter to Tom Becker, 9 High Street, Leeds"), that recipient passes through as written and is logged, so the model writes the tool call to the real address. Other people and details in the claim are masked and restored in the tool-call arguments before your code sends the letter. With `[policy.act] targets = "surrogate"`, the recipient is a fake too and Shadow restores the real address the same way. See [tool calls and agents](/shadow/concepts/tool-calls/).
 
 ## Deployment patterns
 

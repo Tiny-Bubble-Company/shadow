@@ -80,7 +80,7 @@ This guide takes about five minutes. You will install the `shadow` binary, creat
    curl http://127.0.0.1:8877/gw/openai/v1/chat/completions \
      -H "Authorization: Bearer $OPENAI_API_KEY" \
      -H "Content-Type: application/json" \
-     -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"Write a one-line greeting to jane@acme.com from Acme GmbH."}]}'
+     -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"Summarise in one line: jane@acme.com from Acme GmbH says her card was declined."}]}'
    ```
 
    The provider receives the persona's email and company. The response you get back contains `jane@acme.com` and `Acme GmbH`. With `shadow run` in the foreground, the log shows how many values were replaced for each request, never the values themselves.

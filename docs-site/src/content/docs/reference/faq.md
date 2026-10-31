@@ -1,6 +1,6 @@
 ---
 title: FAQ
-description: "Answers to common questions about Shadow: latency, streaming, agents, files, answer quality, Presidio, DLP, telemetry and licensing."
+description: "Answers to common questions about Shadow: latency, streaming, message recipients, agents, files, answer quality, Presidio, DLP, telemetry and licensing."
 ---
 
 ### Does Shadow send anything anywhere?
@@ -31,9 +31,13 @@ Masking is in-process string work on the request: about 7.5 ms per document with
 
 Yes. Server-sent events and NDJSON streams are restored on the fly, including fakes split across events and tool-call arguments streamed in pieces. See [Streaming hold-back](/shadow/concepts/how-it-works/#streaming-hold-back).
 
+### What if I ask the model to write to someone?
+
+The recipient passes through. If the goal is to email, message, call, invite or write a letter to a person ("Draft a reply to Jane Doe at Acme GmbH"), faking that person would make the model greet the wrong name or research the wrong company, so the names, emails, phones, companies and addresses in the recipient phrase are sent as written and each keep is logged. Everything else in the request (other people, health data, IDs, cards, secrets) is still masked. To hide the recipient from the provider too, set `[policy.act] targets = "surrogate"`: the model writes to a stand-in and Shadow restores the real recipient in the answer. See [Intent-aware policy](/shadow/concepts/intent-policy/).
+
 ### Does it work with agents and tools?
 
-Yes. Tool-call arguments are restored on your machine before your tools run, so an email reaches the real address. Shadow cannot restore inside the provider, so for tools the provider runs itself (hosted MCP, web search, code execution) it keeps real, by default, the contact details, people, companies, addresses, usernames and IBANs the action needs, keeps secrets, cards and IDs masked, and logs each keep. See [Tool calls and agents](/shadow/concepts/tool-calls/).
+Yes. The recipient of an action is passed through by default, and any other fakes in tool-call arguments are restored on your machine before your tools run. Shadow cannot restore inside the provider, so for tools the provider runs itself (hosted MCP, web search, code execution) it keeps real, by default, the contact details, people, companies, addresses, usernames and IBANs the action needs, keeps secrets, cards and IDs masked, and logs each keep. See [Tool calls and agents](/shadow/concepts/tool-calls/).
 
 ### Does it work with images, PDFs and Office files?
 

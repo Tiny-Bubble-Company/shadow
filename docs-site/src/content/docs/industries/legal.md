@@ -109,11 +109,11 @@ Initech Ltd, attn. Jane Doe (jane.doe@initech.example), re unpaid invoices on Pr
 Seen by the provider (persona varies):
 
 ```text
-Draft a letter before action from Zhilan Technology Co., Ltd. for Huarui Holdings to
-Tengda Ltd, attn. Hui Zhao (hui.zhao@tengda.cn), re unpaid invoices on Velora Quilent.
+Draft a letter before action from Zhilan Technology Co., Ltd. for Globex Holdings to
+Initech Ltd, attn. Jane Doe (jane.doe@initech.example), re unpaid invoices on Velora Quilent.
 ```
 
-The draft comes back with Hartley & Quinn LLP, Globex Holdings, Initech Ltd, Jane Doe, her real email and Project Lighthouse restored, so the letter you review and send goes to the real opponent.
+The letter is addressed to Initech Ltd and Jane Doe, so the recipient phrase (everything after "for" up to "re") passes through as written and each keep is logged: the model writes to the real opponent and does not research a made-up company. Your firm's name and the matter codename are not the recipient, so the provider sees fakes and the draft comes back with Hartley & Quinn LLP and Project Lighthouse restored. If party identities must not reach the provider, set `[policy.act] targets = "surrogate"`; the model then writes to stand-ins that Shadow restores in the draft.
 
 ### Chronology from an email export
 

@@ -108,18 +108,18 @@ This page describes technical capabilities, not legal conclusions. Using Shadow 
 What the fundraiser sends (all data fictional):
 
 ```text
-Write a warm thank-you to Margaret Ellis, 4 Church Lane, York, margaret.ellis@mail.example,
+Write a warm thank-you letter to Margaret Ellis, 4 Church Lane, York, margaret.ellis@mail.example,
 for her gift to the Warm Homes Appeal. Mention Northside Food Bank, our partner.
 ```
 
 What the provider sees (your fakes will differ):
 
 ```text
-Write a warm thank-you to Ying Chen, 88 Tianfu Road, York, ying.chen@xinghe.cn,
+Write a warm thank-you letter to Margaret Ellis, 4 Church Lane, York, margaret.ellis@mail.example,
 for her gift to the Lumeth Draane. Mention Zhilan Food Co., Ltd., our partner.
 ```
 
-The letter comes back addressed to Margaret Ellis about the Warm Homes Appeal.
+Margaret Ellis is the recipient, so her name, address and email pass through as written and each keep is logged; the model thanks the right donor. The appeal and the partner are not the recipient, so they are masked and the letter comes back about the Warm Homes Appeal and Northside Food Bank. Set `[policy.act] targets = "surrogate"` if donor details must not reach the provider.
 
 ### Segmenting a donor export
 

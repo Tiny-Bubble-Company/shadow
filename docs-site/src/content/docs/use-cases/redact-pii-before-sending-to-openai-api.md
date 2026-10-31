@@ -78,7 +78,7 @@ client = OpenAI(base_url="http://127.0.0.1:8877/gw/openai/v1")  # key from OPENA
 
 reply = client.chat.completions.create(
     model="gpt-4o-mini",
-    messages=[{"role": "user", "content": "Draft a refund confirmation to jane.doe@acme.example"}],
+    messages=[{"role": "user", "content": "Summarise this refund ticket from jane.doe@acme.example"}],
 )
 print(reply.choices[0].message.content)   # mentions jane.doe@acme.example; OpenAI never saw it
 ```

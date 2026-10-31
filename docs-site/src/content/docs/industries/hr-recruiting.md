@@ -128,7 +128,7 @@ An HR partner uploads a DOCX offer template filled in for a candidate. Names, ad
 
 ### Scheduling interviews with an agent
 
-If an assistant emails or schedules candidates itself, they still get the message. With a tool your code runs, the model writes the call with a fake email and Shadow restores the real one in the tool-call arguments before your code sends it. With a provider-hosted tool, Shadow cannot restore inside the provider, so by default the contact details the action needs are kept real and each keep is logged. See [intent-aware policy](/shadow/concepts/intent-policy/).
+If an assistant emails or schedules candidates itself, they still get the message. The candidate the instruction names ("Invite Daniel Okoye, daniel.okoye@mail.example, to a Tuesday interview") is the recipient, so their name and email pass through as written and each keep is logged; the model writes to the right person. Other candidates, notes and IDs in the request stay masked and are restored in the tool-call arguments before your code sends the invite. Set `[policy.act] targets = "surrogate"` to fake the recipient too. With a provider-hosted tool, Shadow cannot restore inside the provider, so by default the contact details the action needs are kept real and each keep is logged. See [intent-aware policy](/shadow/concepts/intent-policy/).
 
 ## Deployment patterns
 

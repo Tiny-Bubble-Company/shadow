@@ -106,12 +106,13 @@ shadow scan export.csv --json
 
 Keep the results as evidence for your DPIA: what is detected, what is not, and which mitigations cover the gaps.
 
-### 5. Decide on provider-hosted tools
+### 5. Decide on message recipients and provider-hosted tools
 
-If an agent uses tools that run in the provider's cloud, Shadow by default sends the real **target** of that action (and logs it) so the action works. If that is not acceptable, set:
+When someone asks the model to write to or act on a person ("Draft a reply to Jana Novak at Globex"), Shadow by default passes that **recipient** through as written, so the model addresses the right person, and logs each keep. Other people and data in the request stay pseudonymised. If an agent uses tools that run in the provider's cloud, Shadow also sends the real target of that action (and logs it) so the action works. If data minimisation matters more than the model seeing who it writes to, set:
 
 ```toml
 [policy.act]
+targets = "surrogate"              # recipients become stand-ins, restored in the answer
 remote_tool_targets = "surrogate"
 ```
 

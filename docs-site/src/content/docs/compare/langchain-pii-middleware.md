@@ -57,7 +57,7 @@ PIIMiddleware runs inside LangChain and is one way: redact, mask, hash or block.
 
 ### Can the agent still act on real data?
 
-With a one-way strategy, the model sees `[REDACTED_EMAIL]` or a hash, so a tool call it writes contains that too. Your `send_email` tool then gets a value it can't use. Shadow sends a realistic fake like `hui.zhao@zhilan.cn`, the model writes `send_email(to="hui.zhao@zhilan.cn")`, and Shadow restores `jane@acme.com` in the arguments before your tool runs. The action works and the provider never saw the address. See [tool calls and agents](/shadow/concepts/tool-calls/).
+With a one-way strategy, the model sees `[REDACTED_EMAIL]` or a hash, so a tool call it writes contains that too. Your `send_email` tool then gets a value it can't use. Shadow passes the recipient the instruction names through as written (and logs it), so the model writes `send_email(to="jane@acme.com")` and greets the right person; everything else in the request gets a realistic fake that Shadow restores in the arguments before your tool runs. With `[policy.act] targets = "surrogate"` the recipient is a fake too, such as `hui.zhao@zhilan.cn`, restored to `jane@acme.com` locally, and the provider never sees the address. See [tool calls and agents](/shadow/concepts/tool-calls/).
 
 ### Provider-hosted tools
 

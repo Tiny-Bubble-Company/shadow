@@ -9,13 +9,13 @@ import { product } from '../../../assets/product';
 Shadow is an endpoint privacy layer for AI traffic. It sits between your apps and AI providers such as OpenAI, Anthropic, Google Gemini, Azure OpenAI, OpenRouter, Mistral and Groq. On the way out, it finds sensitive values in each request and replaces them with realistic, format-preserving fakes. On the way back, it turns the fakes into the real values again, streamed responses and tool calls included.
 
 ```text
-you      ── "Draft an email to jane@acme.com about Project Falcon for Acme GmbH" ──▶  Shadow
-Shadow   ── "Draft an email to hui.zhao@zhilan.cn about Velora Quilent for Zhilan Technology Co., Ltd." ──▶  provider
-provider ── "To: hui.zhao@zhilan.cn. Subject: Velora Quilent update…" ──▶  Shadow
-Shadow   ── "To: jane@acme.com. Subject: Project Falcon update…" ──▶  you
+you      ── "Summarise this thread: jane@acme.com asks when Project Falcon ships to Acme GmbH" ──▶  Shadow
+Shadow   ── "Summarise this thread: hui.zhao@zhilan.cn asks when Velora Quilent ships to Zhilan Technology Co., Ltd." ──▶  provider
+provider ── "hui.zhao@zhilan.cn wants a ship date for Velora Quilent…" ──▶  Shadow
+Shadow   ── "jane@acme.com wants a ship date for Project Falcon…" ──▶  you
 ```
 
-The provider gets a coherent prompt about a company that does not exist. You get an answer about yours, so the draft is ready to send to the real Jane. When the model has to *act* instead of write (send the email through a tool), the tool call is restored on your machine before it runs, and an action the provider runs itself gets the real contact details it needs. See [intent-aware policy](/shadow/concepts/intent-policy/).
+The provider gets a coherent prompt about a company that does not exist. You get an answer about yours. When the goal is to write to or act on someone ("Draft a reply to jane@acme.com about Project Falcon"), Shadow passes the recipient through as written, so the model greets and addresses the right person, and logs the keep; Project Falcon and everything else that is not the recipient are still masked. Set `[policy.act] targets = "surrogate"` if the recipient must stay hidden from the provider too. See [intent-aware policy](/shadow/concepts/intent-policy/).
 
 ## The problem
 

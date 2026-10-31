@@ -10,7 +10,7 @@ keywords:
   - reversible pseudonymization llm
 faq:
   - q: "What problem does Shadow solve?"
-    a: "It keeps the sensitive values it detects in prompts, files and tool results from reaching AI providers, without breaking the tools. Names, emails, IDs, card numbers, hostnames and secrets are replaced with realistic fakes before the request leaves and restored in the answer, so drafts and tool calls still reach the real people. The only real values sent are those an action run by the provider itself needs, and each one is logged."
+    a: "It keeps the sensitive values it detects in prompts, files and tool results from reaching AI providers, without breaking the tools. Names, emails, IDs, card numbers, hostnames and secrets are replaced with realistic fakes before the request leaves and restored in the answer. When the goal is to write to or act on someone, that recipient is passed through as written so the model addresses the right person; recipients and the values a provider-hosted action needs are the only real values sent, and each one is logged."
   - q: "How is this different from redacting PII with placeholders?"
     a: "Placeholders such as <PERSON> destroy meaning, so answers get worse and actions cannot reach the real target. Shadow uses format-preserving fakes from one consistent persona and restores them in the response, including streams and tool calls. It uses typed tokens only where they work better, such as bulk reports."
   - q: "Do I need to change my code?"

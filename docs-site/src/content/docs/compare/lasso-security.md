@@ -66,7 +66,7 @@ Public documentation we checked does not describe restoration. Shadow restores f
 
 ### Intent-aware policy
 
-Shadow's policy is less flexible in wording than Lasso's natural-language rules, but it decides how to transform each value based on intent: typed tokens for reports, kept targets for provider-hosted actions, fakes elsewhere. See [intent-aware policy](/shadow/concepts/intent-policy/).
+Shadow's policy is less flexible in wording than Lasso's natural-language rules, but it decides how to transform each value based on intent: typed tokens for reports, kept recipients and provider-hosted action targets, fakes elsewhere. See [intent-aware policy](/shadow/concepts/intent-policy/).
 
 ### Files
 

@@ -68,7 +68,7 @@ Blocking breaks the tool, and users route around it. Shadow replaces `jane@acme.
 
 ### Intent-aware policy
 
-Shadow classifies each request as act, report, code or converse and picks a treatment per value: a fake, a typed token such as `[PERSON_0007]`, the real value for a provider-hosted action target, or redaction. See [intent-aware policy](/shadow/concepts/intent-policy/).
+Shadow classifies each request as act, report, code or converse and picks a treatment per value: a fake, a typed token such as `[PERSON_0007]`, the real value for a message recipient or provider-hosted action target, or redaction. See [intent-aware policy](/shadow/concepts/intent-policy/).
 
 ### Files inside AI requests
 

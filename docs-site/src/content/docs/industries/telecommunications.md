@@ -110,18 +110,18 @@ This page describes technical capabilities, not legal conclusions. Using Shadow 
 What the agent sends (all data fictional):
 
 ```text
-Draft an apology to Priya Shah (+44 7700 900123, priya.shah@mail.example), account
-holder at 14 Kingsway, Manchester, for the outage on her fibre line last weekend.
+Draft an apology email to Priya Shah (+44 7700 900123, priya.shah@mail.example) about the outage on her fibre line last weekend.
+Mention that engineer Tom Reed restored service at 14 Kingsway, Manchester.
 ```
 
 What the provider sees with this machine's persona (your fakes will differ):
 
 ```text
-Draft an apology to Hui Zhao (+86 138 0571 4492, hui.zhao@zhilan.cn), account
-holder at 88 Tianfu Road, Manchester, for the outage on her fibre line last weekend.
+Draft an apology email to Priya Shah (+44 7700 900123, priya.shah@mail.example) about the outage on her fibre line last weekend.
+Mention that engineer Wei Chen restored service at 88 Tianfu Road, Manchester.
 ```
 
-The draft comes back addressed to Priya Shah with the real number.
+Priya Shah is the recipient, so her name, number and email pass through as written and each keep is logged; the model writes to the right subscriber. The engineer and the address are not the recipient, so they are masked and restored in the draft. Set `[policy.act] targets = "surrogate"` if subscriber details must not reach the provider.
 
 ### NOC troubleshooting with a config
 

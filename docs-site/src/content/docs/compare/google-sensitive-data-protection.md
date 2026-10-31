@@ -71,7 +71,7 @@ With Google, plaintext is sent to a Google Cloud API for inspection. Shadow dete
 
 ### Intent-aware treatment
 
-Shadow's [intent policy](/shadow/concepts/intent-policy/) uses realistic fakes for conversation, typed tokens like `[PERSON_0007]` for bulk reports, and keeps real what an action run by a provider-hosted tool needs, logging each keep. Google gives you the transforms; choosing per request is up to you.
+Shadow's [intent policy](/shadow/concepts/intent-policy/) uses realistic fakes for conversation, typed tokens like `[PERSON_0007]` for bulk reports, and keeps real the recipient of a message and what an action run by a provider-hosted tool needs, logging each keep. Google gives you the transforms; choosing per request is up to you.
 
 ### Office files inside requests
 

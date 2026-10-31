@@ -104,20 +104,18 @@ This page describes technical capabilities, not legal conclusions. Using Shadow 
 What the property manager sends (all data fictional):
 
 ```text
-Draft a polite arrears reminder to Tom Barker, Flat 3, 221 Baker Street, London,
-tom.barker@mail.example, +44 20 7946 0018. Two months owed; pay to IBAN
-GB33 BUKB 2020 1555 5555 55.
+Draft a polite arrears reminder to Tom Barker, Flat 3, 221 Baker Street, London, tom.barker@mail.example, +44 20 7946 0018.
+Two months owed; pay to IBAN GB33 BUKB 2020 1555 5555 55.
 ```
 
 What the provider sees (your fakes will differ):
 
 ```text
-Draft a polite arrears reminder to Hui Zhao, Flat 3, 88 Tianfu Road, London,
-hui.zhao@zhilan.cn, +86 28 6512 0417. Two months owed; pay to IBAN
-GB71 WEST 1234 5698 7654 32.
+Draft a polite arrears reminder to Tom Barker, Flat 3, 221 Baker Street, London, tom.barker@mail.example, +44 20 7946 0018.
+Two months owed; pay to IBAN GB71 WEST 1234 5698 7654 32.
 ```
 
-The letter comes back with Tom Barker's real name, address and the real IBAN. The fake IBAN still passes mod-97, so the model treats it like a real one.
+Tom Barker is the recipient, so his name, address, email and phone pass through as written and each keep is logged; the model writes to the right tenant. The payment IBAN is not part of the recipient phrase, so the provider sees a fake that still passes mod-97, and the letter comes back with the real IBAN. Set `[policy.act] targets = "surrogate"` if tenant details must not reach the provider.
 
 ### Reviewing a lease
 

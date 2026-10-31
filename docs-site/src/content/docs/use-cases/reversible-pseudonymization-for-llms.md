@@ -41,10 +41,10 @@ The "reversible" part is what makes it practical. Plain redaction (`<PERSON>`) i
 ## How does Shadow pseudonymise a prompt?
 
 ```text
-you      ──"Draft an email to jane.doe@acme.example about the Acme GmbH renewal"────────────────▶ Shadow
-Shadow   ──"Draft an email to xiu.wang@lingxi.cn about the Lingxi Technology Co., Ltd. renewal"──▶ provider
-provider ──"Here is a draft to xiu.wang@lingxi.cn…"────────────────────────────────▶ Shadow
-Shadow   ──"Here is a draft to jane.doe@acme.example…"─────────────────────────────▶ you
+you      ──"Summarise this thread: jane.doe@acme.example asks about the Acme GmbH renewal"────────────────▶ Shadow
+Shadow   ──"Summarise this thread: xiu.wang@lingxi.cn asks about the Lingxi Technology Co., Ltd. renewal"──▶ provider
+provider ──"xiu.wang@lingxi.cn wants renewal terms…"──────────────────────────────────────────▶ Shadow
+Shadow   ──"jane.doe@acme.example wants renewal terms…"───────────────────────────────────────▶ you
 ```
 
 Three properties make the round trip reliable:
@@ -59,11 +59,11 @@ Shadow's [intent-aware policy](/shadow/concepts/intent-policy/) picks a treatmen
 
 | Treatment | Provider sees | Reversible | Best for |
 |---|---|---|---|
-| `surrogate` (default) | `hui.zhao@zhilan.cn` | Yes | Conversation, drafting, code: the model writes naturally |
+| `surrogate` (default) | `hui.zhao@zhilan.cn` | Yes | Conversation, analysis, code: the model writes naturally |
 | `token` | `[PERSON_0001]`, `[EMAIL_0002]` | Yes | Reports over many rows: the model treats values as opaque IDs |
 | `redact` | `[REDACTED_SECRET]` | **No** | Values that must never leave and never need to come back |
 
-The fourth treatment, `keep`, sends the real value. It is used only for the target of an action that runs in the provider's cloud, and every keep is logged. See [tool calls and agents](/shadow/concepts/tool-calls/).
+The fourth treatment, `keep`, sends the real value. It is used for the recipient when you ask the model to write to or act on someone (faking the recipient would make the model address the wrong person) and for what an action in the provider's cloud needs; every keep is logged. Set `[policy.act] targets = "surrogate"` to pseudonymise recipients too, restored in the answer. See [intent-aware policy](/shadow/concepts/intent-policy/).
 
 ## How to set up reversible pseudonymisation
 

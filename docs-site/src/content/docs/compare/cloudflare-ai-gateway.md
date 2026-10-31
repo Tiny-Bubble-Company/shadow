@@ -62,7 +62,7 @@ A blocked request protects the data but leaves the user without an answer, and p
 
 ### Where is sensitive data processed?
 
-With a hosted gateway, prompts travel to the gateway in clear text before they are inspected. Shadow masks on the endpoint or in the same pod, so the provider and any gateway downstream see fakes for every value Shadow detects. The exception is a provider-hosted action (a hosted MCP server or server-side tool), where the contact details it needs are kept real by default and logged; see [intent policy](/shadow/concepts/intent-policy/). No account, no telemetry.
+With a hosted gateway, prompts travel to the gateway in clear text before they are inspected. Shadow masks on the endpoint or in the same pod, so the provider and any gateway downstream see fakes for every value Shadow detects. The exceptions, kept real by default and logged, are the recipient when you ask the model to write to or act on someone, and the contact details a provider-hosted action (a hosted MCP server or server-side tool) needs; see [intent policy](/shadow/concepts/intent-policy/). No account, no telemetry.
 
 ### Streaming without buffering
 

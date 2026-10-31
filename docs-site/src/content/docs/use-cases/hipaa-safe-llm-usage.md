@@ -85,6 +85,9 @@ enabled = true
 url = "http://127.0.0.1:5002/analyze"
 entities = ["PERSON", "PHONE_NUMBER", "EMAIL_ADDRESS", "US_SSN", "US_MBI", "MEDICAL_LICENSE", "US_DRIVER_LICENSE", "LOCATION"]
 
+[policy.act]
+targets = "keep"         # default: a patient you write to is sent as written; "surrogate" hides them
+
 [policy.report]
 person = "token"
 email = "token"
@@ -123,18 +126,18 @@ Use synthetic or already-approved test documents. Re-run scans when templates or
 What the clinician sends (fictional data):
 
 ```text
-Draft a follow-up letter to Maria Lopez, 12 Elm Road, Springfield,
-phone (217) 555-0142, about her MRI results with Dr Amara Okafor.
+Draft a follow-up letter to Maria Lopez, 12 Elm Road, Springfield, phone (217) 555-0142, about her MRI results with Dr Amara Okafor.
 ```
 
 What the provider sees (persona values differ):
 
 ```text
-Draft a follow-up letter to Ying Chen, 88 Tianfu Road, Springfield,
-phone +86 28 6512 0417, about her MRI results with Dr Tao Zhu.
+Draft a follow-up letter to Maria Lopez, 12 Elm Road, Springfield, phone (217) 555-0142, about her MRI results with Dr Tao Zhu.
 ```
 
-The draft comes back addressed to Maria Lopez at 12 Elm Road from Dr Amara Okafor, so the letter the clinician sends reaches the real patient. A salutation such as "Dear Ms Chen" or "Dr Zhu" is restored too, because fake first and last names are restored on their own; other fragments, such as part of an address, are not. Leave identifiers the letter does not need, such as an SSN, out of the prompt altogether. "Springfield" was not masked here: a city on its own is often missed, which is one reason to keep a BAA in place.
+The goal is to write to Maria Lopez, so she is the recipient: her name, address and phone pass through as written, each keep is logged, and the model greets the right patient. Dr Amara Okafor comes after "about", so she is masked and restored in the draft ("Dr Zhu" on its own is restored too, because fake first and last names are restored on their own).
+
+This means the recipient's identifiers reach the provider, under your BAA, whenever you ask the model to write to a patient. If that is not acceptable, set `[policy.act] targets = "surrogate"`: the provider then writes to a stand-in patient and Shadow restores Maria's name and address in the draft. The trade-off is that the model may personalise the letter for the wrong person, so review it before sending. Leave identifiers the letter does not need, such as an SSN, out of the prompt altogether.
 
 ## Example: a report over patient rows
 

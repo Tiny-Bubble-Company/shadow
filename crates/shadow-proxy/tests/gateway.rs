@@ -99,7 +99,10 @@ fn assert_upstream_clean(env: &Env) {
     for r in REALS {
         assert!(!body.contains(r), "upstream saw real value {r:?}: {body}");
     }
-    assert!(body.contains(RECIPIENT), "the recipient is passed through: {body}");
+    assert!(
+        body.contains(RECIPIENT),
+        "the recipient is passed through: {body}"
+    );
     let v: Value = serde_json::from_str(body).unwrap();
     assert_eq!(v["model"], "gpt-4o-mini", "protocol fields untouched");
     assert_eq!(

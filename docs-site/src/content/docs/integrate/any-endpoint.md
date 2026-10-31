@@ -34,7 +34,8 @@ Non-JSON request bodies are forwarded as they are, except for [file uploads](/sh
 
 Agents are where privacy and usefulness collide: the model has to *act* on real values. Shadow handles this with the [intent-aware policy](/shadow/concepts/intent-policy/):
 
-- When the agent's tools run **on your side** (your code executes the tool call), the model sees fakes and writes tool calls with fakes. Shadow restores the real values in the tool-call arguments before they reach your code, so the email goes to the real address.
+- The person the instruction asks the agent to contact or act on is the **recipient** and passes through as written, logged, so the model addresses the right person (`[policy.act] targets`, default `keep`; `surrogate` fakes it).
+- When the agent's tools run **on your side** (your code executes the tool call), the model sees fakes for everything else and writes tool calls with them. Shadow restores the real values in the tool-call arguments before they reach your code.
 - When tools run **in the provider's cloud** (hosted MCP servers, server-side tools), Shadow cannot restore values there. By default it keeps real what the action needs (the contact details, people, companies, addresses, usernames and IBANs named in the instruction, and for a follow-up that names no email or phone, the emails, phones and people anywhere in the request), keeps secrets, cards and IDs masked, and logs each keep. You can change this.
 
 Details and examples in [Tool calls and agents](/shadow/concepts/tool-calls/).

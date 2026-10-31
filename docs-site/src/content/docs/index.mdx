@@ -43,7 +43,7 @@ faq:
   - q: Does Shadow work offline and self-hosted?
     a: "Yes. Shadow is a single binary that runs on your laptops, servers or containers, with no cloud service, account or telemetry. Detection, the persona and the encrypted vault are all local, and optional detectors (a NER model, Presidio) run on addresses you choose. The only outbound traffic is the masked request you were already sending, and you can point it at a self-hosted model endpoint instead of a cloud provider."
   - q: Can Shadow unmask responses and tool calls?
-    a: "Yes. Every fake in the response is turned back into the real value, including streamed SSE and NDJSON responses where a fake is split across events. Tool-call arguments are restored on your machine before your tools run, so an agent's email reaches the real address. Tools hosted in the provider's cloud are handled by an explicit policy. See [tool calls and agents](/shadow/concepts/tool-calls/)."
+    a: "Yes. Every fake in the response is turned back into the real value, including streamed SSE and NDJSON responses where a fake is split across events. Tool-call arguments are restored on your machine before your tools run. When you ask the model to write to or act on someone, that recipient is passed through as written (and logged), so an agent's email reaches the real address and greets the right person. Tools hosted in the provider's cloud are handled by an explicit policy. See [tool calls and agents](/shadow/concepts/tool-calls/)."
   - q: What does Shadow cost?
     a: "Nothing. Shadow is free and open source under the Apache-2.0 licence, with no account, licence key or usage fees. You keep paying your AI provider as before."
   - q: How accurate is Shadow's PII detection?

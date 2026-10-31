@@ -67,7 +67,7 @@ Public documentation does not describe that. Shadow restores fakes in [SSE and N
 
 ### Intent-aware policy
 
-Shadow treats an agent action, a bulk report, a code question and a conversation differently, using fakes, typed tokens like `[PERSON_0007]`, kept targets for provider-hosted actions, or redaction. See [intent-aware policy](/shadow/concepts/intent-policy/).
+Shadow treats an agent action, a bulk report, a code question and a conversation differently, using fakes, typed tokens like `[PERSON_0007]`, kept recipients and provider-hosted action targets, or redaction. See [intent-aware policy](/shadow/concepts/intent-policy/).
 
 ### Files inside requests
 

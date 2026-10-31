@@ -74,7 +74,7 @@ With Comprehend, the plaintext you want to protect is sent to an AWS API to be s
 
 ### Streams, tool calls and intent
 
-Shadow restores fakes split across SSE events and inside streamed tool-call arguments, and its [intent policy](/shadow/concepts/intent-policy/) chooses fakes, typed tokens like `[PERSON_0007]`, or keeps real what a provider-hosted action needs (each keep is logged). See [tool calls](/shadow/concepts/tool-calls/).
+Shadow restores fakes split across SSE events and inside streamed tool-call arguments, and its [intent policy](/shadow/concepts/intent-policy/) chooses fakes, typed tokens like `[PERSON_0007]`, or keeps real the recipient of a message and what a provider-hosted action needs (each keep is logged). See [tool calls](/shadow/concepts/tool-calls/).
 
 ### Files in prompts
 

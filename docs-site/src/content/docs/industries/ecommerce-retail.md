@@ -16,7 +16,7 @@ faq:
   - q: "Do order numbers get masked?"
     a: "Not by default. Order numbers are usually not personal on their own and the built-in detectors do not look for them. If yours are sensitive, add known values as terms or use a custom detector in Rust."
   - q: "Can an AI agent still refund or email the right customer?"
-    a: "Yes, when the tool runs in your code. The model sees a fake email or address and writes the tool call with it; Shadow restores the real value in the tool-call arguments before your code executes it. If the tool is hosted by the provider (a hosted MCP server or server-side tool), Shadow cannot restore inside the provider, so by default the customer contact details the action needs are kept real and each keep is logged."
+    a: "Yes. The customer the instruction names is the recipient and passes through as written, logged, so the model calls the tool with their real email. Any other masked value in the tool call is restored in the arguments before your code executes it. If the tool is hosted by the provider (a hosted MCP server or server-side tool), Shadow cannot restore inside the provider, so by default the customer contact details the action needs are kept real and each keep is logged."
   - q: "How do I analyse thousands of customers with an LLM safely?"
     a: "Ask for a report and attach the export. Shadow classifies the request as a report and replaces names, emails, phones and addresses with typed tokens such as [PERSON_0001], so the model treats them as IDs. The answer comes back with real values."
 sidebar:
@@ -94,24 +94,24 @@ This page describes technical behaviour. It does not determine your PCI DSS scop
 Sent (fictional):
 
 ```text
-Customer Jane Doe (jane.doe@acme.example, +1 415 555 0132) says order NW-77812 to
-221 Baker Street never arrived. She pasted her card number 4111 1111 1111 1111 into the chat.
-Draft an apology and next steps.
+Draft an apology email to Jane Doe (jane.doe@acme.example, +1 415 555 0132) with next steps.
+Her order NW-77812 to 221 Baker Street never arrived.
+She pasted her card number 4111 1111 1111 1111 into the chat.
 ```
 
 Seen by the provider (persona varies):
 
 ```text
-Customer Hui Zhao (hui.zhao@zhilan.cn, +86 21 5550 3816) says order NW-77812 to
-48 Huaihai Road never arrived. She pasted her card number [CREDIT_CARD_0001] into the chat.
-Draft an apology and next steps.
+Draft an apology email to Jane Doe (jane.doe@acme.example, +1 415 555 0132) with next steps.
+Her order NW-77812 to 48 Huaihai Road never arrived.
+She pasted her card number [CREDIT_CARD_0001] into the chat.
 ```
 
-The draft comes back with Jane Doe's real name, email and address restored, ready to send. The card number was never needed for the apology, so the provider only ever saw a token. The order number passes through unless you configure it.
+Jane Doe is the recipient, so her name, email and phone pass through as written and each keep is logged; the model writes to the right customer. Her delivery address is not part of the recipient phrase, so it is masked and restored in the draft, ready to send. The card number was never needed for the apology, so the provider only ever saw a token. The order number passes through unless you configure it.
 
 ### Refund agent with a local tool
 
-A support agent built on the OpenAI SDK offers `issue_refund(email, amount)`. The model sees the fake email and calls the tool with it; Shadow restores `jane.doe@acme.example` in the arguments before your code runs the refund. See [tool calls](/shadow/concepts/tool-calls/).
+A support agent built on the OpenAI SDK offers `issue_refund(email, amount)`. When the instruction names the customer ("Refund jane.doe@acme.example for order NW-77812"), the email is the recipient and passes through, logged, so the model calls the tool with it. When the email only appears in the ticket history or a lookup result, the model sees a fake and calls the tool with it; Shadow restores `jane.doe@acme.example` in the arguments before your code runs the refund. See [tool calls](/shadow/concepts/tool-calls/).
 
 ### Review mining
 

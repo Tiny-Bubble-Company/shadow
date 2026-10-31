@@ -114,11 +114,11 @@ ending 1111. The refund goes to DE89 3704 0044 0532 0130 00.
 Seen by the provider:
 
 ```text
-Draft a reply to Hui Zhao (hui.zhao@zhilan.cn) about the disputed charge on her card
+Draft a reply to Jane Doe (jane.doe@acme.example) about the disputed charge on her card
 ending 1111. The refund goes to DE44 5001 0517 5407 3249 31.
 ```
 
-The draft comes back addressed to Jane Doe with her real email and IBAN, ready to send. The last four digits of a card are not a card number, so they pass through as written. A full card number would be replaced with a Luhn-valid fake (or a token with `credit_card = "token"`), but a customer reply rarely needs one, and Shadow does not restore fragments of a fake card: if the model quoted just the last four digits of one, they would stay fake.
+Jane Doe and her email are the recipient, so they pass through as written (each keep is logged) and the model addresses the reply to her. The IBAN comes after "about", so the provider sees a fake one, and the draft comes back with her real IBAN restored, ready to send. To hide the customer's name and email from the provider as well, set `[policy.act] targets = "surrogate"`. The last four digits of a card are not a card number, so they pass through as written. A full card number would be replaced with a Luhn-valid fake (or a token with `credit_card = "token"`), but a customer reply rarely needs one, and Shadow does not restore fragments of a fake card: if the model quoted just the last four digits of one, they would stay fake.
 
 ### Churn analysis over a customer export
 

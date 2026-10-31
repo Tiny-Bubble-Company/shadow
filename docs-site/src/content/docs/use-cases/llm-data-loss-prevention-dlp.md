@@ -80,6 +80,7 @@ terms = ["Project Falcon", "org:Globex Ltd"]
 internal_domains = ["acme.example", "acme.internal"]
 
 [policy.act]
+targets = "surrogate"               # optional: fake message recipients too (default "keep" sends them, logged)
 remote_tool_targets = "surrogate"   # never send action targets to provider-hosted tools in clear
 
 [policy.always]

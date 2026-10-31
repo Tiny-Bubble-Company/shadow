@@ -12,7 +12,7 @@ faq:
   - q: "Is Shadow FedRAMP authorised?"
     a: "FedRAMP authorises cloud services, and Shadow is not one. It is open-source software you run on your own endpoints, servers or clusters, with no hosted component or telemetry. The AI provider you send masked requests to is a cloud service and still needs whatever authorisation your agency requires."
   - q: "Does Shadow solve data residency for AI?"
-    a: "Partly. Detection, masking and the vault all stay on your infrastructure, so detected identifiers leave only as fakes or tokens. The exception is a provider-hosted action (such as a hosted MCP tool sending an email), where by default the contact details it needs are kept real, and each keep is logged; set remote_tool_targets = \"surrogate\" to stop that. The masked text still goes to the provider's region, so residency requirements for the remaining content, and for metadata, still apply to the provider."
+    a: "Partly. Detection, masking and the vault all stay on your infrastructure, so detected identifiers leave only as fakes or tokens, with two logged exceptions by default: the recipient when someone asks the model to write to or act on a person (set [policy.act] targets = \"surrogate\" to fake it), and the contact details a provider-hosted action needs, such as a hosted MCP tool sending an email (set remote_tool_targets = \"surrogate\"). The masked text still goes to the provider's region, so residency requirements for the remaining content, and for metadata, still apply to the provider."
   - q: "Can Shadow run in an air-gapped or restricted network?"
     a: "Shadow itself needs no internet access: it builds from source, has no licence server and sends nothing except the masked requests you route through it. It is useful in restricted networks that allow egress only to an approved model endpoint, which you can add with a custom gateway route or extra_hosts."
   - q: "Can caseworkers use ChatGPT with Shadow?"
@@ -111,11 +111,11 @@ NINO AB 12 34 56 C, about the delayed housing benefit decision.
 Seen by the provider (persona varies):
 
 ```text
-Draft a reply to Liam Walker, 52 Banksia Street, Northshire, liam.walker@coralbay.com.au,
+Draft a reply to Sam Okoro, 7 Mill Lane, Northshire, sam.okoro@mail.example,
 NINO [NATIONAL_ID_0001], about the delayed housing benefit decision.
 ```
 
-The NINO is a token because the configuration above sets `national_id = "token"`; without it, the NINO would be a fake of the same format. The draft is restored with Sam Okoro's real name, address, email and NINO before an officer reviews it.
+Sam Okoro is the recipient, so his name, address and email pass through as written and each keep is logged; the model writes to the right citizen. National IDs are never kept: the NINO is a token because the configuration above sets `national_id = "token"` (without it, a fake of the same format), and it is restored in the draft before an officer reviews it. If citizens' contact details must not reach the provider at all, set `[policy.act] targets = "surrogate"`: the model then writes to a stand-in and Shadow restores Sam's details in the draft.
 
 ### Consultation analysis
 

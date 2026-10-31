@@ -30,10 +30,10 @@
 Shadow is an endpoint privacy layer between your apps and AI clouds: OpenAI, Anthropic, Gemini, Azure OpenAI, OpenRouter, Mistral, Groq and more. It runs on your machine as a local proxy or gateway, or inside your Rust service as a library. It finds sensitive values in every outbound request, swaps them for format-preserving fakes from a persistent **persona**, keeps the mapping in an encrypted local vault, and translates responses back, including streamed responses and tool calls.
 
 ```text
-you      ──"Draft an email to jane@acme.com about Project Falcon for Acme GmbH"──────────────────────▶ Shadow
-Shadow   ──"Draft an email to hui.zhao@zhilan.cn about Velora Quilent for Zhilan Technology Co., Ltd."──▶ provider
-provider ──"To: hui.zhao@zhilan.cn. Subject: Velora Quilent update…"──────────────────────────────▶ Shadow
-Shadow   ──"To: jane@acme.com. Subject: Project Falcon update…"────────────────────────────────────▶ you
+you      ──"Summarise this thread: jane@acme.com asks when Project Falcon ships to Acme GmbH"──────────────────────▶ Shadow
+Shadow   ──"Summarise this thread: hui.zhao@zhilan.cn asks when Velora Quilent ships to Zhilan Technology Co., Ltd."──▶ provider
+provider ──"hui.zhao@zhilan.cn wants a ship date for Velora Quilent…"──────────────────────────────────────────▶ Shadow
+Shadow   ──"jane@acme.com wants a ship date for Project Falcon…"────────────────────────────────────────────────▶ you
 ```
 
 Single Rust binary · Apache-2.0 · no cloud, no account, no telemetry.
@@ -44,7 +44,7 @@ Prompts carry far more than the question: colleagues' names, customer lists, inv
 
 Most DLP gateways **block**, which breaks the tool, so people route around them. Plain redaction (`<PERSON>`) keeps the request flowing but destroys meaning: the model can't tell two people apart or write to the right address.
 
-Shadow **translates**. A fake email is still an email. A fake card still passes Luhn. A fake IBAN still passes mod-97. The model gets a coherent prompt about a company that does not exist, and you get a useful answer about yours: the draft comes back addressed to the real Jane, and a tool call your code runs gets her real address back before it runs.
+Shadow **translates**. A fake email is still an email. A fake card still passes Luhn. A fake IBAN still passes mod-97. The model gets a coherent prompt about a company that does not exist, and you get a useful answer about yours. When the goal is to write to or act on someone ("email Jane", "draft a reply to Jane Doe at Acme GmbH"), Shadow does not fake the recipient, because the model would then greet, research or address the wrong person: the recipient passes through as written and is logged, and everything else in the request stays masked.
 
 ## Before and after
 
@@ -68,7 +68,7 @@ The same real value always gets the same fake, and no two real values share one,
 | **Reversible, format-preserving fakes** | Emails, phones, names, addresses, IBANs, cards, national IDs, IPs, MACs, hostnames, secrets, paths, from one coherent persona |
 | **Three integration modes** | HTTPS proxy for every tool that calls a [supported AI API](https://getshadow.dev/reference/providers/), `/gw/<provider>` gateway with no CA, or the `shadow-core` Rust library |
 | **Stream-aware** | Restores SSE and NDJSON streams on the fly, even when a fake is split across events |
-| **Agent-safe** | Tool-call arguments are restored on your machine before your tools run |
+| **Agent-safe** | The recipient of an action passes through; other fakes in tool-call arguments are restored on your machine before your tools run |
 | **Intent-aware policy** | Classifies requests as `act`, `report`, `code` or `converse` and picks a surrogate, token, keep or redact per value |
 | **File masking** | Text, CSV, JSON, HTML, XML; DOCX, XLSX, PPTX masked in place; PDF text extracted and masked |
 | **Pluggable detection** | Regex, checksums, your dictionary, local machine facts, an optional local NER model, and Microsoft Presidio |
@@ -144,7 +144,7 @@ from openai import OpenAI
 client = OpenAI(base_url="http://127.0.0.1:8877/gw/openai/v1")
 reply = client.chat.completions.create(
     model="gpt-4o-mini",
-    messages=[{"role": "user", "content": "Draft a renewal reminder to jane@acme.com"}],
+    messages=[{"role": "user", "content": "Summarise this ticket from jane@acme.com: card declined twice"}],
 )
 print(reply.choices[0].message.content)   # mentions jane@acme.com; the provider never saw it
 ```
@@ -224,9 +224,9 @@ Details: [How it works](https://getshadow.dev/concepts/how-it-works/).
 
 ### Intent-aware policy
 
-"Email jane@acme.com about the renewal": with a **local** tool, the model sees a fake address and writes the tool call to the fake; Shadow restores `jane@acme.com` in the tool arguments on your machine before the tool runs. The action works and the provider never sees the address. With a **provider-hosted** tool (hosted MCP, server-side tools) Shadow can't restore values in the provider's cloud, so by default it keeps real what the action needs (the contact details, people, companies, addresses, usernames and IBANs named in the instruction, and for a follow-up that names no email or phone, the emails, phones and people anywhere in the request), keeps secrets, cards and IDs masked, and logs each keep.
+"Email jane@acme.com about the renewal": **act**. Shadow finds the recipient phrase (the words after "to", "for" or "at", or right after "email", "call" and similar) and passes the names, emails, phones, companies and addresses in it through as written, each logged, so the model writes to the right person. Everything else in the request (other people, health data, IDs, cards, secrets, hostnames) is masked and restored in the answer and in tool-call arguments on your machine. Set `targets = "surrogate"` to hide the recipient as well: the model sees a stand-in and Shadow restores the real one locally. With a **provider-hosted** tool (hosted MCP, server-side tools) Shadow can't restore values in the provider's cloud, so by default it keeps real what the action needs (the contact details, people, companies, addresses, usernames and IBANs named in the instruction, and for a follow-up that names no email or phone, the emails, phones and people anywhere in the request), keeps secrets, cards and IDs masked, and logs each keep.
 
-"Draft a renewal reminder to Jane Doe (jane@acme.com)": no tool, so **converse**. The provider writes the draft to a fake person, and Shadow restores Jane's real name and address in the draft you send yourself.
+"Draft a renewal reminder to Jane Doe (jane@acme.com) at Acme GmbH. Mention that Max Weber approved it": composing a message is **act** too. Jane, her email and Acme GmbH go through; Max Weber is masked and restored in the draft. Requests *about* people that don't contact them (summarise, analyse, report) mask everyone.
 
 "Build a churn report from this customer list": **report** intent. Names, emails and phones become typed tokens such as `[PERSON_0001]` that the model treats as opaque IDs, restored in the answer.
 
@@ -234,7 +234,7 @@ Details: [How it works](https://getshadow.dev/concepts/how-it-works/).
 [policy]
 intent = true
 [policy.act]
-targets = "surrogate"          # local tools: mask, restore in the tool call
+targets = "keep"               # the recipient of a message or action (default); "surrogate" hides it
 remote_tool_targets = "keep"   # provider-hosted tools
 [policy.report]
 person = "token"

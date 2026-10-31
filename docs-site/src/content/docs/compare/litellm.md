@@ -66,7 +66,7 @@ With Presidio, the model sees `<PERSON>` or similar placeholders. Shadow sends r
 
 ### Tool calls and intent
 
-Shadow restores [tool-call arguments](/shadow/concepts/tool-calls/) locally, and its [intent policy](/shadow/concepts/intent-policy/) handles bulk reports with typed tokens and provider-hosted actions with an explicit, logged `keep`.
+Shadow restores [tool-call arguments](/shadow/concepts/tool-calls/) locally, and its [intent policy](/shadow/concepts/intent-policy/) handles bulk reports with typed tokens and message recipients and provider-hosted actions with an explicit, logged `keep`.
 
 ### Where masking happens
 

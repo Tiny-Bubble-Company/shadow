@@ -110,11 +110,11 @@ asking whether HLX-4417 can be co-administered with warfarin.
 Seen by the provider (persona varies):
 
 ```text
-Draft a reply to Dr Tao Zhu (tao.zhu@zhilan.cn) at Jinghua Medical Group
+Draft a reply to Dr Amara Okafor (a.okafor@stmarys.example) at St Mary's Research Hospital
 asking whether Velora Quilent can be co-administered with warfarin.
 ```
 
-The reply comes back addressed to Dr Amara Okafor at a.okafor@stmarys.example about HLX-4417. A shortened "Dr Zhu" is restored too, because fake surnames are restored on their own. Warfarin stays as written because it is public.
+Dr Okafor, her email and her hospital are the recipient, so they pass through as written and each keep is logged; the model writes to the right physician. The unreleased compound is not, so the provider sees a codename and the reply comes back about HLX-4417. Warfarin stays as written because it is public. Set `[policy.act] targets = "surrogate"` if the enquirer's identity must stay hidden from the provider.
 
 ### Partnering memo
 

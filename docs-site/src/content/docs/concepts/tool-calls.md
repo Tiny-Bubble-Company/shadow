@@ -3,7 +3,7 @@ title: Tool calls and agents
 description: "How Shadow keeps AI agents working on masked data: tool-call arguments are restored locally before tools run, and provider-hosted tools follow policy."
 ---
 
-Agents turn model output into actions: sending email, querying databases, creating tickets, running shell commands. That raises a question plain masking cannot answer: if the model only ever sees fakes, how does the action reach the real target?
+Agents turn model output into actions: sending email, querying databases, creating tickets, running shell commands. That raises a question plain masking cannot answer: if the model only ever sees fakes, how does the action reach the real target? Shadow's answer by default: the recipient of the action is passed through as written (and logged), and everything else is masked and restored.
 
 ## The round trip
 
@@ -19,11 +19,11 @@ app ──(tool result)──▶ Shadow ──(result masked)──▶ model
 Shadow handles each leg:
 
 1. **Request.** Prompts, prior messages and previous tool results are masked like any other text. Tool *schemas* are scanned like any other strings. Protocol keys such as `type` are never touched, and tool names and parameter definitions rarely contain anything a detector matches, so they normally arrive intact.
-2. **Model's tool call.** The model writes arguments using the fakes it saw: `{"to": "hui.zhao@zhilan.cn"}`.
-3. **Restoration.** Shadow restores the arguments before your code sees them: `{"to": "jane@acme.com"}`. This works for complete JSON responses and for streamed arguments, where a fake may be split across many deltas.
+2. **Model's tool call.** The model writes arguments using the values it saw. The recipient named in the instruction is kept by default, so `{"to": "jane@acme.com"}` arrives as is; other values are fakes, such as a colleague `{"cc": "hui.zhao@zhilan.cn"}`.
+3. **Restoration.** Shadow restores the fakes in the arguments before your code sees them: `{"cc": "max.weber@acme.com"}`. With `targets = "surrogate"` the recipient is a fake too and is restored the same way. This works for complete JSON responses and for streamed arguments, where a fake may be split across many deltas.
 4. **Tool result.** When your code sends the result back, it contains real values again, and Shadow masks them with the same fakes as before, because the vault maps them consistently.
 
-The model reasons about a coherent fake world from start to finish. Your tools operate on the real one.
+The model reasons about the real recipient and a coherent fake world around them. Your tools operate on the real one.
 
 Supported tool-call shapes include OpenAI Chat Completions `tool_calls`, the OpenAI Responses API function calls, Anthropic `tool_use` blocks and Gemini `functionCall` parts.
 
@@ -34,13 +34,13 @@ The round trip above requires the tool to run on your side of Shadow. Some tools
 - hosted MCP servers that the provider connects to on your behalf;
 - server-side tools such as web search, code execution or connectors executed by the provider.
 
-For these, the arguments never come back through Shadow before the action happens, so a fake target would be used as is: the email would go to `hui.zhao@zhilan.cn`.
+For these, the arguments never come back through Shadow before the action happens, so any fake would be used as is: an email to a fake recipient would go to `hui.zhao@zhilan.cn`.
 
 The [intent policy](/shadow/concepts/intent-policy/) handles this explicitly:
 
 ```toml
 [policy.act]
-targets = "surrogate"          # local tools: mask, restore in the tool call
+targets = "keep"               # the recipient of the message or action: pass through, logged
 remote_tool_targets = "keep"   # provider-hosted tools: send the real target
 ```
 
@@ -49,7 +49,7 @@ remote_tool_targets = "keep"   # provider-hosted tools: send the real target
 
 ## Practical guidance
 
-- Prefer **local tool execution** for actions on personal data. It is the only way to have both privacy and a working action.
+- Prefer **local tool execution** for actions on personal data. With `targets = "surrogate"` it is the only way to hide the recipient from the provider and still have a working action; the model then writes to a stand-in, so check greetings and wording before sending.
 - Keep tool **descriptions** free of personal data. Anything sensitive in them is masked like other text, which can make the description harder for the model to follow.
 - Use typed **report** handling for bulk data an agent reads (exports, query results): tokens are cheaper for the model to carry through than realistic fakes, and less likely to be embellished.
 - When a tool returns data that the model must quote exactly (IDs, account numbers), surrogates still round-trip correctly as long as the model quotes the whole value. A fake person's first or last name on its own is restored, but other fragments (the last four digits of a card, part of an email) are not, so ask for full values in tool arguments. Test with `shadow mask` and `shadow unmask` if in doubt.

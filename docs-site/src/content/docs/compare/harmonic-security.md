@@ -67,7 +67,7 @@ IDE assistants, CLIs, agents, CI jobs and back-end services call model APIs dire
 
 ### Intent that changes the transformation
 
-Harmonic's intent detection decides whether to flag. Shadow's [intent-aware policy](/shadow/concepts/intent-policy/) decides how to transform: typed tokens for bulk reports, kept targets for provider-hosted actions, fakes elsewhere.
+Harmonic's intent detection decides whether to flag. Shadow's [intent-aware policy](/shadow/concepts/intent-policy/) decides how to transform: typed tokens for bulk reports, kept recipients and provider-hosted action targets, fakes elsewhere.
 
 ### Files masked in place
 

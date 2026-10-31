@@ -9,7 +9,7 @@ All notable changes to Shadow are documented here. The format follows [Keep a Ch
 
 ### Added
 
-- **Intent-aware policy.** Each request is classified as `act`, `report`, `code` or `converse`, and every detected value gets a treatment: `surrogate`, `token` (typed placeholders such as `[PERSON_0001]`), `keep` (for action targets in provider-hosted tools, always logged) or `redact` (opt-in, irreversible). Configured under `[policy]`. See [Intent-aware policy](/shadow/concepts/intent-policy/).
+- **Intent-aware policy.** Each request is classified as `act`, `report`, `code` or `converse`, and every detected value gets a treatment: `surrogate`, `token` (typed placeholders such as `[PERSON_0001]`), `keep` (for message recipients and action targets in provider-hosted tools, always logged) or `redact` (opt-in, irreversible). Configured under `[policy]`. See [Intent-aware policy](/shadow/concepts/intent-policy/).
 - **Session API** in `shadow-core`: `shadow.session_for(&request_json)` and `shadow.session(RequestContext { .. })` with `mask`, `mask_json`, `unmask`, `unmask_json`, `stream_unmasker`, `classification` and `summary`.
 - **File masking.** Multipart uploads, base64 file payloads (OpenAI `input_file`, Anthropic `document`, Gemini `inline_data`) and `data:` URIs. Text, CSV, JSON, HTML and XML masked as text; DOCX, XLSX and PPTX masked in place; PDF text extracted and masked; images passed through or blocked. Configured under `[files]`. See [File masking](/shadow/concepts/file-masking/).
 - **Activity dashboard.** A privacy-safe activity feed (counts and categories only, never values) served on loopback at `/shadow/ui`, plus `shadow top`, `shadow activity` and `shadow dashboard`, and a menu-bar / tray app in `apps/shadow-tray`. See [Activity dashboard](/shadow/concepts/activity-dashboard/).
@@ -19,6 +19,7 @@ All notable changes to Shadow are documented here. The format follows [Keep a Ch
 
 ### Changed
 
+- **Message recipients are passed through.** A request whose goal is to contact or act on someone is now `act`, including compose requests ("draft/write/compose/prepare a reply, email, letter, reminder, invitation..."). The recipient phrase (the words after "to", "for" or "at" following the verb, or right after "email", "call" and similar) is kept: names, emails, phones, companies, addresses, IBANs and usernames in it reach the provider as written, so the model greets, researches and addresses the right person. Each keep is logged. Everything else in the request (other people, health data, IDs, cards, secrets, hostnames) is still masked. `[policy.act] targets` now defaults to `"keep"`; set `targets = "surrogate"` for the previous behaviour, where the model sees a stand-in recipient and Shadow restores the real one in the answer and in tool-call arguments. See [Intent-aware policy](/shadow/concepts/intent-policy/).
 - **Goal-preserving intent.** Action verbs are also detected after "to", "and", "then" and "you". For provider-hosted actions with `remote_tool_targets = "keep"`, usernames and IBANs named in the instruction are kept real, and a follow-up that names no email or phone keeps the emails, phones and people anywhere in the request. Secrets, cards, national IDs, hostnames and IPs stay masked; every keep is logged. See [Intent-aware policy](/shadow/concepts/intent-policy/).
 
 ## 0.1.0

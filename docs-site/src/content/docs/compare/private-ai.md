@@ -70,7 +70,7 @@ Shadow restores fakes in [server-sent event streams](/shadow/concepts/how-it-wor
 
 ### Intent-aware policy
 
-Shadow classifies each request as act, report, code or converse and picks a treatment per value: fakes for conversation, typed tokens such as `[PERSON_0007]` for bulk reports, and an explicit, logged keep for what a provider-hosted tool's action needs, such as its recipient. See [intent-aware policy](/shadow/concepts/intent-policy/).
+Shadow classifies each request as act, report, code or converse and picks a treatment per value: fakes for conversation, typed tokens such as `[PERSON_0007]` for bulk reports, and an explicit, logged keep for the recipient of a message or action and what a provider-hosted tool's action needs. See [intent-aware policy](/shadow/concepts/intent-policy/).
 
 ### Interception instead of integration
 
