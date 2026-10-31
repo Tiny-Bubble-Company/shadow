@@ -31,7 +31,8 @@ The script:
 1. detects your platform (`aarch64` or `x86_64`, `apple-darwin` or `unknown-linux-gnu`);
 2. downloads `shadow-<target>.tar.gz` from the latest GitHub release if one exists, otherwise builds from source with `cargo install`;
 3. installs the binary to `~/.local/bin/shadow` (override with `SHADOW_BIN_DIR`);
-4. runs `shadow init` to create the persona, vault key and CA.
+4. on macOS, also installs the [menu-bar app](/shadow/concepts/activity-dashboard/#menu-bar-and-tray-app) to `~/.local/bin/shadow-tray` (building it with cargo; set `SHADOW_NO_TRAY=1` to skip it);
+5. runs `shadow init` to create the persona, vault key and CA.
 
 It never changes system settings. That is what `shadow install --apply` is for.
 
@@ -97,6 +98,8 @@ What it does per platform:
 | macOS | LaunchAgent `~/Library/LaunchAgents/dev.shadow.proxy.plist`, loaded with `launchctl bootstrap gui/<uid>` | `security add-trusted-cert -r trustRoot` into your login keychain |
 | Linux | systemd user unit `~/.config/systemd/user/shadow.service`, `systemctl --user enable --now` | Copies the CA to `/usr/local/share/ca-certificates` and runs `update-ca-certificates` (Debian, Ubuntu), or to `/etc/pki/ca-trust/source/anchors` and runs `update-ca-trust` (Fedora, RHEL). Uses `sudo`. |
 | Windows | Scheduled Task `Shadow` that runs at logon with limited rights | `certutil -user -addstore Root`; also sets `SHADOW_HOME` for your user |
+
+If the menu-bar app (`shadow-tray`) is installed next to `shadow` or on your `PATH`, `shadow install --apply` also starts it now and at every login: a LaunchAgent `dev.shadow.tray` on macOS, a Scheduled Task `Shadow Tray` on Windows, and an autostart entry on Linux desktops. If it isn't, the command prints how to install it. `shadow uninstall --apply` removes it again.
 
 With `--apply`, it also writes `env.sh` (or `env.ps1` on Windows) to the data directory with the proxy variables for your shell profile.
 

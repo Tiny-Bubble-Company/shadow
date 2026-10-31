@@ -10,6 +10,7 @@ use anyhow::Context;
 use crate::ui;
 
 const PLIST: &str = include_str!("../../../packaging/macos/dev.shadow.proxy.plist");
+const TRAY_PLIST: &str = include_str!("../../../packaging/macos/dev.shadow.tray.plist");
 const UNIT: &str = include_str!("../../../packaging/linux/shadow.service");
 
 /// One step of an install/uninstall plan.
@@ -39,10 +40,30 @@ pub struct Ctx {
     pub listen: String,
     pub ca_pem: PathBuf,
     pub bundle: PathBuf,
+    /// The menu-bar / tray app (`shadow-tray`), when it is installed.
+    pub tray: Option<PathBuf>,
+}
+
+/// Find `shadow-tray` next to the `shadow` binary, else on PATH.
+pub fn find_tray(exe: &Path) -> Option<PathBuf> {
+    let name = if cfg!(windows) {
+        "shadow-tray.exe"
+    } else {
+        "shadow-tray"
+    };
+    let sibling = exe.parent().map(|d| d.join(name));
+    sibling.filter(|p| p.is_file()).or_else(|| {
+        std::env::var_os("PATH").and_then(|paths| {
+            std::env::split_paths(&paths)
+                .map(|d| d.join(name))
+                .find(|p| p.is_file())
+        })
+    })
 }
 
 fn fill(tpl: &str, c: &Ctx) -> String {
     tpl.replace("{{EXE}}", &c.exe.display().to_string())
+        .replace("{{TRAY}}", &c.tray.as_deref().map(s).unwrap_or_default())
         .replace("{{DATA_DIR}}", &c.data_dir.display().to_string())
         .replace("{{LISTEN}}", &c.listen)
 }
@@ -69,7 +90,7 @@ pub fn install_plan(c: &Ctx) -> Vec<Action> {
         });
         let domain = format!("gui/{}", uid.unwrap_or_else(|| "501".into()));
         let keychain = s(&home().join("Library/Keychains/login.keychain-db"));
-        vec![
+        let mut v = vec![
             Action::Write {
                 path: plist.clone(),
                 contents: fill(PLIST, c),
@@ -85,7 +106,19 @@ pub fn install_plan(c: &Ctx) -> Vec<Action> {
                 &keychain,
                 &ca,
             ]),
-        ]
+        ];
+        if c.tray.is_some() {
+            let tray = home().join("Library/LaunchAgents/dev.shadow.tray.plist");
+            v.extend([
+                Action::Write {
+                    path: tray.clone(),
+                    contents: fill(TRAY_PLIST, c),
+                },
+                run_lenient(&["launchctl", "bootout", &domain, &s(&tray)]),
+                run(&["launchctl", "bootstrap", &domain, &s(&tray)]),
+            ]);
+        }
+        v
     } else if cfg!(target_os = "linux") {
         let unit = home().join(".config/systemd/user/shadow.service");
         let debian = Path::new("/usr/local/share/ca-certificates").exists();
@@ -114,10 +147,20 @@ pub fn install_plan(c: &Ctx) -> Vec<Action> {
             ]));
             v.push(run(&["sudo", "update-ca-trust"]));
         }
+        if let Some(tray) = &c.tray {
+            v.push(Action::Write {
+                path: home().join(".config/autostart/shadow-tray.desktop"),
+                contents: format!(
+                    "[Desktop Entry]\nType=Application\nName=Shadow\nComment=Shadow privacy activity\nExec=\"{}\" --url http://{}\nX-GNOME-Autostart-enabled=true\n",
+                    s(tray),
+                    c.listen
+                ),
+            });
+        }
         v
     } else if cfg!(windows) {
         let tr = format!("\"{}\" run --listen {}", s(&c.exe), c.listen);
-        vec![
+        let mut v = vec![
             run(&[
                 "schtasks", "/Create", "/TN", "Shadow", "/SC", "ONLOGON", "/RL", "LIMITED", "/F",
                 "/TR", &tr,
@@ -125,7 +168,27 @@ pub fn install_plan(c: &Ctx) -> Vec<Action> {
             run(&["schtasks", "/Run", "/TN", "Shadow"]),
             run(&["certutil", "-user", "-addstore", "Root", &ca]),
             run(&["setx", "SHADOW_HOME", &s(&c.data_dir)]),
-        ]
+        ];
+        if let Some(tray) = &c.tray {
+            let tr = format!("\"{}\" --url http://{}", s(tray), c.listen);
+            v.extend([
+                run(&[
+                    "schtasks",
+                    "/Create",
+                    "/TN",
+                    "Shadow Tray",
+                    "/SC",
+                    "ONLOGON",
+                    "/RL",
+                    "LIMITED",
+                    "/F",
+                    "/TR",
+                    &tr,
+                ]),
+                run(&["schtasks", "/Run", "/TN", "Shadow Tray"]),
+            ]);
+        }
+        v
     } else {
         vec![]
     }
@@ -141,7 +204,10 @@ pub fn uninstall_plan(c: &Ctx) -> Vec<Action> {
             .ok()
             .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
         let domain = format!("gui/{}", uid.unwrap_or_else(|| "501".into()));
+        let tray = home().join("Library/LaunchAgents/dev.shadow.tray.plist");
         vec![
+            run_lenient(&["launchctl", "bootout", &domain, &s(&tray)]),
+            Action::Remove(tray),
             run_lenient(&["launchctl", "bootout", &domain, &s(&plist)]),
             Action::Remove(plist),
             run_lenient(&["security", "delete-certificate", "-c", "Shadow Local CA"]),
@@ -150,6 +216,7 @@ pub fn uninstall_plan(c: &Ctx) -> Vec<Action> {
         vec![
             run_lenient(&["systemctl", "--user", "disable", "--now", "shadow.service"]),
             Action::Remove(home().join(".config/systemd/user/shadow.service")),
+            Action::Remove(home().join(".config/autostart/shadow-tray.desktop")),
             run_lenient(&[
                 "sudo",
                 "rm",
@@ -169,6 +236,8 @@ pub fn uninstall_plan(c: &Ctx) -> Vec<Action> {
         vec![
             run_lenient(&["schtasks", "/End", "/TN", "Shadow"]),
             run_lenient(&["schtasks", "/Delete", "/TN", "Shadow", "/F"]),
+            run_lenient(&["schtasks", "/End", "/TN", "Shadow Tray"]),
+            run_lenient(&["schtasks", "/Delete", "/TN", "Shadow Tray", "/F"]),
             run_lenient(&["certutil", "-user", "-delstore", "Root", "Shadow Local CA"]),
         ]
     } else {
@@ -276,4 +345,47 @@ pub fn write_bundle(ca_pem: &str, bundle: &Path) -> anyhow::Result<bool> {
     let found = !roots.is_empty();
     std::fs::write(bundle, format!("{roots}\n# Shadow Local CA\n{ca_pem}"))?;
     Ok(found)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn ctx(tray: Option<PathBuf>) -> Ctx {
+        Ctx {
+            exe: PathBuf::from("/opt/shadow/shadow"),
+            data_dir: PathBuf::from("/tmp/shadow-data"),
+            listen: "127.0.0.1:8877".into(),
+            ca_pem: PathBuf::from("/tmp/shadow-data/ca/ca.pem"),
+            bundle: PathBuf::from("/tmp/shadow-data/ca/bundle.pem"),
+            tray,
+        }
+    }
+
+    fn written(plan: &[Action]) -> Vec<(String, String)> {
+        plan.iter()
+            .filter_map(|a| match a {
+                Action::Write { path, contents } => Some((s(path), contents.clone())),
+                _ => None,
+            })
+            .collect()
+    }
+
+    #[test]
+    fn the_menu_bar_app_starts_at_login_only_when_installed() {
+        if cfg!(windows) {
+            return;
+        }
+        let without = written(&install_plan(&ctx(None)));
+        assert!(!without.iter().any(|(p, _)| p.contains("tray")));
+        let with = written(&install_plan(&ctx(Some(PathBuf::from(
+            "/opt/shadow/shadow-tray",
+        )))));
+        let (_, contents) = with
+            .iter()
+            .find(|(p, _)| p.contains("tray"))
+            .expect("tray start-up entry");
+        assert!(contents.contains("/opt/shadow/shadow-tray"), "{contents}");
+        assert!(contents.contains("http://127.0.0.1:8877"), "{contents}");
+    }
 }

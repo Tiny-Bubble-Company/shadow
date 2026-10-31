@@ -99,12 +99,14 @@ shadow activity --json          # the summary object from the API below
 
 `apps/shadow-tray` is a small companion app for macOS (menu bar) and Windows (system tray). Its icon shows whether Shadow is protecting the machine (a filled crescent) or not running (an outline). The menu lists today's requests, values protected and requests blocked, and has **Open dashboard** (a popover with the web dashboard), **Open in browser**, **Docs** and **Quit**. On macOS it has no Dock icon; on Windows, left-click opens the dashboard and right-click opens the menu.
 
+The install script puts it in `~/.local/bin/shadow-tray` on macOS, and `shadow install --apply` starts it at login. To add it to an existing install:
+
 ```sh
-cd apps/shadow-tray
-cargo run --release
+cargo install --locked --git https://github.com/Tiny-Bubble-Company/shadow shadow-tray --root ~/.local
+shadow install --apply
 ```
 
-It is a separate Cargo workspace built on the system webview (WKWebView, WebView2), so building Shadow itself never needs webview libraries.
+On Windows, the PowerShell installer builds it when a Rust toolchain is present. It is a separate Cargo workspace built on the system webview (WKWebView, WebView2), so building Shadow itself never needs webview libraries.
 
 ## HTTP API
 

@@ -120,7 +120,7 @@ export ANTHROPIC_BASE_URL=http://127.0.0.1:8877/gw/anthropic
 
 ```sh
 shadow install            # dry run: prints exactly what would change
-shadow install --apply    # background service + trust the local CA + env file
+shadow install --apply    # background service, menu-bar app at login, trust the local CA, env file
 export HTTPS_PROXY=http://127.0.0.1:8877
 ```
 

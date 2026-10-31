@@ -401,6 +401,11 @@ fn svc_ctx(cli: &Cli, listen: Option<String>) -> anyhow::Result<(ShadowConfig, s
         listen: listen.unwrap_or_else(|| cfg.proxy.listen.clone()),
         ca_pem: ca_dir.join("ca.pem"),
         bundle: ca_dir.join("bundle.pem"),
+        tray: None,
+    };
+    let ctx = service::Ctx {
+        tray: service::find_tray(&ctx.exe),
+        ..ctx
     };
     Ok((cfg, ctx))
 }
@@ -431,6 +436,16 @@ fn install(cli: &Cli, a: &InstallArgs, installing: bool) -> anyhow::Result<()> {
         );
     }
     service::execute(&plan, a.apply)?;
+    if installing && ctx.tray.is_none() && !cfg!(target_os = "linux") {
+        println!();
+        ui::warn(
+            "the menu-bar app (shadow-tray) is not installed, so there is no menu-bar icon. Install it with:",
+        );
+        println!(
+            "    cargo install --locked --git https://github.com/Tiny-Bubble-Company/shadow shadow-tray --root ~/.local"
+        );
+        println!("  {}", ui::dim("then run `shadow install --apply` again."));
+    }
     if installing {
         println!();
         ui::header("Point your tools at Shadow");

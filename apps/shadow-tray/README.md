@@ -8,6 +8,15 @@ Built with `tray-icon` + `tao` + `wry`: a native status item and the system webv
 (WKWebView on macOS, WebView2 on Windows), a few MB in total, no bundled browser. It is a
 separate Cargo workspace so the main workspace and Linux CI never need webview libraries.
 
+Installed by `packaging/install.sh` on macOS; `shadow install --apply` starts it at login. To install it into an existing setup:
+
+```sh
+cargo install --locked --git https://github.com/Tiny-Bubble-Company/shadow shadow-tray --root ~/.local
+shadow install --apply
+```
+
+From a checkout:
+
 ```sh
 cd apps/shadow-tray
 cargo run --release              # needs `shadow run` (or the service) for live numbers

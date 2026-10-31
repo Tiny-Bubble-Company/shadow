@@ -17,10 +17,20 @@ try {
   Copy-Item "$Dest\build\bin\shadow.exe" "$Dest\shadow.exe" -Force
 }
 
+# The system-tray app: protection status and the activity dashboard. Set SHADOW_NO_TRAY=1
+# to skip it. `shadow install --apply` starts it at logon when present.
+if (-not $env:SHADOW_NO_TRAY -and -not (Test-Path "$Dest\shadow-tray.exe") -and (Get-Command cargo -ErrorAction SilentlyContinue)) {
+  Write-Host "Building the tray app..."
+  try {
+    cargo install --locked --git $Repo shadow-tray --root "$Dest\build"
+    Copy-Item "$Dest\build\bin\shadow-tray.exe" "$Dest\shadow-tray.exe" -Force
+  } catch { Write-Warning "Could not build the tray app; Shadow works without it." }
+}
+
 $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
 if ($userPath -notlike "*$Dest*") { [Environment]::SetEnvironmentVariable("Path", "$userPath;$Dest", "User") }
 & "$Dest\shadow.exe" init
 Write-Host ""
 Write-Host "Installed to $Dest\shadow.exe. Next:"
 Write-Host "  shadow install          # dry run"
-Write-Host "  shadow install --apply  # scheduled task + trust the local CA (current user)"
+Write-Host "  shadow install --apply  # scheduled tasks (proxy and tray) + trust the local CA (current user)"

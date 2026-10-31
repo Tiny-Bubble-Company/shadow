@@ -30,9 +30,24 @@ else
   exit 1
 fi
 
+# The menu-bar app on macOS: protection status and the activity dashboard. Set
+# SHADOW_NO_TRAY=1 to skip it. `shadow install --apply` starts it at login when present.
+if [ "$os" = darwin ] && [ -z "${SHADOW_NO_TRAY:-}" ]; then
+  if [ -f "$tmp/shadow-tray" ]; then
+    install -m 0755 "$tmp/shadow-tray" "$BIN_DIR/shadow-tray"
+  elif command -v cargo >/dev/null 2>&1; then
+    echo "Building the menu-bar app..."
+    if cargo install --locked --git "$REPO" shadow-tray --root "$tmp/root"; then
+      install -m 0755 "$tmp/root/bin/shadow-tray" "$BIN_DIR/shadow-tray"
+    else
+      echo "warning: could not build the menu-bar app; Shadow works without it." >&2
+    fi
+  fi
+fi
+
 "$BIN_DIR/shadow" init
 echo
 echo "Installed to $BIN_DIR/shadow. Next:"
 echo "  shadow install          # dry run: shows exactly what will change"
-echo "  shadow install --apply  # background service + trust the local CA"
+echo "  shadow install --apply  # background service, menu-bar app at login, trust the local CA"
 case ":$PATH:" in *":$BIN_DIR:"*) ;; *) echo "  (add $BIN_DIR to your PATH)";; esac

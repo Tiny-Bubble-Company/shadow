@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Shadow menu-bar app, started at login. `shadow install` fills in {{TRAY}} and {{LISTEN}}. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>dev.shadow.tray</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>{{TRAY}}</string>
+    <string>--url</string>
+    <string>http://{{LISTEN}}</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <!-- Restart after a crash, but stay closed when you choose Quit from its menu. -->
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
+  <key>LimitLoadToSessionType</key>
+  <string>Aqua</string>
+  <key>ProcessType</key>
+  <string>Interactive</string>
+</dict>
+</plist>
