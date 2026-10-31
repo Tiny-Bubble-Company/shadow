@@ -374,7 +374,11 @@ impl<'a> Faker<'a> {
         let mut out = String::new();
         let mut rest = real;
         if let Some(r) = real.strip_prefix('+') {
-            let cc_len = r.find(|c: char| !c.is_ascii_digit()).unwrap_or(2).min(3);
+            let cc_len = r
+                .find(|c: char| !c.is_ascii_digit())
+                .unwrap_or(2)
+                .min(3)
+                .min(r.len());
             out.push('+');
             out.push_str(&self.persona.dial_code);
             rest = &r[cc_len..];
@@ -398,6 +402,10 @@ impl<'a> Faker<'a> {
 
     fn card(&mut self, real: &str) -> String {
         let digits: Vec<u32> = real.chars().filter_map(|c| c.to_digit(10)).collect();
+        if digits.len() < 2 {
+            // A model called something a card that has no card number in it.
+            return self.scramble(real);
+        }
         let keep = if digits[0] == 3 { 2 } else { 1 };
         let mut new: Vec<u32> = digits[..keep].to_vec();
         while new.len() < digits.len() - 1 {
@@ -422,6 +430,10 @@ impl<'a> Faker<'a> {
             .filter(|c| !c.is_whitespace())
             .collect::<String>()
             .to_ascii_uppercase();
+        if compact.len() < 5 || !compact.is_ascii() {
+            // Not an IBAN after all (a model's guess): keep its shape only.
+            return self.scramble(real);
+        }
         let cc = &compact[..2];
         let bban = self.scramble(&compact[4..]);
         let full = format!("{cc}{}{bban}", iban_check_digits(cc, &bban));
@@ -762,13 +774,14 @@ mod tests {
             "İstanbul",
             "ß@ß.ß",
         ];
-        with_faker(|f| {
-            for k in kinds {
+        // A fresh vault per kind: a cached fake from an earlier kind would skip the generator.
+        for k in kinds {
+            with_faker(|f| {
                 for real in odd {
                     let _ = f.fake_for(k, real);
                 }
-            }
-        });
+            });
+        }
     }
 
     #[test]

@@ -140,6 +140,8 @@ fn refine_ml_findings(mut all: Vec<Finding>, text: &str) -> Vec<Finding> {
         // text, where unmasking would wrongly replace it.
         span.chars().filter(|c| c.is_alphanumeric()).count() >= 4
             && (f.kind != Kind::Ip || span.parse::<std::net::IpAddr>().is_ok())
+            && (f.kind != Kind::CreditCard
+                || span.chars().filter(char::is_ascii_digit).count() >= 12)
             && !precise.iter().any(|&(s, e)| f.start < e && s < f.end)
     });
     all
