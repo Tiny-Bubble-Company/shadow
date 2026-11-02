@@ -98,7 +98,14 @@ pub struct EventStreamUnmasker {
     channels: BTreeMap<String, Channel>,
     /// Values restored by finished channels and direct unmasking.
     restored: usize,
+    /// Path of the last `append` in a JSON-patch stream (ChatGPT, DeepSeek), which a bare
+    /// `{"v": "..."}` event continues.
+    patch_path: Option<String>,
 }
+
+/// Channel families whose events carry no end marker: a family is flushed by the first
+/// event that has no text for it.
+const STATEFUL: &[&str] = &["pt:", "gk:", "cl:"];
 
 fn get_mut<'a>(v: &'a mut Value, path: &[Seg]) -> Option<&'a mut Value> {
     let mut cur = v;
@@ -206,6 +213,24 @@ fn deltas(v: &Value) -> Vec<(String, Vec<Seg>)> {
             }
         }
     }
+    // Claude.ai's older completion events.
+    if ty == "completion" && v.get("completion").is_some_and(Value::is_string) {
+        out.push(("cl:completion".into(), vec![k("completion")]));
+    }
+    // Grok: NDJSON with the next token at result.response.token (or result.token).
+    for path in [
+        ["result", "response", "token"].as_slice(),
+        ["result", "token"].as_slice(),
+    ] {
+        let ptr = format!("/{}", path.join("/"));
+        if v.pointer(&ptr).is_some_and(Value::is_string) {
+            out.push((
+                format!("gk:{}", path.join(".")),
+                path.iter().map(|s| k(s)).collect(),
+            ));
+            break;
+        }
+    }
     if ty == "content-delta"
         && v.pointer("/delta/message/content/text")
             .is_some_and(Value::is_string)
@@ -277,7 +302,51 @@ impl EventStreamUnmasker {
             data: vec![],
             channels: BTreeMap::new(),
             restored: 0,
+            patch_path: None,
         }
+    }
+
+    /// Text appends in JSON-patch streams: `{"p": "/message/content/parts/0", "o": "append",
+    /// "v": "Hel"}`, the shorthand `{"v": "lo"}` that continues it, and batches
+    /// `{"o": "patch", "v": [{"p": .., "o": "append", "v": ..}, ..]}`.
+    fn patch_deltas(&mut self, v: &Value) -> Vec<(String, Vec<Seg>)> {
+        let mut out = vec![];
+        let Some(obj) = v.as_object() else {
+            return out;
+        };
+        let op = obj
+            .get("o")
+            .and_then(Value::as_str)
+            .map(str::to_ascii_lowercase);
+        let path = obj.get("p").and_then(Value::as_str);
+        match (path, op.as_deref(), obj.get("v")) {
+            (Some(p), Some("append"), Some(Value::String(_))) => {
+                self.patch_path = Some(p.to_string());
+                out.push((format!("pt:{p}"), vec![k("v")]));
+            }
+            (None, None, Some(Value::String(_))) => {
+                if let Some(p) = &self.patch_path {
+                    out.push((format!("pt:{p}"), vec![k("v")]));
+                }
+            }
+            (_, Some("patch") | None, Some(Value::Array(items)))
+                if items.iter().all(|i| i.get("o").is_some()) =>
+            {
+                for (i, it) in items.iter().enumerate() {
+                    let op = it.get("o").and_then(Value::as_str).unwrap_or("");
+                    match (it.get("p").and_then(Value::as_str), it.get("v")) {
+                        (Some(p), Some(Value::String(_))) if op.eq_ignore_ascii_case("append") => {
+                            self.patch_path = Some(p.to_string());
+                            out.push((format!("pt:{p}"), vec![k("v"), Seg::Idx(i), k("v")]));
+                        }
+                        _ => self.patch_path = None,
+                    }
+                }
+            }
+            (Some(_), Some(_), _) => self.patch_path = None,
+            _ => {}
+        }
+        out
     }
 
     /// Values restored so far (counts only).
@@ -411,8 +480,16 @@ impl EventStreamUnmasker {
             return;
         };
         let original = v.clone();
-        let found = deltas(&v);
-        let ends = terminal(&v);
+        let mut found = deltas(&v);
+        found.extend(self.patch_deltas(&v));
+        let mut ends = terminal(&v);
+        for fam in STATEFUL {
+            if !found.iter().any(|(key, _)| key.starts_with(fam))
+                && self.channels.keys().any(|key| key.starts_with(fam))
+            {
+                ends.push(fam.to_string());
+            }
+        }
         // Take delta texts out so the generic pass does not touch them.
         let mut texts = Vec::with_capacity(found.len());
         for (_, path) in &found {
@@ -532,6 +609,112 @@ mod tests {
             assert_eq!(collect_openai(&out), real, "cut {cut}: {out}");
             assert!(out.ends_with("data: [DONE]\n\n"));
         }
+    }
+
+    /// ChatGPT web: a message added, then appends in all three shapes, then a status patch.
+    fn chatgpt_stream(pieces: &[&str]) -> String {
+        let mut s = String::from("event: delta_encoding\ndata: \"v1\"\n\n");
+        let add = serde_json::json!({"p": "", "o": "add", "v": {"message": {"id": "m1",
+            "author": {"role": "assistant"}, "content": {"content_type": "text", "parts": [""]},
+            "status": "in_progress"}, "conversation_id": "c1"}, "c": 0});
+        s.push_str(&format!("event: delta\ndata: {add}\n\n"));
+        for (i, p) in pieces.iter().enumerate() {
+            let ev = match i % 3 {
+                0 => serde_json::json!({"p": "/message/content/parts/0", "o": "append", "v": p}),
+                1 => serde_json::json!({"v": p}),
+                _ => serde_json::json!({"p": "", "o": "patch", "v": [
+                    {"p": "/message/content/parts/0", "o": "append", "v": p}]}),
+            };
+            s.push_str(&format!("event: delta\ndata: {ev}\n\n"));
+        }
+        let end = serde_json::json!({"p": "", "o": "patch", "v": [
+            {"p": "/message/status", "o": "replace", "v": "finished_successfully"}]});
+        s.push_str(&format!("event: delta\ndata: {end}\n\n"));
+        s.push_str("data: {\"type\": \"message_stream_complete\"}\n\ndata: [DONE]\n\n");
+        s
+    }
+
+    /// Replay the appends of a ChatGPT stream into the message text.
+    fn collect_chatgpt(out: &str) -> String {
+        let mut text = String::new();
+        let mut appending = false;
+        for d in out
+            .split("\n\n")
+            .filter_map(|e| e.lines().find_map(|l| l.strip_prefix("data: ")))
+        {
+            let Ok(v) = serde_json::from_str::<Value>(d) else {
+                continue;
+            };
+            let items: Vec<Value> = match (v.get("o"), v.get("v")) {
+                (Some(o), Some(Value::Array(a))) if o == "patch" => a.clone(),
+                (Some(_), _) => vec![v.clone()],
+                (None, Some(Value::String(t))) if appending => {
+                    text.push_str(t);
+                    continue;
+                }
+                _ => continue,
+            };
+            for it in items {
+                appending = it["o"] == "append";
+                if appending {
+                    text.push_str(it["v"].as_str().unwrap());
+                }
+            }
+        }
+        text
+    }
+
+    #[test]
+    fn chatgpt_patch_stream_restores_a_fake_split_anywhere() {
+        let (_d, s) = shadow();
+        let real = "Ask John Smith at john.smith@acme-intern.io";
+        let fake = s.mask(real).text;
+        assert_ne!(fake, real);
+        for cut in 1..fake.len() {
+            if !fake.is_char_boundary(cut) {
+                continue;
+            }
+            for split in [
+                vec![&fake[..cut], &fake[cut..]],
+                vec!["", &fake[..cut], &fake[cut..]],
+            ] {
+                let stream = chatgpt_stream(&split);
+                let mut u = EventStreamUnmasker::new(s.clone(), Framing::Sse);
+                let mut out = u.push(stream.as_bytes());
+                out.extend(u.finish());
+                let out = String::from_utf8(out).unwrap();
+                assert_eq!(collect_chatgpt(&out), real, "cut {cut}: {out}");
+                assert!(out.contains("finished_successfully"));
+            }
+        }
+    }
+
+    #[test]
+    fn grok_tokens_are_restored_across_lines() {
+        let (_d, s) = shadow();
+        let real = "Write to john.smith@acme-intern.io today";
+        let fake = s.mask(real).text;
+        let cut = fake.find('@').unwrap() - 2;
+        let mut stream = String::new();
+        for p in [&fake[..cut], &fake[cut..]] {
+            stream.push_str(&serde_json::json!({"result": {"response": {"token": p}}}).to_string());
+            stream.push('\n');
+        }
+        stream.push_str("{\"result\":{\"response\":{\"finalMetadata\":{}}}}\n");
+        let mut u = EventStreamUnmasker::new(s.clone(), Framing::Lines);
+        let mut out = u.push(stream.as_bytes());
+        out.extend(u.finish());
+        let text: String = String::from_utf8(out)
+            .unwrap()
+            .lines()
+            .filter_map(|l| serde_json::from_str::<Value>(l).ok())
+            .filter_map(|v| {
+                v.pointer("/result/response/token")
+                    .and_then(Value::as_str)
+                    .map(str::to_string)
+            })
+            .collect();
+        assert_eq!(text, real);
     }
 
     #[test]

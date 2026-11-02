@@ -517,6 +517,26 @@ fn card_details(text: &str, cards: &[Finding]) -> Vec<Finding> {
     out
 }
 
+/// Is `s` (starting at byte `start` of `text`) a card number? See [`CardDetector`].
+fn card_ok(text: &str, start: usize, s: &str) -> bool {
+    let d: String = s.chars().filter(char::is_ascii_digit).collect();
+    if !(13..=19).contains(&d.len()) {
+        return false;
+    }
+    let network = matches!(d.as_bytes()[0], b'3' | b'4' | b'5' | b'6')
+        || (d.starts_with('2') && (2221..=2720).contains(&d[..4].parse::<u32>().unwrap_or(0)));
+    if network && luhn_valid(&d) {
+        return true;
+    }
+    // Groups of four (the last may be shorter), or one unbroken run.
+    let groups: Vec<&str> = s.split([' ', '-']).collect();
+    let grouped = groups.len() == 1
+        || (groups[..groups.len() - 1].iter().all(|g| g.len() == 4)
+            && (1..=4).contains(&groups[groups.len() - 1].len()))
+        || groups.iter().map(|g| g.len()).eq([4, 6, 5]);
+    grouped && has_context(text, start, CARD_CTX) && !dummy_number(&d)
+}
+
 /// Payment cards: Luhn-validated with a known network prefix, or any 13-19 digit number in
 /// card grouping right after a card label ("Card number: 4141-6246-9771-0810"), since test
 /// and sample documents often carry numbers that fail the checksum. Their expiry date and
@@ -527,29 +547,30 @@ impl Detector for CardDetector {
         "credit_card"
     }
     fn detect(&self, text: &str) -> Vec<Finding> {
-        let cards = CARD
-            .find_iter(text)
-            .filter(|m| {
-                let d: String = m.as_str().chars().filter(char::is_ascii_digit).collect();
-                let network = matches!(d.as_bytes()[0], b'3' | b'4' | b'5' | b'6')
-                    || (d.starts_with('2')
-                        && (2221..=2720).contains(&d[..4].parse::<u32>().unwrap_or(0)));
-                if !(13..=19).contains(&d.len()) {
-                    return false;
-                }
-                if network && luhn_valid(&d) {
-                    return true;
-                }
-                // Groups of four (the last may be shorter), or one unbroken run.
-                let groups: Vec<&str> = m.as_str().split([' ', '-']).collect();
-                let grouped = groups.len() == 1
-                    || (groups[..groups.len() - 1].iter().all(|g| g.len() == 4)
-                        && (1..=4).contains(&groups[groups.len() - 1].len()))
-                    || groups.iter().map(|g| g.len()).eq([4, 6, 5]);
-                grouped && has_context(text, m.start(), CARD_CTX) && !dummy_number(&d)
-            })
-            .map(|m| Finding::new(m.start(), m.end(), Kind::CreditCard, "credit_card"))
-            .collect::<Vec<_>>();
+        let mut cards = vec![];
+        for m in CARD.find_iter(text) {
+            // A run that fails may have swallowed what follows the card ("4111 ... 1111 12/29"):
+            // retry without trailing groups.
+            let s = m.as_str();
+            let mut ends: Vec<usize> = vec![s.len()];
+            ends.extend(
+                s.char_indices()
+                    .rev()
+                    .filter(|(_, c)| matches!(c, ' ' | '-'))
+                    .map(|(i, _)| i),
+            );
+            if let Some(end) = ends
+                .into_iter()
+                .find(|&e| card_ok(text, m.start(), &s[..e]))
+            {
+                cards.push(Finding::new(
+                    m.start(),
+                    m.start() + end,
+                    Kind::CreditCard,
+                    "credit_card",
+                ));
+            }
+        }
         let details = card_details(text, &cards);
         cards.into_iter().chain(details).collect()
     }
@@ -1620,6 +1641,10 @@ mod tests {
         assert_eq!(
             kinds(&CardDetector, "Expires 11/26, security code 907"),
             ["11/26", "907"]
+        );
+        assert_eq!(
+            kinds(&CardDetector, "card 4111 1111 1111 1111 12/29 123."),
+            ["4111 1111 1111 1111", "12/29", "123"]
         );
         assert!(kinds(
             &CardDetector,

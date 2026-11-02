@@ -217,6 +217,53 @@ const PROVIDERS: &[(&str, &str, &str)] = &[
     ("api.voyageai.com", "voyage", "Voyage AI"),
     ("api.githubcopilot.com", "copilot", "GitHub Copilot"),
     ("*.githubcopilot.com", "copilot", "GitHub Copilot"),
+    // AI chat apps used in a browser or desktop app.
+    ("gemini.google.com", "gemini_app", "Gemini (app)"),
+    ("perplexity.ai", "perplexity_app", "Perplexity (app)"),
+    ("www.perplexity.ai", "perplexity_app", "Perplexity (app)"),
+    ("chat.deepseek.com", "deepseek_app", "DeepSeek (app)"),
+    ("grok.com", "grok", "Grok"),
+    ("copilot.microsoft.com", "copilot_app", "Microsoft Copilot"),
+    ("chat.mistral.ai", "lechat", "Le Chat"),
+    ("www.meta.ai", "meta_ai", "Meta AI"),
+    ("poe.com", "poe", "Poe"),
+    // Inference clouds and other model APIs.
+    ("api.replicate.com", "replicate", "Replicate"),
+    (
+        "api-inference.huggingface.co",
+        "huggingface",
+        "Hugging Face",
+    ),
+    ("router.huggingface.co", "huggingface", "Hugging Face"),
+    (
+        "*.endpoints.huggingface.cloud",
+        "huggingface",
+        "Hugging Face",
+    ),
+    ("api.deepinfra.com", "deepinfra", "DeepInfra"),
+    ("api.hyperbolic.xyz", "hyperbolic", "Hyperbolic"),
+    ("api.sambanova.ai", "sambanova", "SambaNova"),
+    ("api.novita.ai", "novita", "Novita AI"),
+    ("api.lambda.ai", "lambda", "Lambda"),
+    ("inference.baseten.co", "baseten", "Baseten"),
+    ("*.api.baseten.co", "baseten", "Baseten"),
+    ("integrate.api.nvidia.com", "nvidia", "NVIDIA NIM"),
+    ("api.studio.nebius.com", "nebius", "Nebius AI Studio"),
+    ("api.siliconflow.cn", "siliconflow", "SiliconFlow"),
+    (
+        "gateway.ai.cloudflare.com",
+        "cloudflare",
+        "Cloudflare AI Gateway",
+    ),
+    ("api.ai21.com", "ai21", "AI21"),
+    ("api.reka.ai", "reka", "Reka"),
+    ("api.moonshot.ai", "moonshot", "Moonshot AI"),
+    ("api.moonshot.cn", "moonshot", "Moonshot AI"),
+    ("dashscope.aliyuncs.com", "qwen", "Alibaba Qwen"),
+    ("dashscope-intl.aliyuncs.com", "qwen", "Alibaba Qwen"),
+    ("open.bigmodel.cn", "zhipu", "Zhipu AI"),
+    ("api.minimax.io", "minimax", "MiniMax"),
+    ("api.llama.com", "meta", "Meta Llama API"),
     ("localhost", "local", "Local model"),
     ("127.0.0.1", "local", "Local model"),
     ("::1", "local", "Local model"),
@@ -239,6 +286,22 @@ pub fn provider_for_host(host: &str) -> &'static str {
         .find(|(p, _, _)| glob(p, &h))
         .map(|(_, id, _)| *id)
         .unwrap_or("other")
+}
+
+/// What kind of AI destination a provider id is: `chat_app` (ChatGPT, Claude.ai, ... in a
+/// browser or desktop app), `inference` (clouds that host many models), `local`, or
+/// `model_api` (a model maker's own API).
+pub fn provider_category(id: &str) -> &'static str {
+    match id {
+        "chatgpt" | "claude" | "gemini_app" | "perplexity_app" | "deepseek_app" | "grok"
+        | "copilot_app" | "lechat" | "meta_ai" | "poe" => "chat_app",
+        "groq" | "together" | "fireworks" | "cerebras" | "replicate" | "huggingface"
+        | "deepinfra" | "hyperbolic" | "sambanova" | "novita" | "lambda" | "baseten" | "nvidia"
+        | "nebius" | "siliconflow" | "cloudflare" | "bedrock" | "vertex" | "azure"
+        | "openrouter" => "inference",
+        "local" => "local",
+        _ => "model_api",
+    }
 }
 
 /// Display name of a provider id (unknown ids are returned as-is).
@@ -309,6 +372,12 @@ const CLIENTS: &[(&str, &str)] = &[
     ("okhttp", "Java (OkHttp)"),
     ("java/", "Java"),
     ("electron", "Electron app"),
+    ("edg/", "Microsoft Edge"),
+    ("opr/", "Opera"),
+    ("vivaldi", "Vivaldi"),
+    ("firefox/", "Firefox"),
+    ("chrome/", "Google Chrome"),
+    ("safari/", "Safari"),
     ("mozilla/", "Web browser"),
 ];
 
@@ -360,6 +429,10 @@ pub fn endpoint_for_path(path: &str) -> Endpoint {
         "/conversation",
         "/rawpredict",
         "/predict",
+        "streamgenerate",
+        "perplexity_ask",
+        "/app-chat/",
+        "/completion",
     ]
     .iter()
     .any(|m| p.contains(m))
@@ -1161,8 +1234,21 @@ mod tests {
         assert_eq!(c("Go-http-client/1.1"), "Go");
         assert_eq!(
             c("Mozilla/5.0 (Windows NT 10.0) Chrome/120 Safari/537"),
-            "Web browser"
+            "Google Chrome"
         );
+        assert_eq!(
+            c("Mozilla/5.0 (Windows NT 10.0) Chrome/120 Safari/537 Edg/120"),
+            "Microsoft Edge"
+        );
+        assert_eq!(
+            c("Mozilla/5.0 (Macintosh) AppleWebKit/605 Version/17.4 Safari/605.1.15"),
+            "Safari"
+        );
+        assert_eq!(
+            c("Mozilla/5.0 (X11; rv:131.0) Gecko/20100101 Firefox/131.0"),
+            "Firefox"
+        );
+        assert_eq!(c("Mozilla/5.0 (compatible)"), "Web browser");
         // Unknown agents: product token only, never the comment.
         assert_eq!(c("AcmeBot/1.0 (jane@acme.com; build-host-7)"), "AcmeBot");
         assert_eq!(c("weird<script>/1"), "weirdscript");

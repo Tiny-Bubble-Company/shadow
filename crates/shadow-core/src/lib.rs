@@ -518,6 +518,7 @@ impl Shadow {
             instruction_has_contact: found
                 .iter()
                 .any(|f| matches!(f.kind, Kind::Email | Kind::Phone)),
+            surrogates_only: false,
             recipients: intent::recipient_phrases(&ctx.instruction),
             instruction: ctx.instruction,
             tokens: Mutex::new(Tokens::default()),
@@ -560,7 +561,17 @@ impl Shadow {
             for f in &findings {
                 let real = &text[f.start..f.end];
                 out.push_str(&text[last..f.start]);
-                let sent = match decide(f, real) {
+                // A card's expiry or security code is short and useless to a model: a fixed
+                // label, never a fake that could be "restored" over an unrelated number.
+                let label = (f.detector == "card_details").then(|| {
+                    if real.contains(['/', '-']) {
+                        "[CARD_EXPIRY]"
+                    } else {
+                        "[CARD_CVV]"
+                    }
+                });
+                let decided = decide(f, real);
+                let sent = match label.map(str::to_string).or(decided) {
                     Some(r) if r == real => r,
                     Some(r) => {
                         replaced += 1;
@@ -736,6 +747,8 @@ pub struct Session {
     instruction_has_contact: bool,
     /// Who the request's message or action is for (see [`intent::recipient_phrases`]).
     recipients: Vec<String>,
+    /// Use persona fakes where the policy says `token` (see [`Session::surrogates_only`]).
+    surrogates_only: bool,
     tokens: Mutex<Tokens>,
 }
 
@@ -773,6 +786,14 @@ impl Session {
         &self.class
     }
 
+    /// Replace values with persona fakes even where the policy picks typed tokens. Fakes
+    /// live in the vault, so they can be restored in later responses too (a chat app
+    /// reloading its history); tokens can only be restored within this request.
+    pub fn surrogates_only(mut self) -> Self {
+        self.surrogates_only = true;
+        self
+    }
+
     pub fn summary(&self) -> SessionSummary {
         self.lock().summary.clone()
     }
@@ -803,7 +824,10 @@ impl Session {
                 self.instruction_has_contact,
                 f.kind,
             );
-            let treatment = intent::treatment(cfg, class, f.kind, target);
+            let treatment = match intent::treatment(cfg, class, f.kind, target) {
+                Treatment::Token if self.surrogates_only => Treatment::Surrogate,
+                t => t,
+            };
             if treatment != Treatment::Keep {
                 *toks
                     .summary

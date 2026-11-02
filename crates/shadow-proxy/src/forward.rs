@@ -16,6 +16,7 @@ use shadow_core::files::{self, FileError};
 use shadow_core::{RequestContext, Session};
 
 use crate::activity::{Pending, Via};
+use crate::apps::{self, ChatApp, Format};
 use crate::detail::{self, ClientAddr};
 use crate::sse::{EventStreamUnmasker, Framing, Translator};
 use crate::{Body, Proxy};
@@ -33,6 +34,25 @@ const HOP_BY_HOP: &[&str] = &[
     "host",
     "content-length",
 ];
+
+/// How a request is handled.
+#[derive(Clone, Copy, Debug)]
+pub(crate) enum Mode {
+    /// Not an AI host: forwarded byte for byte, not recorded.
+    Pass,
+    /// An AI API: the request is masked and recorded, the answer restored.
+    Api,
+    /// A chat app's prompt request: only the prompt fields are masked.
+    App(&'static ChatApp),
+    /// Any other request to a chat app: sent as it is, JSON and stream answers restored.
+    Restore,
+}
+
+impl Mode {
+    fn masks(self) -> bool {
+        matches!(self, Mode::Api | Mode::App(_))
+    }
+}
 
 /// Request text for the incident view: parts, whether any were cut, and the model.
 type Draft = (Vec<TextPart>, bool, Option<String>);
@@ -121,6 +141,7 @@ impl Proxy {
         headers: &mut HeaderMap,
         body: &Bytes,
         want_detail: bool,
+        app: Option<&'static ChatApp>,
     ) -> Result<Option<(Bytes, usize, Arc<Session>, Option<Draft>)>, FileError> {
         if body.is_empty() {
             return Ok(None);
@@ -152,6 +173,25 @@ impl Proxy {
         let mut draft = None;
         let (out, n, session) = if is_json(&ct, &plain) {
             match serde_json::from_slice::<Value>(&plain) {
+                Ok(mut v) if app.is_some() => {
+                    let Some(Format::Json(keys)) = app.map(|a| a.format) else {
+                        return Ok(None);
+                    };
+                    let orig = want_detail.then(|| v.clone());
+                    let (session, n) = apps::mask_json(&self.shadow, keys, &mut v);
+                    tracing::debug!(
+                        app = app.map(|a| a.id),
+                        "chat app prompt: {n} value(s) masked"
+                    );
+                    let Ok(bytes) = serde_json::to_vec(&v) else {
+                        return Ok(None);
+                    };
+                    if let Some(orig) = orig.filter(|_| n > 0) {
+                        let (parts, cut) = detail::json_parts(&orig, Some(&v));
+                        draft = Some((parts, cut, detail::model(&orig)));
+                    }
+                    (bytes, n, session)
+                }
                 Ok(mut v) => {
                     let orig = want_detail.then(|| v.clone());
                     let session = Arc::new(self.shadow.session_for(&v));
@@ -195,6 +235,21 @@ impl Proxy {
             };
             let (out, n) = files::mask_multipart(&mask, files_cfg, &ct_raw, &plain)?;
             (out, n, session)
+        } else if app.is_some_and(|a| a.format == Format::GeminiForm) {
+            let Ok(text) = std::str::from_utf8(&plain) else {
+                return Ok(None);
+            };
+            let Some(g) = apps::mask_gemini_form(&self.shadow, text) else {
+                tracing::debug!("Gemini request in an unknown shape; forwarded as it is");
+                return Ok(None);
+            };
+            if want_detail && g.replaced > 0 {
+                let (parts, cut) = detail::text_part(&g.prompt, Some(&g.sent));
+                draft = Some((parts, cut, None));
+            }
+            (g.body.into_bytes(), g.replaced, g.session)
+        } else if app.is_some() {
+            return Ok(None);
         } else if ct.starts_with("text/") || ct.contains("x-www-form-urlencoded") {
             let Ok(text) = std::str::from_utf8(&plain) else {
                 return Ok(None);
@@ -265,8 +320,8 @@ impl Proxy {
         url: String,
         translate: bool,
     ) -> Response<Body> {
-        self.forward_via(req, url, translate, Via::Proxy(None))
-            .await
+        let mode = if translate { Mode::Api } else { Mode::Pass };
+        self.forward_via(req, url, mode, Via::Proxy(None)).await
     }
 
     /// [`Proxy::forward`], telling the activity feed how the request arrived.
@@ -274,9 +329,10 @@ impl Proxy {
         &self,
         req: Request<Incoming>,
         url: String,
-        translate: bool,
+        mode: Mode,
         via: Via<'_>,
     ) -> Response<Body> {
+        let translate = !matches!(mode, Mode::Pass);
         let (parts, body) = req.into_parts();
         let body = match body.collect().await {
             Ok(b) => b.to_bytes(),
@@ -290,16 +346,25 @@ impl Proxy {
         let mut headers = parts.headers.clone();
         let mut out_body = body.clone();
         let mut translator: Translator = self.shadow.clone().into();
-        let mut pending = if translate {
+        let mut pending = if mode.masks() {
             self.pending(&url, via, parts.method.as_str(), &parts.headers, body.len())
         } else {
             None
         };
         let peer = parts.extensions.get::<ClientAddr>().map(|c| c.0);
         let want_detail = pending.as_ref().is_some_and(Pending::wants_detail);
-        if translate {
+        if let Mode::Restore = mode {
+            // Ask for an uncompressed answer so it can be restored; nothing else changes.
+            for name in HOP_BY_HOP.iter().chain(["accept-encoding"].iter()) {
+                headers.remove(*name);
+            }
+        } else if mode.masks() {
+            let app = match mode {
+                Mode::App(a) => Some(a),
+                _ => None,
+            };
             headers = self.outbound_headers(headers);
-            match self.mask_body(&mut headers, &body, want_detail) {
+            match self.mask_body(&mut headers, &body, want_detail, app) {
                 Ok(Some((b, n, session, draft))) => {
                     tracing::info!(target: "shadow::proxy", "{} {} masked {n} value(s)", parts.method, url);
                     if let Some(p) = pending.as_mut() {
@@ -391,7 +456,8 @@ impl Proxy {
                 );
             }
         };
-        self.translate_response(resp, translate, translator, pending)
+        let data_only = matches!(mode, Mode::Restore | Mode::App(_));
+        self.translate_response(resp, translate, data_only, translator, pending)
             .await
     }
 
@@ -399,6 +465,7 @@ impl Proxy {
         &self,
         resp: reqwest::Response,
         translate: bool,
+        data_only: bool,
         translator: Translator,
         mut pending: Option<Pending>,
     ) -> Response<Body> {
@@ -430,7 +497,12 @@ impl Proxy {
         if let Some(p) = pending.as_mut() {
             p.ev.streamed = framing.is_some();
         }
-        if !translate || encoded {
+        // Chat apps also serve pages, scripts and images: restore data answers only.
+        let data = framing.is_some()
+            || ct.contains("json")
+            || ct.starts_with("text/plain")
+            || ct.is_empty();
+        if !translate || encoded || (data_only && !data) {
             let stream = resp.bytes_stream().map(move |r| {
                 if let (Ok(b), Some(p)) = (&r, pending.as_mut()) {
                     p.ev.bytes_out += b.len() as u64;

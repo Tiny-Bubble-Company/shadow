@@ -26,6 +26,31 @@ pub const AI_HOSTS: &[&str] = &[
     "api.fireworks.ai",
     "api.cerebras.ai",
     "api.voyageai.com",
+    // Inference clouds and other model APIs (mostly OpenAI-compatible).
+    "api.replicate.com",
+    "api-inference.huggingface.co",
+    "router.huggingface.co",
+    "*.endpoints.huggingface.cloud",
+    "api.deepinfra.com",
+    "api.hyperbolic.xyz",
+    "api.sambanova.ai",
+    "api.novita.ai",
+    "api.lambda.ai",
+    "inference.baseten.co",
+    "*.api.baseten.co",
+    "integrate.api.nvidia.com",
+    "api.studio.nebius.com",
+    "api.siliconflow.cn",
+    "gateway.ai.cloudflare.com",
+    "api.ai21.com",
+    "api.reka.ai",
+    "api.moonshot.ai",
+    "api.moonshot.cn",
+    "dashscope.aliyuncs.com",
+    "dashscope-intl.aliyuncs.com",
+    "open.bigmodel.cn",
+    "api.minimax.io",
+    "api.llama.com",
 ];
 
 /// Built-in gateway routes: `/gw/<name>/<path>` -> `<base>/<path>`.
@@ -44,6 +69,15 @@ pub const ROUTES: &[(&str, &str)] = &[
     ("perplexity", "https://api.perplexity.ai"),
     ("fireworks", "https://api.fireworks.ai/inference"),
     ("cerebras", "https://api.cerebras.ai"),
+    ("huggingface", "https://router.huggingface.co"),
+    ("deepinfra", "https://api.deepinfra.com/v1/openai"),
+    ("nvidia", "https://integrate.api.nvidia.com"),
+    ("sambanova", "https://api.sambanova.ai"),
+    (
+        "qwen",
+        "https://dashscope-intl.aliyuncs.com/compatible-mode",
+    ),
+    ("moonshot", "https://api.moonshot.ai"),
 ];
 
 /// Glob match where `*` matches any run of characters (case-insensitive).
@@ -88,6 +122,13 @@ impl HostMatcher {
             include,
             bypass: bypass.to_vec(),
         }
+    }
+
+    /// Also intercept the supported AI chat apps (ChatGPT, Claude.ai, Gemini, ...).
+    pub fn with_chat_apps(mut self) -> Self {
+        self.include
+            .extend(crate::apps::hosts().map(str::to_string));
+        self
     }
 
     /// True if traffic to `host` should be translated.

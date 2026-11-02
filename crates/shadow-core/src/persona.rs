@@ -469,6 +469,30 @@ fn slug(s: &str) -> String {
         .replace(' ', "-")
 }
 
+/// Standard-time UTC offset in minutes (east positive) of the persona timezones, so a
+/// request's timezone fields can be made to match the persona. DST is ignored.
+pub fn standard_offset_minutes(tz: &str) -> Option<i32> {
+    Some(match tz {
+        "Asia/Shanghai" => 480,
+        "Asia/Tokyo" | "Asia/Seoul" => 540,
+        "Asia/Kolkata" => 330,
+        "Australia/Perth" => 480,
+        "Australia/Adelaide" => 570,
+        "Australia/Brisbane" | "Australia/Hobart" => 600,
+        "Africa/Johannesburg" => 120,
+        "Europe/Berlin" => 60,
+        "America/Sao_Paulo" | "America/Recife" => -180,
+        "America/Halifax" => -240,
+        "America/New_York" => -300,
+        "America/Chicago" | "America/Winnipeg" | "America/Mexico_City" | "America/Monterrey" => {
+            -360
+        }
+        "America/Denver" | "America/Edmonton" => -420,
+        "America/Los_Angeles" => -480,
+        _ => return None,
+    })
+}
+
 impl Persona {
     /// Generate a new persona for `region` (or a far-away region when `None`/`auto`).
     pub fn generate(region_code: Option<&str>, rng: &mut impl Rng) -> Persona {

@@ -333,6 +333,9 @@ pub struct ProxyConfig {
     pub persona_headers: BTreeMap<String, String>,
     /// Extra gateway routes: `/gw/<name>/...` -> `<base>/...`. Overrides built-ins.
     pub routes: BTreeMap<String, String>,
+    /// Intercept AI chat apps (ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek, Grok) in
+    /// proxy mode: their prompts are masked and their answers and history restored.
+    pub chat_apps: bool,
 }
 
 impl Default for ProxyConfig {
@@ -350,6 +353,7 @@ impl Default for ProxyConfig {
             extra_hosts: vec![],
             bypass_hosts: vec![],
             upstream_proxy: None,
+            chat_apps: true,
             strip_headers: [
                 "openai-organization",
                 "x-forwarded-for",

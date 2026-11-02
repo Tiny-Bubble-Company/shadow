@@ -15,6 +15,7 @@
 //! (counts only), served on loopback at `/shadow/activity*` and visualised at `/shadow/ui`.
 
 mod activity;
+mod apps;
 pub mod ca;
 mod detail;
 mod forward;
@@ -87,7 +88,14 @@ impl Proxy {
         };
         Ok(Self {
             activity,
-            hosts: HostMatcher::new(&cfg.extra_hosts, &cfg.bypass_hosts),
+            hosts: {
+                let m = HostMatcher::new(&cfg.extra_hosts, &cfg.bypass_hosts);
+                if cfg.chat_apps {
+                    m.with_chat_apps()
+                } else {
+                    m
+                }
+            },
             routes: hosts::routes(&cfg.routes),
             shadow,
             ca: Arc::new(ca),
@@ -177,8 +185,10 @@ impl Proxy {
             // Plain-HTTP forward proxy request (absolute-form URI).
             let host = req.uri().host().unwrap_or("").to_string();
             let url = req.uri().to_string();
-            let translate = self.hosts.intercept(&host);
-            return Ok(self.forward(req, url, translate).await);
+            let mode = self.mode_for(&host, req.method().as_str(), req.uri().path());
+            return Ok(self
+                .forward_via(req, url, mode, activity::Via::Proxy(None))
+                .await);
         }
         let path = req.uri().path().to_string();
         if let Some(rest) = path.strip_prefix("/gw/") {
@@ -217,6 +227,19 @@ impl Proxy {
         })
     }
 
+    /// How a request to `host` is handled: chat apps mask only their prompt requests and
+    /// restore everything else; other intercepted hosts are masked as API calls.
+    fn mode_for(&self, host: &str, method: &str, path: &str) -> forward::Mode {
+        if !self.hosts.intercept(host) {
+            return forward::Mode::Pass;
+        }
+        match apps::find(host).filter(|_| self.shadow.config().proxy.chat_apps) {
+            Some(app) if app.is_prompt(method, path) => forward::Mode::App(app),
+            Some(_) => forward::Mode::Restore,
+            None => forward::Mode::Api,
+        }
+    }
+
     fn status(&self) -> Response<Body> {
         let p = self.shadow.persona();
         let body = serde_json::json!({
@@ -247,7 +270,7 @@ impl Proxy {
             url.push('?');
             url.push_str(q);
         }
-        self.forward_via(req, url, true, activity::Via::Gateway(name))
+        self.forward_via(req, url, forward::Mode::Api, activity::Via::Gateway(name))
             .await
     }
 
@@ -321,8 +344,9 @@ impl Proxy {
                             .map(|p| p.as_str().to_string())
                             .unwrap_or_else(|| "/".into());
                         let via = activity::Via::Proxy(Some(&host));
+                        let mode = me.mode_for(&host, req.method().as_str(), req.uri().path());
                         Ok::<_, Infallible>(
-                            me.forward_via(req, format!("{base}{pq}"), true, via).await,
+                            me.forward_via(req, format!("{base}{pq}"), mode, via).await,
                         )
                     }
                 }),
