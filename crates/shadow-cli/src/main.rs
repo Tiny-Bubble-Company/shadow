@@ -57,6 +57,8 @@ enum Cmd {
     Install(InstallArgs),
     /// Remove the background service and CA trust (dry run unless --apply).
     Uninstall(InstallArgs),
+    /// Route this machine's traffic through Shadow with the system proxy settings (or stop).
+    SystemProxy(SystemProxyArgs),
     /// Show configuration, persona, vault and proxy health.
     Status {
         /// No output; exit code 0 only if the proxy answers.
@@ -147,6 +149,22 @@ struct InstallArgs {
     apply: bool,
     #[arg(long)]
     listen: Option<String>,
+    /// Also route this machine's traffic through Shadow with the system proxy settings, so
+    /// browsers and desktop apps (ChatGPT, Claude, Gemini in a browser) are covered. Traffic
+    /// that is not going to an AI service passes through untouched. Falls back to a direct
+    /// connection whenever Shadow is not running.
+    #[arg(long)]
+    system_proxy: bool,
+}
+
+#[derive(Args)]
+struct SystemProxyArgs {
+    /// `on`, `off` or `status`.
+    #[arg(value_parser = ["on", "off", "status"])]
+    state: String,
+    /// Actually change the settings (default: print the steps).
+    #[arg(long)]
+    apply: bool,
 }
 
 #[derive(Subcommand)]
@@ -231,6 +249,7 @@ fn real_main(cli: Cli) -> anyhow::Result<()> {
         Cmd::Run { listen } => run(&cli, listen.clone()),
         Cmd::Install(a) => install(&cli, a, true),
         Cmd::Uninstall(a) => install(&cli, a, false),
+        Cmd::SystemProxy(a) => system_proxy(&cli, a),
         Cmd::Status { quiet } => status(&cli, *quiet),
         Cmd::Identity { json } => identity(&open(&cli)?, *json),
         Cmd::Mask { json } => {
@@ -424,16 +443,63 @@ fn svc_ctx(cli: &Cli, listen: Option<String>) -> anyhow::Result<(ShadowConfig, s
         ca_pem: ca_dir.join("ca.pem"),
         bundle: ca_dir.join("bundle.pem"),
         tray: None,
+        system_proxy: false,
+        net_services: vec![],
+        proxied: vec![],
     };
+    let net_services = service::network_services();
     let ctx = service::Ctx {
         tray: service::find_tray(&ctx.exe),
+        proxied: service::proxied_by_shadow(&net_services),
+        net_services,
         ..ctx
     };
     Ok((cfg, ctx))
 }
 
+fn system_proxy(cli: &Cli, a: &SystemProxyArgs) -> anyhow::Result<()> {
+    let (_, ctx) = svc_ctx(cli, None)?;
+    if a.state == "status" {
+        if ctx.proxied.is_empty() {
+            ui::kv(
+                "system proxy",
+                "off: only tools pointed at Shadow are covered",
+            );
+        } else {
+            ui::kv(
+                "system proxy",
+                &ui::green(&format!("on ({})", ctx.proxied.join(", "))),
+            );
+            ui::kv("pac", &service::pac_url(&ctx.listen));
+        }
+        return Ok(());
+    }
+    let plan = if a.state == "on" {
+        service::system_proxy_on(&ctx)
+    } else {
+        service::system_proxy_off(&ctx)
+    };
+    ui::header(if a.apply {
+        "Applying"
+    } else {
+        "Plan (dry run — re-run with --apply to perform)"
+    });
+    if plan.is_empty() {
+        ui::ok(if a.state == "on" {
+            "no network service found to set"
+        } else {
+            "the system proxy does not point at Shadow; nothing to change"
+        });
+    }
+    service::execute(&plan, a.apply)
+}
+
 fn install(cli: &Cli, a: &InstallArgs, installing: bool) -> anyhow::Result<()> {
     let (cfg, ctx) = svc_ctx(cli, a.listen.clone())?;
+    let ctx = service::Ctx {
+        system_proxy: a.system_proxy,
+        ..ctx
+    };
     if installing {
         // Make sure persona, key and CA exist before the service starts.
         Shadow::open(cfg.clone())?;

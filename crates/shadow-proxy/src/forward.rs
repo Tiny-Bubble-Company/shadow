@@ -57,6 +57,18 @@ impl Mode {
 /// Request text for the incident view: parts, whether any were cut, and the model.
 type Draft = (Vec<TextPart>, bool, Option<String>);
 
+/// An error with its causes, `outer: inner: root`.
+fn chain(e: &dyn std::error::Error) -> String {
+    let mut out = e.to_string();
+    let mut cur = e.source();
+    while let Some(c) = cur {
+        out.push_str(": ");
+        out.push_str(&c.to_string());
+        cur = c.source();
+    }
+    out
+}
+
 /// A complete body.
 pub fn full(b: impl Into<Bytes>) -> Body {
     Full::new(b.into())
@@ -437,8 +449,11 @@ impl Proxy {
                 headers.remove(*name);
             }
         }
-        let resp = match self
-            .client
+        let client = match mode {
+            Mode::App(_) | Mode::Restore => &self.web_client,
+            Mode::Api | Mode::Pass => &self.client,
+        };
+        let resp = match client
             .request(parts.method.clone(), &url)
             .headers(headers)
             .body(out_body)
@@ -452,7 +467,7 @@ impl Proxy {
                 }
                 return error_response(
                     StatusCode::BAD_GATEWAY,
-                    &format!("upstream request failed: {e}"),
+                    &format!("upstream request failed: {}", chain(&e)),
                 );
             }
         };

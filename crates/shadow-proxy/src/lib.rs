@@ -52,6 +52,9 @@ pub struct Proxy {
     shadow: Shadow,
     ca: Arc<CertAuthority>,
     client: reqwest::Client,
+    /// HTTP/1.1-only client for web apps (browser traffic arrives as HTTP/1.1, and some
+    /// sites send responses over HTTP/2 that the client rejects, such as early hints).
+    web_client: reqwest::Client,
     hosts: HostMatcher,
     routes: BTreeMap<String, String>,
     overrides: HashMap<String, String>,
@@ -65,14 +68,16 @@ impl Proxy {
     pub fn new(shadow: Shadow) -> anyhow::Result<Self> {
         let cfg = shadow.config().proxy.clone();
         let ca = CertAuthority::load_or_create(&shadow.config().data_dir.join("ca"))?;
-        let mut builder = reqwest::Client::builder()
-            .use_rustls_tls()
-            .redirect(reqwest::redirect::Policy::none())
-            .pool_idle_timeout(std::time::Duration::from_secs(60))
-            .connect_timeout(std::time::Duration::from_secs(15));
-        builder = match &cfg.upstream_proxy {
-            Some(up) if !up.trim().is_empty() => builder.proxy(reqwest::Proxy::all(up.as_str())?),
-            _ => builder.no_proxy(),
+        let builder = || -> anyhow::Result<reqwest::ClientBuilder> {
+            let b = reqwest::Client::builder()
+                .use_rustls_tls()
+                .redirect(reqwest::redirect::Policy::none())
+                .pool_idle_timeout(std::time::Duration::from_secs(60))
+                .connect_timeout(std::time::Duration::from_secs(15));
+            Ok(match &cfg.upstream_proxy {
+                Some(up) if !up.trim().is_empty() => b.proxy(reqwest::Proxy::all(up.as_str())?),
+                _ => b.no_proxy(),
+            })
         };
         let act = &shadow.config().activity;
         let activity = if act.enabled {
@@ -99,7 +104,8 @@ impl Proxy {
             routes: hosts::routes(&cfg.routes),
             shadow,
             ca: Arc::new(ca),
-            client: builder.build()?,
+            client: builder()?.build()?,
+            web_client: builder()?.http1_only().build()?,
             overrides: HashMap::new(),
             cfg,
         })
@@ -211,9 +217,19 @@ impl Proxy {
                     .and_then(|h| h.to_str().ok())
                     .unwrap_or("127.0.0.1:8877")
                     .to_string();
+                let all = req
+                    .uri()
+                    .query()
+                    .is_some_and(|q| q.split('&').any(|kv| kv == "scope=all"));
+                let pac = if all {
+                    hosts::pac_all(&addr)
+                } else {
+                    hosts::pac_file(&self.hosts, &addr)
+                };
                 Response::builder()
                     .header(header::CONTENT_TYPE, "application/x-ns-proxy-autoconfig")
-                    .body(full(hosts::pac_file(&self.hosts, &addr)))
+                    .header(header::CACHE_CONTROL, "no-cache")
+                    .body(full(pac))
                     .expect("valid response")
             }
             "/shadow/ca.pem" => Response::builder()

@@ -169,6 +169,27 @@ pub fn pac_file(matcher: &HostMatcher, proxy: &str) -> String {
     )
 }
 
+/// A PAC file that sends all traffic through Shadow, for the system proxy. Local and private
+/// addresses go direct. If Shadow is not answering, clients fall back to a direct connection,
+/// so stopping Shadow never cuts the machine off. Shadow decrypts only AI hosts; everything
+/// else is tunnelled byte for byte and not recorded.
+pub fn pac_all(proxy: &str) -> String {
+    format!(
+        r#"function FindProxyForURL(url, host) {{
+  if (isPlainHostName(host) ||
+      host == "localhost" || dnsDomainIs(host, ".localhost") || dnsDomainIs(host, ".local") ||
+      shExpMatch(host, "127.*") || shExpMatch(host, "10.*") || shExpMatch(host, "192.168.*") ||
+      shExpMatch(host, "169.254.*") || shExpMatch(host, "172.1[6-9].*") ||
+      shExpMatch(host, "172.2[0-9].*") || shExpMatch(host, "172.3[0-1].*") ||
+      host == "::1" || host == "[::1]") {{
+    return "DIRECT";
+  }}
+  return "PROXY {proxy}; DIRECT";
+}}
+"#
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -183,5 +204,15 @@ mod tests {
         assert!(!m.intercept("api.cohere.com"));
         assert!(!m.intercept("github.com"));
         assert!(!m.intercept("openai.azure.com.evil.com"));
+        assert!(!m.intercept("chatgpt.com"));
+        let m = m.with_chat_apps();
+        assert!(m.intercept("chatgpt.com") && m.intercept("claude.ai"));
+    }
+
+    #[test]
+    fn system_pac_falls_back_to_direct() {
+        let pac = pac_all("127.0.0.1:8877");
+        assert!(pac.contains("return \"PROXY 127.0.0.1:8877; DIRECT\";"));
+        assert!(pac.contains("shExpMatch(host, \"192.168.*\")"));
     }
 }

@@ -117,8 +117,31 @@
     mistral: ["Mistral", "#f7a52b", "M"], openrouter: ["OpenRouter", "#6467f2", "OR"], azure: ["Azure OpenAI", "#2f8fe0", "Az"],
     bedrock: ["AWS Bedrock", "#f29b25", "B"], groq: ["Groq", "#f55036", "Gq"], deepseek: ["DeepSeek", "#4d6bfe", "D"],
     xai: ["xAI", "#444", "x"], cohere: ["Cohere", "#39594d", "Co"], perplexity: ["Perplexity", "#20808d", "P"],
-    copilot: ["GitHub Copilot", "#6e40c9", "GH"], local: ["Local model", "#8a8aa3", "L"]
+    copilot: ["GitHub Copilot", "#6e40c9", "GH"], local: ["Local model", "#8a8aa3", "L"],
+    gemini_app: ["Gemini (app)", "#4f86f7", "G"], perplexity_app: ["Perplexity (app)", "#20808d", "P"],
+    deepseek_app: ["DeepSeek (app)", "#4d6bfe", "D"], grok: ["Grok", "#444", "Gk"],
+    copilot_app: ["Microsoft Copilot", "#2f8fe0", "Co"], lechat: ["Le Chat", "#f7a52b", "LC"],
+    meta_ai: ["Meta AI", "#0866ff", "M"], poe: ["Poe", "#5d5cde", "Po"],
+    replicate: ["Replicate", "#3d3d3d", "R"], huggingface: ["Hugging Face", "#f5a524", "HF"],
+    deepinfra: ["DeepInfra", "#5b6cff", "DI"], hyperbolic: ["Hyperbolic", "#7c6cff", "Hy"],
+    sambanova: ["SambaNova", "#ee7624", "SN"], novita: ["Novita AI", "#2bb673", "N"],
+    lambda: ["Lambda", "#6b4fbb", "λ"], baseten: ["Baseten", "#1f6f5c", "Bt"],
+    nvidia: ["NVIDIA NIM", "#76b900", "NV"], nebius: ["Nebius AI Studio", "#2f5bea", "Nb"],
+    siliconflow: ["SiliconFlow", "#7a5af8", "SF"], cloudflare: ["Cloudflare AI Gateway", "#f38020", "CF"],
+    ai21: ["AI21", "#e8467c", "21"], reka: ["Reka", "#222", "Rk"], moonshot: ["Moonshot AI", "#111", "Ms"],
+    qwen: ["Alibaba Qwen", "#615ced", "Q"], zhipu: ["Zhipu AI", "#3859ff", "Z"],
+    minimax: ["MiniMax", "#e2457b", "Mm"], meta: ["Meta Llama API", "#0866ff", "Ll"]
   };
+  // What kind of AI destination each provider is (mirrors provider_category in shadow-core).
+  var CATEGORY_LABELS = { chat_app: "AI chat app", inference: "Inference cloud", local: "Local model", model_api: "Model API" };
+  var CHAT_APPS = ["chatgpt", "claude", "gemini_app", "perplexity_app", "deepseek_app", "grok", "copilot_app", "lechat", "meta_ai", "poe"];
+  var INFERENCE = ["groq", "together", "fireworks", "cerebras", "replicate", "huggingface", "deepinfra", "hyperbolic",
+    "sambanova", "novita", "lambda", "baseten", "nvidia", "nebius", "siliconflow", "cloudflare", "bedrock", "vertex", "azure", "openrouter"];
+  function category(id) {
+    if (CHAT_APPS.indexOf(id) >= 0) return "chat_app";
+    if (INFERENCE.indexOf(id) >= 0) return "inference";
+    return id === "local" ? "local" : "model_api";
+  }
   var PALETTE = ["#7c6cff", "#1fae8a", "#f5a524", "#ef4f6b", "#4f9cf7", "#b57cf6", "#8a8aa3"];
   function providerName(key, label) { return (PROVIDERS[key] && PROVIDERS[key][0]) || label || key; }
   function providerColor(key, i) { return (PROVIDERS[key] && PROVIDERS[key][1]) || PALETTE[i % PALETTE.length]; }
@@ -513,7 +536,8 @@
       if (e.ts < since) return false;
       if (state.actionFilter && e.action !== state.actionFilter) return false;
       if (!q) return true;
-      var hay = [e.client, e.provider, providerName(e.provider, e.provider), e.host, e.intent, REASON_LABELS[e.block_reason] || ""]
+      var hay = [e.client, e.provider, providerName(e.provider, e.provider), e.host, e.intent, REASON_LABELS[e.block_reason] || "",
+        CATEGORY_LABELS[category(e.provider)]]
         .concat(Object.keys(e.kinds || {}).map(function (k) { return (KIND_LABELS[k] || k) + " " + (KIND_SHORT[k] || ""); }))
         .join(" ").toLowerCase();
       return hay.indexOf(q) >= 0;
@@ -642,6 +666,7 @@
       ])),
       infoCard("Destination", kv([
         ["AI", providerName(e.provider, e.provider) + (e.host ? " · " + e.host : "")],
+        ["Kind", CATEGORY_LABELS[category(e.provider)]],
         ["Model", d && d.model ? h("span", { class: "mono", text: d.model }) : null],
         ["Path", d && d.path ? h("span", { class: "mono small", text: e.method + " " + d.path }) : null],
         ["Endpoint", ENDPOINT_LABELS[e.endpoint] || e.endpoint],

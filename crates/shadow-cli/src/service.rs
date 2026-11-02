@@ -42,6 +42,143 @@ pub struct Ctx {
     pub bundle: PathBuf,
     /// The menu-bar / tray app (`shadow-tray`), when it is installed.
     pub tray: Option<PathBuf>,
+    /// Route this machine's traffic through Shadow with the system proxy settings.
+    pub system_proxy: bool,
+    /// macOS network services to set the proxy on (enabled ones).
+    pub net_services: Vec<String>,
+    /// Where the system proxy currently points at Shadow (macOS services, or `windows` /
+    /// `gnome`), so uninstalling reverts only Shadow's own settings.
+    pub proxied: Vec<String>,
+}
+
+/// The system proxy's PAC file: everything through Shadow, falling back to direct.
+pub fn pac_url(listen: &str) -> String {
+    format!("http://{listen}/proxy.pac?scope=all")
+}
+
+const WIN_INET: &str = r"HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings";
+
+fn output(argv: &[&str]) -> Option<String> {
+    let o = Command::new(argv[0]).args(&argv[1..]).output().ok()?;
+    o.status
+        .success()
+        .then(|| String::from_utf8_lossy(&o.stdout).into_owned())
+}
+
+/// Enabled macOS network services (`Wi-Fi`, `Ethernet`, ...).
+pub fn network_services() -> Vec<String> {
+    if !cfg!(target_os = "macos") {
+        return vec![];
+    }
+    output(&["networksetup", "-listallnetworkservices"])
+        .map(|o| {
+            o.lines()
+                .skip(1)
+                .filter(|l| !l.trim().is_empty() && !l.starts_with('*'))
+                .map(str::to_string)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// Where the system proxy points at a Shadow PAC file right now.
+pub fn proxied_by_shadow(services: &[String]) -> Vec<String> {
+    let ours = |o: &str| o.contains("/proxy.pac?scope=all");
+    if cfg!(target_os = "macos") {
+        services
+            .iter()
+            .filter(|svc| {
+                output(&["networksetup", "-getautoproxyurl", svc])
+                    .is_some_and(|o| ours(&o) && o.contains("Enabled: Yes"))
+            })
+            .cloned()
+            .collect()
+    } else if cfg!(windows) {
+        output(&["reg", "query", WIN_INET, "/v", "AutoConfigURL"])
+            .filter(|o| ours(o))
+            .map(|_| vec!["windows".to_string()])
+            .unwrap_or_default()
+    } else {
+        output(&[
+            "gsettings",
+            "get",
+            "org.gnome.system.proxy",
+            "autoconfig-url",
+        ])
+        .filter(|o| ours(o))
+        .map(|_| vec!["gnome".to_string()])
+        .unwrap_or_default()
+    }
+}
+
+/// Point the system proxy at Shadow.
+pub fn system_proxy_on(c: &Ctx) -> Vec<Action> {
+    let url = pac_url(&c.listen);
+    if cfg!(target_os = "macos") {
+        c.net_services
+            .iter()
+            .flat_map(|svc| {
+                [
+                    run(&["networksetup", "-setautoproxyurl", svc, &url]),
+                    run(&["networksetup", "-setautoproxystate", svc, "on"]),
+                ]
+            })
+            .collect()
+    } else if cfg!(windows) {
+        vec![run(&[
+            "reg",
+            "add",
+            WIN_INET,
+            "/v",
+            "AutoConfigURL",
+            "/t",
+            "REG_SZ",
+            "/d",
+            &url,
+            "/f",
+        ])]
+    } else {
+        vec![
+            run(&[
+                "gsettings",
+                "set",
+                "org.gnome.system.proxy",
+                "autoconfig-url",
+                &url,
+            ]),
+            run(&["gsettings", "set", "org.gnome.system.proxy", "mode", "auto"]),
+        ]
+    }
+}
+
+/// Turn off the system proxy where it points at Shadow; other settings are left alone.
+pub fn system_proxy_off(c: &Ctx) -> Vec<Action> {
+    c.proxied
+        .iter()
+        .flat_map(|p| match p.as_str() {
+            "windows" => vec![run_lenient(&[
+                "reg",
+                "delete",
+                WIN_INET,
+                "/v",
+                "AutoConfigURL",
+                "/f",
+            ])],
+            "gnome" => vec![run_lenient(&[
+                "gsettings",
+                "set",
+                "org.gnome.system.proxy",
+                "mode",
+                "none",
+            ])],
+            svc => vec![run_lenient(&[
+                "networksetup",
+                "-setautoproxystate",
+                svc,
+                "off",
+            ])],
+        })
+        .collect()
 }
 
 /// Find `shadow-tray` next to the `shadow` binary, else on PATH.
@@ -76,8 +213,17 @@ fn s(p: &Path) -> String {
     p.display().to_string()
 }
 
-/// Steps to install the background service and trust the CA on this OS.
+/// Steps to install the background service and trust the CA on this OS, then (when asked)
+/// point the system proxy at it.
 pub fn install_plan(c: &Ctx) -> Vec<Action> {
+    let mut v = service_plan(c);
+    if c.system_proxy && !v.is_empty() {
+        v.extend(system_proxy_on(c));
+    }
+    v
+}
+
+fn service_plan(c: &Ctx) -> Vec<Action> {
     let ca = s(&c.ca_pem);
     if cfg!(target_os = "macos") {
         let plist = home().join("Library/LaunchAgents/dev.shadow.proxy.plist");
@@ -194,8 +340,14 @@ pub fn install_plan(c: &Ctx) -> Vec<Action> {
     }
 }
 
-/// Steps to remove the service and CA trust.
+/// Steps to remove the system proxy (where it points at Shadow), the service and CA trust.
 pub fn uninstall_plan(c: &Ctx) -> Vec<Action> {
+    let mut v = system_proxy_off(c);
+    v.extend(remove_service_plan(c));
+    v
+}
+
+fn remove_service_plan(c: &Ctx) -> Vec<Action> {
     if cfg!(target_os = "macos") {
         let plist = home().join("Library/LaunchAgents/dev.shadow.proxy.plist");
         let uid = Command::new("id")
@@ -364,7 +516,50 @@ mod tests {
             ca_pem: PathBuf::from("/tmp/shadow-data/ca/ca.pem"),
             bundle: PathBuf::from("/tmp/shadow-data/ca/bundle.pem"),
             tray,
+            system_proxy: false,
+            net_services: vec!["Wi-Fi".into(), "USB 10/100/1000 LAN".into()],
+            proxied: vec![],
         }
+    }
+
+    fn commands(plan: &[Action]) -> Vec<String> {
+        plan.iter()
+            .filter_map(|a| match a {
+                Action::Run { argv, .. } => Some(argv.join(" ")),
+                _ => None,
+            })
+            .collect()
+    }
+
+    #[test]
+    fn system_proxy_is_opt_in_and_reverted_only_where_it_is_ours() {
+        let c = ctx(None);
+        let plain = commands(&install_plan(&c));
+        let sets_proxy = |l: &String| {
+            ["autoproxy", "AutoConfigURL", "org.gnome.system.proxy"]
+                .iter()
+                .any(|k| l.contains(k))
+        };
+        assert!(!plain.iter().any(sets_proxy), "{plain:?}");
+        let on = commands(&install_plan(&Ctx {
+            system_proxy: true,
+            ..ctx(None)
+        }));
+        let pac = "http://127.0.0.1:8877/proxy.pac?scope=all";
+        if cfg!(target_os = "macos") {
+            assert!(on.contains(&format!("networksetup -setautoproxyurl Wi-Fi {pac}")));
+            assert!(
+                on.contains(&"networksetup -setautoproxystate USB 10/100/1000 LAN on".to_string())
+            );
+            let off = commands(&uninstall_plan(&Ctx {
+                proxied: vec!["Wi-Fi".into()],
+                ..ctx(None)
+            }));
+            assert_eq!(off[0], "networksetup -setautoproxystate Wi-Fi off");
+            assert!(!off.iter().any(|l| l.contains("USB")));
+        }
+        assert!(on.iter().any(|l| l.contains(pac)));
+        assert!(!commands(&uninstall_plan(&c)).iter().any(sets_proxy));
     }
 
     fn written(plan: &[Action]) -> Vec<(String, String)> {
