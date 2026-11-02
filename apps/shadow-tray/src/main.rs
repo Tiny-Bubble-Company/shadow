@@ -155,12 +155,13 @@ struct Items {
 }
 
 impl Items {
+    // The status lines stay enabled, so macOS doesn't grey them out, and open the dashboard.
     fn new() -> Self {
         Self {
-            status: MenuItem::new("Checking Shadow…", false, None),
-            requests: MenuItem::new("Today: no requests yet", false, None),
-            values: MenuItem::new("No values protected yet", false, None),
-            blocked: MenuItem::new("Nothing blocked", false, None),
+            status: MenuItem::new("Checking Shadow…", true, None),
+            requests: MenuItem::new("Today: no requests yet", true, None),
+            values: MenuItem::new("No values protected yet", true, None),
+            blocked: MenuItem::new("Nothing blocked", true, None),
             dashboard: MenuItem::new("Open dashboard", true, None),
             browser: MenuItem::new("Open in browser", true, None),
             docs: MenuItem::new("Docs", true, None),
@@ -195,7 +196,7 @@ impl Items {
         };
         if s.online {
             self.status
-                .set_text(format!("● Shadow is protecting {machine}"));
+                .set_text(format!("🟢 Shadow is protecting {machine}"));
             self.requests.set_text(format!(
                 "Today: {} request{} monitored",
                 fmt_n(s.requests),
@@ -216,7 +217,7 @@ impl Items {
                 )
             });
         } else {
-            self.status.set_text("○ Shadow is not running");
+            self.status.set_text("🔴 Shadow is not running");
             self.requests.set_text("Start it with `shadow run`");
             self.values.set_text("or `shadow install --apply`");
             self.blocked.set_text("Your AI traffic is not protected");
@@ -373,6 +374,13 @@ fn main() {
         items.quit.id().clone(),
     ];
 
+    let status_ids: [MenuId; 4] = [
+        items.status.id().clone(),
+        items.requests.id().clone(),
+        items.values.id().clone(),
+        items.blocked.id().clone(),
+    ];
+
     event_loop.run(move |event, target, control_flow| {
         *control_flow = ControlFlow::Wait;
         let show = |popover: &mut Option<Popover>, anchor: Option<Rect>, online: bool| {
@@ -474,7 +482,7 @@ fn main() {
                 _ => {}
             },
             Event::UserEvent(UserEvent::Menu(e)) => {
-                if e.id == ids[0] {
+                if e.id == ids[0] || status_ids.contains(&e.id) {
                     show(&mut popover, anchor, status.online);
                 } else if e.id == ids[1] {
                     open_external(&browser_url);
