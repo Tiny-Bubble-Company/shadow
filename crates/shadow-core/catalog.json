@@ -1,0 +1,716 @@
+[
+ {
+  "id": "openai",
+  "name": "OpenAI",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.openai.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "chatgpt",
+  "name": "ChatGPT",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "chatgpt.com",
+   "*.chatgpt.com",
+   "chat.openai.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "anthropic",
+  "name": "Anthropic",
+  "category": "model_api",
+  "api": "anthropic",
+  "hosts": [
+   "api.anthropic.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "claude",
+  "name": "Claude.ai",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "claude.ai",
+   "*.claude.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "gemini",
+  "name": "Google Gemini",
+  "category": "model_api",
+  "api": "gemini",
+  "hosts": [
+   "generativelanguage.googleapis.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "vertex",
+  "name": "Google Vertex AI",
+  "category": "inference",
+  "api": "gemini",
+  "hosts": [
+   "aiplatform.googleapis.com",
+   "*-aiplatform.googleapis.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "openrouter",
+  "name": "OpenRouter",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "openrouter.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "mistral",
+  "name": "Mistral",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.mistral.ai",
+   "codestral.mistral.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "groq",
+  "name": "Groq",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.groq.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "together",
+  "name": "Together AI",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.together.xyz",
+   "api.together.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "deepseek",
+  "name": "DeepSeek",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.deepseek.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "xai",
+  "name": "xAI",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.x.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "azure",
+  "name": "Azure OpenAI",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "*.openai.azure.com",
+   "*.services.ai.azure.com",
+   "*.cognitiveservices.azure.com",
+   "*.models.ai.azure.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "bedrock",
+  "name": "AWS Bedrock",
+  "category": "inference",
+  "api": "custom",
+  "hosts": [
+   "bedrock-runtime.*.amazonaws.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "cohere",
+  "name": "Cohere",
+  "category": "model_api",
+  "api": "cohere",
+  "hosts": [
+   "api.cohere.com",
+   "api.cohere.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "perplexity",
+  "name": "Perplexity",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.perplexity.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "fireworks",
+  "name": "Fireworks AI",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.fireworks.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "cerebras",
+  "name": "Cerebras",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.cerebras.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "voyage",
+  "name": "Voyage AI",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.voyageai.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "copilot",
+  "name": "GitHub Copilot",
+  "category": "coding_agent",
+  "api": "openai",
+  "hosts": [
+   "api.githubcopilot.com",
+   "*.githubcopilot.com",
+   "copilot-proxy.githubusercontent.com"
+  ],
+  "mask": true,
+  "docs": "https://docs.github.com/en/copilot/reference/copilot-allowlist-reference"
+ },
+ {
+  "id": "gemini_app",
+  "name": "Gemini (app)",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "gemini.google.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "perplexity_app",
+  "name": "Perplexity (app)",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "perplexity.ai",
+   "www.perplexity.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "deepseek_app",
+  "name": "DeepSeek (app)",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "chat.deepseek.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "grok",
+  "name": "Grok",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "grok.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "copilot_app",
+  "name": "Microsoft Copilot",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "copilot.microsoft.com"
+  ],
+  "mask": false
+ },
+ {
+  "id": "lechat",
+  "name": "Le Chat",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "chat.mistral.ai"
+  ],
+  "mask": false
+ },
+ {
+  "id": "meta_ai",
+  "name": "Meta AI",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "www.meta.ai"
+  ],
+  "mask": false
+ },
+ {
+  "id": "poe",
+  "name": "Poe",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "poe.com"
+  ],
+  "mask": false
+ },
+ {
+  "id": "replicate",
+  "name": "Replicate",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.replicate.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "huggingface",
+  "name": "Hugging Face",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api-inference.huggingface.co",
+   "router.huggingface.co",
+   "*.endpoints.huggingface.cloud"
+  ],
+  "mask": true
+ },
+ {
+  "id": "deepinfra",
+  "name": "DeepInfra",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.deepinfra.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "hyperbolic",
+  "name": "Hyperbolic",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.hyperbolic.xyz"
+  ],
+  "mask": true
+ },
+ {
+  "id": "sambanova",
+  "name": "SambaNova",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.sambanova.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "novita",
+  "name": "Novita AI",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.novita.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "lambda",
+  "name": "Lambda",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.lambda.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "baseten",
+  "name": "Baseten",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "inference.baseten.co",
+   "*.api.baseten.co"
+  ],
+  "mask": true
+ },
+ {
+  "id": "nvidia",
+  "name": "NVIDIA NIM",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "integrate.api.nvidia.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "nebius",
+  "name": "Nebius AI Studio",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.studio.nebius.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "siliconflow",
+  "name": "SiliconFlow",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.siliconflow.cn"
+  ],
+  "mask": true
+ },
+ {
+  "id": "cloudflare",
+  "name": "Cloudflare AI Gateway",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "gateway.ai.cloudflare.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "ai21",
+  "name": "AI21",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.ai21.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "reka",
+  "name": "Reka",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.reka.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "moonshot",
+  "name": "Moonshot AI",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.moonshot.ai",
+   "api.moonshot.cn"
+  ],
+  "mask": true
+ },
+ {
+  "id": "qwen",
+  "name": "Alibaba Qwen",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "dashscope.aliyuncs.com",
+   "dashscope-intl.aliyuncs.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "zhipu",
+  "name": "Zhipu AI",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "open.bigmodel.cn",
+   "api.z.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "minimax",
+  "name": "MiniMax",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.minimax.io"
+  ],
+  "mask": true
+ },
+ {
+  "id": "meta",
+  "name": "Meta Llama API",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.llama.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "gemini_code",
+  "name": "Gemini Code Assist",
+  "category": "coding_agent",
+  "api": "gemini",
+  "hosts": [
+   "cloudcode-pa.googleapis.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "github_models",
+  "name": "GitHub Models",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "models.github.ai",
+   "models.inference.ai.azure.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "cline",
+  "name": "Cline",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.cline.bot"
+  ],
+  "mask": true
+ },
+ {
+  "id": "kilocode",
+  "name": "Kilo Code",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.kilocode.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "requesty",
+  "name": "Requesty",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "router.requesty.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "portkey",
+  "name": "Portkey",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.portkey.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "vercel",
+  "name": "Vercel AI Gateway",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "ai-gateway.vercel.sh"
+  ],
+  "mask": true
+ },
+ {
+  "id": "helicone",
+  "name": "Helicone",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "oai.helicone.ai",
+   "anthropic.helicone.ai",
+   "gateway.helicone.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "doubao",
+  "name": "ByteDance Doubao",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "ark.cn-beijing.volces.com",
+   "ark.ap-southeast.bytepluses.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "qianfan",
+  "name": "Baidu Qianfan",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "qianfan.baidubce.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "hunyuan",
+  "name": "Tencent Hunyuan",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.hunyuan.cloud.tencent.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "stepfun",
+  "name": "StepFun",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.stepfun.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "yi",
+  "name": "01.AI Yi",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.lingyiwanwu.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "baichuan",
+  "name": "Baichuan",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.baichuan-ai.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "spark",
+  "name": "iFlytek Spark",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "spark-api-open.xf-yun.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "upstage",
+  "name": "Upstage",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.upstage.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "writer",
+  "name": "Writer",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.writer.com"
+  ],
+  "mask": true
+ },
+ {
+  "id": "jina",
+  "name": "Jina AI",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.jina.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "featherless",
+  "name": "Featherless",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.featherless.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "chutes",
+  "name": "Chutes",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "llm.chutes.ai"
+  ],
+  "mask": true
+ },
+ {
+  "id": "inference_net",
+  "name": "Inference.net",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.inference.net"
+  ],
+  "mask": true
+ },
+ {
+  "id": "watsonx",
+  "name": "IBM watsonx",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "*.ml.cloud.ibm.com"
+  ],
+  "mask": true
+ }
+]

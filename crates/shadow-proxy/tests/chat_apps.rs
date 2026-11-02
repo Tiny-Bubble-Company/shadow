@@ -84,6 +84,7 @@ async fn setup() -> Env {
         .route("/backend-api/f/conversation", post(conversation))
         .route("/backend-api/conversation/c1", get(history))
         .route("/backend-api/settings", post(other))
+        .route("/backend-api/codex/responses", post(other))
         .route(
             "/",
             get(|| async { Html("<p>Hello maria.lopez@example.com</p>") }),
@@ -243,4 +244,98 @@ async fn chatgpt_prompt_is_masked_and_answer_and_history_restored() {
     assert_eq!(evs[0]["action"], "masked");
     assert_eq!(evs[0]["client"], "Google Chrome");
     assert!(!env.fake_email.is_empty());
+}
+
+#[tokio::test]
+async fn codex_with_chatgpt_login_is_masked_like_an_api() {
+    let env = setup().await;
+    let c = browser(&env);
+    let r = c
+        .post("https://chatgpt.com/backend-api/codex/responses")
+        .header("user-agent", "codex_cli_rs/0.50.0")
+        .json(&json!({"model": "gpt-5-codex", "input": [{"role": "user", "content": [
+            {"type": "input_text", "text": "Connect to db-prod-eu1.internal.acme.io as maria.lopez@example.com"}]}]}))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(r.status(), 200);
+    let sent = env.seen.lock().unwrap().other.clone().unwrap();
+    assert!(!sent.contains("maria.lopez@example.com"), "{sent}");
+    assert!(!sent.contains("db-prod-eu1.internal.acme.io"), "{sent}");
+    assert!(sent.contains("gpt-5-codex"));
+}
+
+#[tokio::test]
+async fn ai_services_shadow_cannot_mask_are_recorded_as_not_protected() {
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    let env = setup().await;
+    // An observed host: recognised from the catalog but not decrypted.
+    let mut s = tokio::net::TcpStream::connect(env.url.trim_start_matches("http://"))
+        .await
+        .unwrap();
+    s.write_all(b"CONNECT copilot.microsoft.com:443 HTTP/1.1\r\nHost: copilot.microsoft.com:443\r\nUser-Agent: Mozilla/5.0 Chrome/131.0 Safari/537.36\r\n\r\n")
+        .await
+        .unwrap();
+    let mut buf = [0u8; 64];
+    let n = s.read(&mut buf).await.unwrap();
+    assert!(String::from_utf8_lossy(&buf[..n]).starts_with("HTTP/1.1 200"));
+    drop(s);
+    // And an ordinary site, which must leave no trace.
+    let mut s = tokio::net::TcpStream::connect(env.url.trim_start_matches("http://"))
+        .await
+        .unwrap();
+    s.write_all(b"CONNECT example.com:443 HTTP/1.1\r\nHost: example.com:443\r\n\r\n")
+        .await
+        .unwrap();
+    let _ = s.read(&mut buf).await.unwrap();
+    drop(s);
+    tokio::time::sleep(Duration::from_millis(100)).await;
+
+    let api = reqwest::Client::builder().no_proxy().build().unwrap();
+    let v: Value = api
+        .get(format!("{}/shadow/activity?limit=10", env.url))
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    let evs = v["events"].as_array().unwrap();
+    assert_eq!(evs.len(), 1, "{evs:?}");
+    assert_eq!(evs[0]["action"], "passed");
+    assert_eq!(evs[0]["provider"], "copilot_app");
+    assert_eq!(evs[0]["client"], "Google Chrome");
+    let sum: Value = api
+        .get(format!("{}/shadow/activity/summary", env.url))
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert_eq!(sum["totals"]["unprotected"], 1);
+    assert_eq!(sum["totals"]["requests"], 0);
+    assert_eq!(sum["unprotected"][0]["label"], "Microsoft Copilot");
+    let incidents: Value = api
+        .get(format!("{}/shadow/activity?action=incidents", env.url))
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert!(incidents["events"].as_array().unwrap().is_empty());
+    let cat: Value = api
+        .get(format!("{}/shadow/activity/providers", env.url))
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert!(cat["providers"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|p| p["id"] == "openai" && p["mask"] == true));
 }

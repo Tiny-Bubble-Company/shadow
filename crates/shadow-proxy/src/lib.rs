@@ -42,7 +42,7 @@ use tokio_rustls::TlsAcceptor;
 pub use activity::{is_loopback, UI_CSP};
 pub use ca::CertAuthority;
 pub use forward::{error_response, full};
-pub use hosts::{HostMatcher, AI_HOSTS};
+pub use hosts::HostMatcher;
 
 /// Response body type used by the proxy.
 pub type Body = UnsyncBoxBody<Bytes, std::io::Error>;
@@ -243,6 +243,25 @@ impl Proxy {
         })
     }
 
+    /// Record a connection to a known AI service that Shadow cannot mask. Counts only, as
+    /// for every event: host, provider and app, never content.
+    fn record_passed(&self, host: &str, user_agent: Option<&str>) {
+        let Some(log) = &self.activity else {
+            return;
+        };
+        let host = host.to_ascii_lowercase();
+        log.record(shadow_core::activity::Event {
+            provider: shadow_core::activity::provider_for_host(&host).to_string(),
+            client: shadow_core::activity::client_from_user_agent(user_agent),
+            host,
+            mode: "proxy".into(),
+            method: "CONNECT".into(),
+            action: shadow_core::activity::Action::Passed,
+            status: 200,
+            ..Default::default()
+        });
+    }
+
     /// How a request to `host` is handled: chat apps mask only their prompt requests and
     /// restore everything else; other intercepted hosts are masked as API calls.
     fn mode_for(&self, host: &str, method: &str, path: &str) -> forward::Mode {
@@ -250,6 +269,7 @@ impl Proxy {
             return forward::Mode::Pass;
         }
         match apps::find(host).filter(|_| self.shadow.config().proxy.chat_apps) {
+            Some(app) if app.is_api(path) => forward::Mode::Api,
             Some(app) if app.is_prompt(method, path) => forward::Mode::App(app),
             Some(_) => forward::Mode::Restore,
             None => forward::Mode::Api,
@@ -301,6 +321,13 @@ impl Proxy {
             .trim_matches(['[', ']'])
             .to_string();
         let intercept = self.hosts.intercept(&host);
+        if !intercept && self.hosts.observed(&host) {
+            let ua = req
+                .headers()
+                .get(header::USER_AGENT)
+                .and_then(|v| v.to_str().ok());
+            self.record_passed(&host, ua);
+        }
         tokio::spawn(async move {
             let upgraded = match hyper::upgrade::on(req).await {
                 Ok(u) => u,

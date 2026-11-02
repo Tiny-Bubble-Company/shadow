@@ -192,22 +192,26 @@ fn deltas(v: &Value) -> Vec<(String, Vec<Seg>)> {
         let ci = v.get("content_index").and_then(Value::as_u64).unwrap_or(0);
         out.push((format!("rs:{item}:{ci}:{ty}"), vec![k("delta")]));
     }
-    if let Some(cands) = v.get("candidates").and_then(Value::as_array) {
+    // Gemini API, or wrapped in `response` (Gemini Code Assist, used by Gemini CLI).
+    let (gv, base) = match v.get("response").filter(|r| r.get("candidates").is_some()) {
+        Some(r) => (r, vec![k("response")]),
+        None => (v, vec![]),
+    };
+    if let Some(cands) = gv.get("candidates").and_then(Value::as_array) {
         for (i, c) in cands.iter().enumerate() {
             if let Some(parts) = c.pointer("/content/parts").and_then(Value::as_array) {
                 for (j, p) in parts.iter().enumerate() {
                     if p.get("text").is_some_and(Value::is_string) {
-                        out.push((
-                            format!("gm:{i}:{j}"),
-                            vec![
-                                k("candidates"),
-                                Seg::Idx(i),
-                                k("content"),
-                                k("parts"),
-                                Seg::Idx(j),
-                                k("text"),
-                            ],
-                        ));
+                        let mut path = base.clone();
+                        path.extend([
+                            k("candidates"),
+                            Seg::Idx(i),
+                            k("content"),
+                            k("parts"),
+                            Seg::Idx(j),
+                            k("text"),
+                        ]);
+                        out.push((format!("gm:{i}:{j}"), path));
                     }
                 }
             }
@@ -278,7 +282,11 @@ fn terminal(v: &Value) -> Vec<String> {
         }
         _ => {}
     }
-    if let Some(cands) = v.get("candidates").and_then(Value::as_array) {
+    let gv = v
+        .get("response")
+        .filter(|r| r.get("candidates").is_some())
+        .unwrap_or(v);
+    if let Some(cands) = gv.get("candidates").and_then(Value::as_array) {
         for (i, c) in cands.iter().enumerate() {
             if c.get("finishReason").is_some_and(|f| !f.is_null()) {
                 out.push(format!("gm:{i}:"));
@@ -687,6 +695,43 @@ mod tests {
                 assert!(out.contains("finished_successfully"));
             }
         }
+    }
+
+    #[test]
+    fn gemini_code_assist_stream_restores_a_split_fake() {
+        let (_d, s) = shadow();
+        let real = "Ask John Smith at john.smith@acme-intern.io";
+        let fake = s.mask(real).text;
+        let cut = fake.len() / 2;
+        let cut = (cut..fake.len())
+            .find(|c| fake.is_char_boundary(*c))
+            .unwrap();
+        let ev = |t: &str, done: bool| {
+            let mut c = serde_json::json!({"content": {"role": "model", "parts": [{"text": t}]}});
+            if done {
+                c["finishReason"] = "STOP".into();
+            }
+            format!(
+                "data: {}\n\n",
+                serde_json::json!({"response": {"candidates": [c]}, "traceId": "t1"})
+            )
+        };
+        let stream = format!("{}{}", ev(&fake[..cut], false), ev(&fake[cut..], true));
+        let mut u = EventStreamUnmasker::new(s.clone(), Framing::Sse);
+        let mut out = u.push(stream.as_bytes());
+        out.extend(u.finish());
+        let text: String = String::from_utf8(out)
+            .unwrap()
+            .split("\n\n")
+            .filter_map(|e| e.strip_prefix("data: "))
+            .filter_map(|d| serde_json::from_str::<Value>(d).ok())
+            .filter_map(|v| {
+                v.pointer("/response/candidates/0/content/parts/0/text")
+                    .and_then(Value::as_str)
+                    .map(str::to_string)
+            })
+            .collect();
+        assert_eq!(text, real);
     }
 
     #[test]

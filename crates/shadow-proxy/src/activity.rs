@@ -179,6 +179,26 @@ fn json_response(status: StatusCode, body: String) -> Response<Body> {
         .expect("valid response")
 }
 
+/// The provider catalog for the dashboard: ids, names and categories.
+fn providers_response() -> Response<Body> {
+    let list: Vec<serde_json::Value> = shadow_core::catalog::providers()
+        .iter()
+        .map(|p| {
+            serde_json::json!({
+                "id": p.id,
+                "name": p.name,
+                "category": p.category,
+                "category_label": shadow_core::catalog::category_label(&p.category),
+                "mask": p.mask,
+            })
+        })
+        .collect();
+    json_response(
+        StatusCode::OK,
+        serde_json::json!({ "providers": list }).to_string(),
+    )
+}
+
 fn asset(ct: &str, body: &'static str) -> Response<Body> {
     Response::builder()
         .header(header::CONTENT_TYPE, ct)
@@ -231,6 +251,7 @@ impl Proxy {
             "/shadow/activity" | "/shadow/activity/" => self.activity_events(q),
             "/shadow/activity/summary" => self.activity_summary(q),
             "/shadow/activity/stream" => self.activity_stream(q),
+            "/shadow/activity/providers" => providers_response(),
             _ => match path
                 .strip_prefix("/shadow/activity/events/")
                 .and_then(|id| id.trim_end_matches('/').parse().ok())

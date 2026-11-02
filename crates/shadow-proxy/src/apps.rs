@@ -30,6 +30,9 @@ pub(crate) struct ChatApp {
     pub hosts: &'static [&'static str],
     /// Paths (glob) of `POST` requests that carry a prompt.
     pub prompts: &'static [&'static str],
+    /// Paths (glob) that are a regular model API on the same host, masked like any API
+    /// (Codex CLI signed in with ChatGPT calls a Responses API under `chatgpt.com`).
+    pub apis: &'static [&'static str],
     pub format: Format,
 }
 
@@ -43,36 +46,42 @@ pub(crate) const CHAT_APPS: &[ChatApp] = &[
             "/backend-anon/conversation",
             "/backend-anon/f/conversation*",
         ],
+        apis: &["/backend-api/codex/*"],
         format: Format::Json(&["parts", "partial_query"]),
     },
     ChatApp {
         id: "claude",
         hosts: &["claude.ai"],
         prompts: &["/api/organizations/*/chat_conversations/*completion"],
+        apis: &[],
         format: Format::Json(&["prompt", "extracted_content"]),
     },
     ChatApp {
         id: "gemini_app",
         hosts: &["gemini.google.com"],
         prompts: &["/_/BardChatUi/data/*StreamGenerate*"],
+        apis: &[],
         format: Format::GeminiForm,
     },
     ChatApp {
         id: "perplexity_app",
         hosts: &["perplexity.ai", "www.perplexity.ai"],
         prompts: &["/rest/sse/perplexity_ask*"],
+        apis: &[],
         format: Format::Json(&["query_str"]),
     },
     ChatApp {
         id: "deepseek_app",
         hosts: &["chat.deepseek.com"],
         prompts: &["/api/v0/chat/completion"],
+        apis: &[],
         format: Format::Json(&["prompt"]),
     },
     ChatApp {
         id: "grok",
         hosts: &["grok.com"],
         prompts: &["/rest/app-chat/conversations/*"],
+        apis: &[],
         format: Format::Json(&["message"]),
     },
 ];
@@ -94,6 +103,11 @@ impl ChatApp {
     /// Does this request send a prompt?
     pub fn is_prompt(&self, method: &str, path: &str) -> bool {
         method.eq_ignore_ascii_case("POST") && self.prompts.iter().any(|p| glob_match(p, path))
+    }
+
+    /// Is this request a regular model API call on the app's host?
+    pub fn is_api(&self, path: &str) -> bool {
+        self.apis.iter().any(|p| glob_match(p, path))
     }
 }
 
@@ -276,6 +290,8 @@ mod tests {
         assert!(a.is_prompt("POST", "/backend-api/conversation"));
         assert!(!a.is_prompt("GET", "/backend-api/conversation"));
         assert!(!a.is_prompt("POST", "/backend-api/me"));
+        assert!(a.is_api("/backend-api/codex/responses"));
+        assert!(!a.is_api("/backend-api/conversation"));
         let c = find("claude.ai").unwrap();
         assert!(c.is_prompt(
             "POST",

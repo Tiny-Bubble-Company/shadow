@@ -313,7 +313,7 @@ pub fn demo_log() -> ActivityLog {
                         .into(),
                     );
                 }
-                Action::Clean => {}
+                Action::Clean | Action::Passed => {}
             }
             log.record(ev);
         }
@@ -426,6 +426,22 @@ pub fn run(cfg: &ShadowConfig, window: &str, json: bool, demo: bool) -> anyhow::
         "reach",
         &format!("{} destination(s) · {} app(s)", t.providers, t.clients),
     );
+    if t.unprotected > 0 {
+        let names: Vec<String> = s
+            .unprotected
+            .iter()
+            .take(4)
+            .map(|b| format!("{} ({})", b.label, fmt_n(b.requests)))
+            .collect();
+        ui::kv(
+            "not protected",
+            &ui::red(&format!(
+                "{} connection(s) to AI services Shadow can't mask: {}",
+                fmt_n(t.unprotected),
+                names.join(", ")
+            )),
+        );
+    }
     let section = |title: &str, rows: Vec<Vec<String>>, headers: &[&str]| {
         if rows.is_empty() {
             return;

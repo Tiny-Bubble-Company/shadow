@@ -2,57 +2,6 @@
 
 use std::collections::BTreeMap;
 
-/// Built-in AI API hosts that are intercepted (glob `*` allowed).
-pub const AI_HOSTS: &[&str] = &[
-    "api.openai.com",
-    "api.anthropic.com",
-    "openrouter.ai",
-    "generativelanguage.googleapis.com",
-    "*-aiplatform.googleapis.com",
-    "aiplatform.googleapis.com",
-    "api.mistral.ai",
-    "api.groq.com",
-    "api.together.xyz",
-    "api.together.ai",
-    "api.deepseek.com",
-    "api.x.ai",
-    "*.openai.azure.com",
-    "*.services.ai.azure.com",
-    "*.cognitiveservices.azure.com",
-    "bedrock-runtime.*.amazonaws.com",
-    "api.cohere.com",
-    "api.cohere.ai",
-    "api.perplexity.ai",
-    "api.fireworks.ai",
-    "api.cerebras.ai",
-    "api.voyageai.com",
-    // Inference clouds and other model APIs (mostly OpenAI-compatible).
-    "api.replicate.com",
-    "api-inference.huggingface.co",
-    "router.huggingface.co",
-    "*.endpoints.huggingface.cloud",
-    "api.deepinfra.com",
-    "api.hyperbolic.xyz",
-    "api.sambanova.ai",
-    "api.novita.ai",
-    "api.lambda.ai",
-    "inference.baseten.co",
-    "*.api.baseten.co",
-    "integrate.api.nvidia.com",
-    "api.studio.nebius.com",
-    "api.siliconflow.cn",
-    "gateway.ai.cloudflare.com",
-    "api.ai21.com",
-    "api.reka.ai",
-    "api.moonshot.ai",
-    "api.moonshot.cn",
-    "dashscope.aliyuncs.com",
-    "dashscope-intl.aliyuncs.com",
-    "open.bigmodel.cn",
-    "api.minimax.io",
-    "api.llama.com",
-];
-
 /// Built-in gateway routes: `/gw/<name>/<path>` -> `<base>/<path>`.
 pub const ROUTES: &[(&str, &str)] = &[
     ("openai", "https://api.openai.com"),
@@ -80,48 +29,37 @@ pub const ROUTES: &[(&str, &str)] = &[
     ("moonshot", "https://api.moonshot.ai"),
 ];
 
-/// Glob match where `*` matches any run of characters (case-insensitive).
-pub fn glob_match(pattern: &str, host: &str) -> bool {
-    let (p, h) = (pattern.to_ascii_lowercase(), host.to_ascii_lowercase());
-    let parts: Vec<&str> = p.split('*').collect();
-    if parts.len() == 1 {
-        return p == h;
-    }
-    let mut rest = h.as_str();
-    for (i, part) in parts.iter().enumerate() {
-        if i == 0 {
-            match rest.strip_prefix(part) {
-                Some(r) => rest = r,
-                None => return false,
-            }
-        } else if i == parts.len() - 1 {
-            return rest.ends_with(part);
-        } else {
-            match rest.find(part) {
-                Some(idx) => rest = &rest[idx + part.len()..],
-                None => return false,
-            }
-        }
-    }
-    true
-}
+pub use shadow_core::catalog::glob_match;
 
-/// Decides whether a host is intercepted.
+/// Decides whether a host is intercepted (decrypted and masked) or only observed.
 #[derive(Clone, Debug)]
 pub struct HostMatcher {
     include: Vec<String>,
     bypass: Vec<String>,
+    observe: Vec<String>,
 }
 
 impl HostMatcher {
-    /// Built-ins plus `extra`, minus `bypass`.
+    /// The catalog's masked hosts plus `extra`, minus `bypass`.
     pub fn new(extra: &[String], bypass: &[String]) -> Self {
-        let mut include: Vec<String> = AI_HOSTS.iter().map(|s| s.to_string()).collect();
+        let mut include: Vec<String> = shadow_core::catalog::masked_hosts()
+            .map(str::to_string)
+            .collect();
         include.extend(extra.iter().cloned());
         Self {
             include,
             bypass: bypass.to_vec(),
+            observe: shadow_core::catalog::observed_hosts()
+                .map(str::to_string)
+                .collect(),
         }
+    }
+
+    /// A known AI service that is not intercepted: its traffic is tunnelled untouched and
+    /// recorded as seen but not protected.
+    pub fn observed(&self, host: &str) -> bool {
+        let host = host.trim_end_matches('.');
+        !self.intercept(host) && self.observe.iter().any(|p| glob_match(p, host))
     }
 
     /// Also intercept the supported AI chat apps (ChatGPT, Claude.ai, Gemini, ...).

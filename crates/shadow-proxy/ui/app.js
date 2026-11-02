@@ -132,18 +132,24 @@
     qwen: ["Alibaba Qwen", "#615ced", "Q"], zhipu: ["Zhipu AI", "#3859ff", "Z"],
     minimax: ["MiniMax", "#e2457b", "Mm"], meta: ["Meta Llama API", "#0866ff", "Ll"]
   };
-  // What kind of AI destination each provider is (mirrors provider_category in shadow-core).
-  var CATEGORY_LABELS = { chat_app: "AI chat app", inference: "Inference cloud", local: "Local model", model_api: "Model API" };
-  var CHAT_APPS = ["chatgpt", "claude", "gemini_app", "perplexity_app", "deepseek_app", "grok", "copilot_app", "lechat", "meta_ai", "poe"];
-  var INFERENCE = ["groq", "together", "fireworks", "cerebras", "replicate", "huggingface", "deepinfra", "hyperbolic",
-    "sambanova", "novita", "lambda", "baseten", "nvidia", "nebius", "siliconflow", "cloudflare", "bedrock", "vertex", "azure", "openrouter"];
+  // Names and categories of every AI service, from Shadow's catalog (/shadow/activity/providers).
+  var CATEGORY_LABELS = { chat_app: "AI chat app", inference: "Inference cloud", router: "Model router",
+    coding_agent: "Coding agent", local: "Local model", model_api: "Model API" };
+  var CATALOG = {};
+  function loadCatalog() {
+    if (DEMO) return;
+    fetchJSON("/shadow/activity/providers").then(function (r) {
+      (r.providers || []).forEach(function (p) { CATALOG[p.id] = p; });
+    }).catch(function () { /* labels fall back to ids */ });
+  }
   function category(id) {
-    if (CHAT_APPS.indexOf(id) >= 0) return "chat_app";
-    if (INFERENCE.indexOf(id) >= 0) return "inference";
-    return id === "local" ? "local" : "model_api";
+    if (id === "local") return "local";
+    return (CATALOG[id] && CATALOG[id].category) || "model_api";
   }
   var PALETTE = ["#7c6cff", "#1fae8a", "#f5a524", "#ef4f6b", "#4f9cf7", "#b57cf6", "#8a8aa3"];
-  function providerName(key, label) { return (PROVIDERS[key] && PROVIDERS[key][0]) || label || key; }
+  function providerName(key, label) {
+    return (PROVIDERS[key] && PROVIDERS[key][0]) || (CATALOG[key] && CATALOG[key].name) || label || key;
+  }
   function providerColor(key, i) { return (PROVIDERS[key] && PROVIDERS[key][1]) || PALETTE[i % PALETTE.length]; }
   function monogram(key, label) {
     var p = PROVIDERS[key];
@@ -302,6 +308,7 @@
     renderProviders(sum);
     renderClients(sum);
     renderIncidents(incidents);
+    renderUnprotected(sum);
   }
 
   function renderStat(id, value, foot, series) {
@@ -398,6 +405,16 @@
     tip.style.top = Math.max(8, ev.clientY - tip.offsetHeight - 12) + "px";
   }
   function hideTip() { $("tip").hidden = true; }
+
+  function renderUnprotected(sum) {
+    var rows = sum.unprotected || [];
+    $("unprotected-card").hidden = !rows.length;
+    if (!rows.length) return;
+    barRows($("unprotected"), rows.slice(0, 8), function (r) { return r.requests; },
+      function (r) { return providerName(r.key, r.label); },
+      function (r) { return (r.requests === 1 ? "connection" : "connections") + " · " + CATEGORY_LABELS[category(r.key)]; },
+      null, true);
+  }
 
   function barRows(el, rows, valueOf, labelOf, sub, icon, danger) {
     clear(el);
@@ -1012,6 +1029,7 @@
     if (window.ResizeObserver) new ResizeObserver(redraw).observe($("timeline"));
     window.addEventListener("resize", redraw);
     setWindowButtons(state.window);
+    loadCatalog();
     route();
     schedule();
   }

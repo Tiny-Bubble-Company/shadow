@@ -16,6 +16,7 @@
 //! ```
 
 pub mod activity;
+pub mod catalog;
 pub mod config;
 pub mod detect;
 mod fake;

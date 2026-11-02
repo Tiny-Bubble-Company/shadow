@@ -37,6 +37,9 @@ pub enum Action {
     Masked,
     /// Refused by policy; nothing was sent upstream.
     Blocked,
+    /// A known AI service Shadow cannot mask (for example a binary protocol): the
+    /// connection was passed through untouched and recorded as seen, not protected.
+    Passed,
 }
 
 impl Action {
@@ -45,6 +48,7 @@ impl Action {
             Action::Clean => "clean",
             Action::Masked => "masked",
             Action::Blocked => "blocked",
+            Action::Passed => "passed",
         }
     }
 }
@@ -183,137 +187,38 @@ impl Event {
 // ----------------------------------------------------------------------------------------
 // Providers, clients, endpoints
 
-/// `(host glob, provider id, label)`; first match wins.
-const PROVIDERS: &[(&str, &str, &str)] = &[
-    ("api.openai.com", "openai", "OpenAI"),
-    ("chatgpt.com", "chatgpt", "ChatGPT"),
-    ("*.chatgpt.com", "chatgpt", "ChatGPT"),
-    ("chat.openai.com", "chatgpt", "ChatGPT"),
-    ("api.anthropic.com", "anthropic", "Anthropic"),
-    ("claude.ai", "claude", "Claude.ai"),
-    ("*.claude.ai", "claude", "Claude.ai"),
-    (
-        "generativelanguage.googleapis.com",
-        "gemini",
-        "Google Gemini",
-    ),
-    ("*aiplatform.googleapis.com", "vertex", "Google Vertex AI"),
-    ("openrouter.ai", "openrouter", "OpenRouter"),
-    ("api.mistral.ai", "mistral", "Mistral"),
-    ("api.groq.com", "groq", "Groq"),
-    ("api.together.xyz", "together", "Together AI"),
-    ("api.together.ai", "together", "Together AI"),
-    ("api.deepseek.com", "deepseek", "DeepSeek"),
-    ("api.x.ai", "xai", "xAI"),
-    ("*.openai.azure.com", "azure", "Azure OpenAI"),
-    ("*.services.ai.azure.com", "azure", "Azure OpenAI"),
-    ("*.cognitiveservices.azure.com", "azure", "Azure OpenAI"),
-    ("bedrock-runtime.*.amazonaws.com", "bedrock", "AWS Bedrock"),
-    ("api.cohere.com", "cohere", "Cohere"),
-    ("api.cohere.ai", "cohere", "Cohere"),
-    ("api.perplexity.ai", "perplexity", "Perplexity"),
-    ("api.fireworks.ai", "fireworks", "Fireworks AI"),
-    ("api.cerebras.ai", "cerebras", "Cerebras"),
-    ("api.voyageai.com", "voyage", "Voyage AI"),
-    ("api.githubcopilot.com", "copilot", "GitHub Copilot"),
-    ("*.githubcopilot.com", "copilot", "GitHub Copilot"),
-    // AI chat apps used in a browser or desktop app.
-    ("gemini.google.com", "gemini_app", "Gemini (app)"),
-    ("perplexity.ai", "perplexity_app", "Perplexity (app)"),
-    ("www.perplexity.ai", "perplexity_app", "Perplexity (app)"),
-    ("chat.deepseek.com", "deepseek_app", "DeepSeek (app)"),
-    ("grok.com", "grok", "Grok"),
-    ("copilot.microsoft.com", "copilot_app", "Microsoft Copilot"),
-    ("chat.mistral.ai", "lechat", "Le Chat"),
-    ("www.meta.ai", "meta_ai", "Meta AI"),
-    ("poe.com", "poe", "Poe"),
-    // Inference clouds and other model APIs.
-    ("api.replicate.com", "replicate", "Replicate"),
-    (
-        "api-inference.huggingface.co",
-        "huggingface",
-        "Hugging Face",
-    ),
-    ("router.huggingface.co", "huggingface", "Hugging Face"),
-    (
-        "*.endpoints.huggingface.cloud",
-        "huggingface",
-        "Hugging Face",
-    ),
-    ("api.deepinfra.com", "deepinfra", "DeepInfra"),
-    ("api.hyperbolic.xyz", "hyperbolic", "Hyperbolic"),
-    ("api.sambanova.ai", "sambanova", "SambaNova"),
-    ("api.novita.ai", "novita", "Novita AI"),
-    ("api.lambda.ai", "lambda", "Lambda"),
-    ("inference.baseten.co", "baseten", "Baseten"),
-    ("*.api.baseten.co", "baseten", "Baseten"),
-    ("integrate.api.nvidia.com", "nvidia", "NVIDIA NIM"),
-    ("api.studio.nebius.com", "nebius", "Nebius AI Studio"),
-    ("api.siliconflow.cn", "siliconflow", "SiliconFlow"),
-    (
-        "gateway.ai.cloudflare.com",
-        "cloudflare",
-        "Cloudflare AI Gateway",
-    ),
-    ("api.ai21.com", "ai21", "AI21"),
-    ("api.reka.ai", "reka", "Reka"),
-    ("api.moonshot.ai", "moonshot", "Moonshot AI"),
-    ("api.moonshot.cn", "moonshot", "Moonshot AI"),
-    ("dashscope.aliyuncs.com", "qwen", "Alibaba Qwen"),
-    ("dashscope-intl.aliyuncs.com", "qwen", "Alibaba Qwen"),
-    ("open.bigmodel.cn", "zhipu", "Zhipu AI"),
-    ("api.minimax.io", "minimax", "MiniMax"),
-    ("api.llama.com", "meta", "Meta Llama API"),
-    ("localhost", "local", "Local model"),
-    ("127.0.0.1", "local", "Local model"),
-    ("::1", "local", "Local model"),
-];
-
-fn glob(pattern: &str, host: &str) -> bool {
-    match pattern.split_once('*') {
-        None => pattern == host,
-        Some((pre, post)) => {
-            host.len() >= pre.len() + post.len() && host.starts_with(pre) && host.ends_with(post)
-        }
-    }
-}
-
-/// Provider id for an upstream host (`api.openai.com` -> `openai`); `other` if unknown.
+/// Provider id for an upstream host (`api.openai.com` -> `openai`), from the
+/// [catalog](crate::catalog); `local` for this machine, `other` if unknown.
 pub fn provider_for_host(host: &str) -> &'static str {
     let h = host.trim_matches(['[', ']']).to_ascii_lowercase();
-    PROVIDERS
-        .iter()
-        .find(|(p, _, _)| glob(p, &h))
-        .map(|(_, id, _)| *id)
+    if matches!(h.as_str(), "localhost" | "127.0.0.1" | "::1") {
+        return "local";
+    }
+    crate::catalog::find(&h)
+        .map(|p| p.id.as_str())
         .unwrap_or("other")
 }
 
-/// What kind of AI destination a provider id is: `chat_app` (ChatGPT, Claude.ai, ... in a
-/// browser or desktop app), `inference` (clouds that host many models), `local`, or
-/// `model_api` (a model maker's own API).
+/// What kind of AI destination a provider id is: `model_api`, `inference`, `router`,
+/// `coding_agent`, `chat_app` or `local` (see [`crate::catalog::category_label`]).
 pub fn provider_category(id: &str) -> &'static str {
     match id {
-        "chatgpt" | "claude" | "gemini_app" | "perplexity_app" | "deepseek_app" | "grok"
-        | "copilot_app" | "lechat" | "meta_ai" | "poe" => "chat_app",
-        "groq" | "together" | "fireworks" | "cerebras" | "replicate" | "huggingface"
-        | "deepinfra" | "hyperbolic" | "sambanova" | "novita" | "lambda" | "baseten" | "nvidia"
-        | "nebius" | "siliconflow" | "cloudflare" | "bedrock" | "vertex" | "azure"
-        | "openrouter" => "inference",
         "local" => "local",
-        _ => "model_api",
+        _ => crate::catalog::by_id(id)
+            .map(|p| p.category.as_str())
+            .unwrap_or("model_api"),
     }
 }
 
 /// Display name of a provider id (unknown ids are returned as-is).
 pub fn provider_label(id: &str) -> String {
-    PROVIDERS
-        .iter()
-        .find(|(_, p, _)| *p == id)
-        .map(|(_, _, l)| l.to_string())
-        .unwrap_or_else(|| match id {
-            "other" => "Other".into(),
-            _ => id.to_string(),
-        })
+    match id {
+        "local" => "Local model".into(),
+        "other" => "Other".into(),
+        _ => crate::catalog::by_id(id)
+            .map(|p| p.name.clone())
+            .unwrap_or_else(|| id.to_string()),
+    }
 }
 
 /// `(lowercase needle, client name)`; first match wins.
@@ -591,6 +496,9 @@ struct Agg {
     clients: BTreeMap<String, Tally>,
     endpoints: BTreeMap<String, Tally>,
     block_reasons: BTreeMap<String, Tally>,
+    /// Connections to known AI services that were passed through unprotected.
+    passed: u64,
+    unprotected: BTreeMap<String, Tally>,
 }
 
 fn bump(map: &mut BTreeMap<String, Tally>, key: &str, t: &Tally) {
@@ -604,6 +512,15 @@ fn bump(map: &mut BTreeMap<String, Tally>, key: &str, t: &Tally) {
 
 impl Agg {
     fn add(&mut self, e: &Event) {
+        if e.action == Action::Passed {
+            self.passed += 1;
+            let t = Tally {
+                requests: 1,
+                ..Tally::default()
+            };
+            bump(&mut self.unprotected, &e.provider, &t);
+            return;
+        }
         let values = e.values();
         let blocked = (e.action == Action::Blocked) as u64;
         self.requests += 1;
@@ -637,6 +554,7 @@ impl Agg {
     }
 
     fn merge(&mut self, o: &Agg) {
+        self.passed += o.passed;
         self.requests += o.requests;
         self.masked += o.masked;
         self.blocked += o.blocked;
@@ -651,6 +569,7 @@ impl Agg {
             (&mut self.providers, &o.providers),
             (&mut self.clients, &o.clients),
             (&mut self.endpoints, &o.endpoints),
+            (&mut self.unprotected, &o.unprotected),
             (&mut self.block_reasons, &o.block_reasons),
         ] {
             for (k, t) in src {
@@ -683,6 +602,8 @@ pub struct Totals {
     pub providers: u64,
     pub clients: u64,
     pub avg_latency_ms: u64,
+    /// Connections to known AI services Shadow could not protect (see [`Action::Passed`]).
+    pub unprotected: u64,
 }
 
 /// One timeline bucket.
@@ -728,6 +649,8 @@ pub struct Summary {
     pub clients: Vec<Breakdown>,
     pub endpoints: Vec<Breakdown>,
     pub block_reasons: Vec<Breakdown>,
+    /// AI services reached without protection, by provider.
+    pub unprotected: Vec<Breakdown>,
     /// Id of the newest event (for incremental polling).
     pub last_id: u64,
     /// When the proxy started recording (unix ms).
@@ -1078,6 +1001,7 @@ impl ActivityLog {
                 providers: a.providers.len() as u64,
                 clients: a.clients.len() as u64,
                 avg_latency_ms: a.latency_ms.checked_div(a.requests).unwrap_or(0),
+                unprotected: a.passed,
             },
             timeline,
             kinds: rows(&a.kinds, kind_label, true),
@@ -1085,6 +1009,7 @@ impl ActivityLog {
             clients: rows(&a.clients, str::to_string, false),
             endpoints: rows(&a.endpoints, endpoint_label, false),
             block_reasons: rows(&a.block_reasons, block_reason_label, false),
+            unprotected: rows(&a.unprotected, provider_label, false),
             last_id,
             since: self.since,
         }

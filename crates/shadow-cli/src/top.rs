@@ -464,6 +464,7 @@ fn action_span(a: Action) -> Span<'static> {
             Span::styled(" BLOCKED ", Style::new().fg(Color::White).bg(DANGER).bold())
         }
         Action::Clean => Span::styled(" CLEAN ", Style::new().fg(MUTED)),
+        Action::Passed => Span::styled(" NOT PROTECTED ", Style::new().fg(DANGER)),
     }
 }
 
