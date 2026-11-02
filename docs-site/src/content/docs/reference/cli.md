@@ -34,6 +34,7 @@ Logs go to stderr. `shadow run` logs at `info` by default, every other command a
 | [`run`](#shadow-run) | Run the proxy and gateway in the foreground |
 | [`install`](#shadow-install) / [`uninstall`](#shadow-uninstall) | Background service and CA trust, optionally the system proxy (dry run by default) |
 | [`system-proxy`](#shadow-system-proxy) | Route the machine's traffic through Shadow, or stop |
+| [`enroll`](#shadow-enroll) / [`unenroll`](#shadow-unenroll) | Join an organisation's Shadow Hub, or leave it |
 | [`status`](#shadow-status) | Configuration, persona, vault and proxy health |
 | [`identity`](#shadow-identity) | Show the persona |
 | [`mask`](#shadow-mask) / [`unmask`](#shadow-unmask) | Translate stdin to stdout |
@@ -224,6 +225,20 @@ Print the activity summary as plain tables, or as JSON with `--json`. `--window`
 ```sh
 shadow activity [--window <WINDOW>] [--json] [--demo]
 ```
+
+## `shadow enroll`
+
+Join an organisation's [Shadow Hub](/shadow/integrate/organisations/) with the link from an invite. The machine then reports its activity to the organisation, trimmed to the organisation's sharing level before it leaves the machine.
+
+```sh
+shadow enroll <JOIN LINK> [--email <EMAIL>] [--name <NAME>]
+```
+
+`--email` and `--name` are used when the invite was not made out to a named person. The enrolment is stored in `<data dir>/hub.json` (mode `0600`).
+
+## `shadow unenroll`
+
+Stop reporting to the organisation from this machine (removes `hub.json`). Shadow keeps protecting the machine.
 
 ## `shadow incidents`
 

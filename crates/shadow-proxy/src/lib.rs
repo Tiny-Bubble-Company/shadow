@@ -20,6 +20,7 @@ pub mod ca;
 mod detail;
 mod forward;
 pub mod hosts;
+pub mod hub;
 pub mod sse;
 
 use std::collections::{BTreeMap, HashMap};
@@ -149,6 +150,12 @@ impl Proxy {
 
     /// Serve connections from an already-bound listener.
     pub async fn serve(self: Arc<Self>, listener: TcpListener) -> anyhow::Result<()> {
+        if let Some(log) = &self.activity {
+            tokio::spawn(hub::run_uploader(
+                log.clone(),
+                self.shadow.config().data_dir.clone(),
+            ));
+        }
         loop {
             let (stream, peer) = listener.accept().await?;
             let me = self.clone();

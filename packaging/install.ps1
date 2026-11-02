@@ -1,5 +1,8 @@
 # Shadow installer for Windows (PowerShell 5+).
 #   irm https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.ps1 | iex
+# Joining an organisation: set $env:SHADOW_ENROLL to the join link from your invite first.
+# It then enrols this machine with the organisation's Shadow Hub and applies the managed
+# setup (scheduled tasks, local CA trust, system proxy).
 $ErrorActionPreference = "Stop"
 $Repo   = if ($env:SHADOW_REPO) { $env:SHADOW_REPO } else { "https://github.com/Tiny-Bubble-Company/shadow" }
 $Dest   = "$env:LOCALAPPDATA\Shadow"
@@ -30,6 +33,14 @@ if (-not $env:SHADOW_NO_TRAY -and -not (Test-Path "$Dest\shadow-tray.exe") -and 
 $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
 if ($userPath -notlike "*$Dest*") { [Environment]::SetEnvironmentVariable("Path", "$userPath;$Dest", "User") }
 & "$Dest\shadow.exe" init
+
+if ($env:SHADOW_ENROLL) {
+  & "$Dest\shadow.exe" enroll $env:SHADOW_ENROLL
+  & "$Dest\shadow.exe" install --apply --system-proxy
+  Write-Host ""
+  Write-Host "Done. This machine is protected by Shadow and reports to your organisation."
+  return
+}
 Write-Host ""
 Write-Host "Installed to $Dest\shadow.exe. Next:"
 Write-Host "  shadow install          # dry run"

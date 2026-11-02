@@ -3,6 +3,11 @@
 #   curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
 # Builds from source with cargo when no release binary is available. Never touches
 # system settings by itself: run `shadow install --apply` afterwards.
+#
+# Joining an organisation: with SHADOW_ENROLL set to the join link from an invite, it also
+# enrols this machine with the organisation's Shadow Hub and applies the managed setup:
+# background service, menu-bar app, local CA trust and the system proxy.
+#   curl -fsSL .../install.sh | SHADOW_ENROLL='https://hub.example.com/join/inv_...' sh
 set -eu
 
 REPO="${SHADOW_REPO:-https://github.com/Tiny-Bubble-Company/shadow}"
@@ -46,6 +51,17 @@ if [ "$os" = darwin ] && [ -z "${SHADOW_NO_TRAY:-}" ]; then
 fi
 
 "$BIN_DIR/shadow" init
+
+if [ -n "${SHADOW_ENROLL:-}" ]; then
+  echo
+  "$BIN_DIR/shadow" enroll "$SHADOW_ENROLL"
+  echo
+  "$BIN_DIR/shadow" install --apply --system-proxy
+  echo
+  echo "Done. This machine is protected by Shadow and reports to your organisation."
+  case ":$PATH:" in *":$BIN_DIR:"*) ;; *) echo "  (add $BIN_DIR to your PATH)";; esac
+  exit 0
+fi
 echo
 echo "Installed to $BIN_DIR/shadow. Next:"
 echo "  shadow install          # dry run: shows exactly what will change"

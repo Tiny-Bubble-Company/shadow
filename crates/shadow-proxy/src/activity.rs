@@ -252,6 +252,7 @@ impl Proxy {
             "/shadow/activity/summary" => self.activity_summary(q),
             "/shadow/activity/stream" => self.activity_stream(q),
             "/shadow/activity/providers" => providers_response(),
+            "/shadow/activity/hub" => self.hub_status(),
             _ => match path
                 .strip_prefix("/shadow/activity/events/")
                 .and_then(|id| id.trim_end_matches('/').parse().ok())
@@ -260,6 +261,18 @@ impl Proxy {
                 None => error_response(StatusCode::NOT_FOUND, "unknown dashboard path"),
             },
         }
+    }
+
+    /// Whether this machine reports to an organisation's hub (never the device token).
+    fn hub_status(&self) -> Response<Body> {
+        let body = match crate::hub::Enrollment::load(&self.shadow.config().data_dir) {
+            Some(e) => serde_json::json!({
+                "managed": true, "org_name": e.org_name, "share_level": e.share_level,
+                "hub_url": e.hub_url, "user_email": e.user_email, "notice": e.notice(),
+            }),
+            None => serde_json::json!({"managed": false}),
+        };
+        json_response(StatusCode::OK, body.to_string())
     }
 
     /// One event with its incident details (when still in memory).

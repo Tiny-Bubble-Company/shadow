@@ -136,6 +136,21 @@
   var CATEGORY_LABELS = { chat_app: "AI chat app", inference: "Inference cloud", router: "Model router",
     coding_agent: "Coding agent", local: "Local model", model_api: "Model API" };
   var CATALOG = {};
+  // Enrolled with an organisation's Shadow Hub: say so, and what is shared.
+  function loadManaged() {
+    if (DEMO) return;
+    fetchJSON("/shadow/activity/hub").then(function (h) {
+      if (!h.managed) return;
+      $("managed-org").textContent = "Managed by " + h.org_name + ".";
+      $("managed-text").textContent = {
+        full: "Incidents on this machine, including prompts and the values caught, are shared with its admins.",
+        sanitised: "Incidents are shared with its admins as the AI received them; real values stay on this machine.",
+        counts: "Counts of what Shadow protected are shared with its admins."
+      }[h.share_level] || h.notice;
+      $("managed").hidden = false;
+    }).catch(function () { /* not managed or older proxy */ });
+  }
+
   function loadCatalog() {
     if (DEMO) return;
     fetchJSON("/shadow/activity/providers").then(function (r) {
@@ -1030,6 +1045,7 @@
     window.addEventListener("resize", redraw);
     setWindowButtons(state.window);
     loadCatalog();
+    loadManaged();
     route();
     schedule();
   }

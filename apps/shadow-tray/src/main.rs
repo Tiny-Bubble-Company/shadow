@@ -35,6 +35,8 @@ struct Status {
     values: u64,
     restored: u64,
     blocked: u64,
+    /// The organisation this machine reports to, when enrolled with a Shadow Hub.
+    managed_by: Option<String>,
 }
 
 enum UserEvent {
@@ -98,7 +100,12 @@ fn poll(addr: &str) -> Status {
     };
     let v: serde_json::Value = serde_json::from_str(&body).unwrap_or_default();
     let n = |k: &str| v["totals"][k].as_u64().unwrap_or(0);
+    let managed_by = http_get(addr, "/shadow/activity/hub")
+        .and_then(|b| serde_json::from_str::<serde_json::Value>(&b).ok())
+        .filter(|h| h["managed"] == true)
+        .and_then(|h| h["org_name"].as_str().map(str::to_string));
     Status {
+        managed_by,
         online: true,
         requests: n("requests"),
         values: n("values_protected"),
@@ -199,8 +206,13 @@ impl Items {
             "this PC"
         };
         if s.online {
+            let managed = s
+                .managed_by
+                .as_deref()
+                .map(|o| format!(" · managed by {o}"))
+                .unwrap_or_default();
             self.status
-                .set_text(format!("🟢 Shadow is protecting {machine}"));
+                .set_text(format!("🟢 Shadow is protecting {machine}{managed}"));
             self.requests.set_text(format!(
                 "Today: {} request{} monitored",
                 fmt_n(s.requests),

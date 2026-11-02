@@ -59,6 +59,20 @@ enum Cmd {
     Uninstall(InstallArgs),
     /// Route this machine's traffic through Shadow with the system proxy settings (or stop).
     SystemProxy(SystemProxyArgs),
+    /// Join an organisation's Shadow Hub with the link from your invite. Activity is then
+    /// reported to the organisation, as its sharing level allows.
+    Enroll {
+        /// The join link from the invite (https://<hub>/join/<token>).
+        link: String,
+        /// Your work email, if the invite isn't for a named person.
+        #[arg(long)]
+        email: Option<String>,
+        /// Your name, if the invite isn't for a named person.
+        #[arg(long)]
+        name: Option<String>,
+    },
+    /// Stop reporting to the organisation's hub on this machine.
+    Unenroll,
     /// Show configuration, persona, vault and proxy health.
     Status {
         /// No output; exit code 0 only if the proxy answers.
@@ -250,6 +264,8 @@ fn real_main(cli: Cli) -> anyhow::Result<()> {
         Cmd::Install(a) => install(&cli, a, true),
         Cmd::Uninstall(a) => install(&cli, a, false),
         Cmd::SystemProxy(a) => system_proxy(&cli, a),
+        Cmd::Enroll { link, email, name } => enroll(&cli, link, email.as_deref(), name.as_deref()),
+        Cmd::Unenroll => unenroll(&cli),
         Cmd::Status { quiet } => status(&cli, *quiet),
         Cmd::Identity { json } => identity(&open(&cli)?, *json),
         Cmd::Mask { json } => {
@@ -457,6 +473,38 @@ fn svc_ctx(cli: &Cli, listen: Option<String>) -> anyhow::Result<(ShadowConfig, s
     Ok((cfg, ctx))
 }
 
+fn enroll(cli: &Cli, link: &str, email: Option<&str>, name: Option<&str>) -> anyhow::Result<()> {
+    let cfg = load_config(cli)?;
+    let rt = tokio::runtime::Runtime::new()?;
+    let en = rt.block_on(shadow_proxy::hub::enroll(link, &cfg.data_dir, email, name))?;
+    ui::ok(&format!(
+        "Enrolled with {} as {}",
+        en.org_name, en.user_email
+    ));
+    ui::kv("hub", &en.hub_url);
+    ui::kv("shared", &en.notice());
+    println!(
+        "  {}",
+        ui::dim("Shadow reports to the hub while it runs. Restart it if it is already running: shadow install --apply")
+    );
+    Ok(())
+}
+
+fn unenroll(cli: &Cli) -> anyhow::Result<()> {
+    let cfg = load_config(cli)?;
+    let path = shadow_proxy::hub::Enrollment::path(&cfg.data_dir);
+    match std::fs::remove_file(&path) {
+        Ok(()) => ui::ok(
+            "This machine no longer reports to the hub. Ask an admin to remove it there too.",
+        ),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            ui::ok("This machine is not enrolled.")
+        }
+        Err(e) => return Err(e.into()),
+    }
+    Ok(())
+}
+
 fn system_proxy(cli: &Cli, a: &SystemProxyArgs) -> anyhow::Result<()> {
     let (_, ctx) = svc_ctx(cli, None)?;
     if a.state == "status" {
@@ -642,6 +690,10 @@ fn status(cli: &Cli, quiet: bool) -> anyhow::Result<()> {
             "off"
         },
     );
+    match shadow_proxy::hub::Enrollment::load(&cfg.data_dir) {
+        Some(e) => ui::kv("organisation", &format!("{} ({})", e.notice(), e.hub_url)),
+        None => ui::kv("organisation", "not enrolled (personal use)"),
+    }
     ui::kv(
         "upstream proxy",
         cfg.proxy

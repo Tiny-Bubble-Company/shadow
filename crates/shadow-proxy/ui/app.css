@@ -118,6 +118,7 @@ button { font: inherit; color: inherit; }
   border: 1px solid rgba(239, 79, 107, 0.25);
 }
 .banner.muted { background: var(--track); border-color: var(--line); }
+.banner.managed { background: var(--accent-soft); border-color: rgba(124, 108, 255, 0.3); }
 
 main { max-width: 1240px; margin: 0 auto; padding: 12px 28px 8px; display: grid; gap: 16px; }
 

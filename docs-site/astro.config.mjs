@@ -90,6 +90,7 @@ export default defineConfig({
 						'integrate/rust',
 						'integrate/docker-kubernetes',
 						'integrate/any-endpoint',
+						'integrate/organisations',
 					],
 				},
 				{
