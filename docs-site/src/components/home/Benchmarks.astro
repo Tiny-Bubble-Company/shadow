@@ -28,50 +28,62 @@ const stats = [
 	title="Leaks less than standalone detectors"
 	lead="Measured on a held-out test set with a reproducible benchmark: the share of sensitive values that still reached the model. Lower is better."
 >
-	<div class="hp-bench">
-		<figure class="hp-card hp-bench__chart">
-			<figcaption class="hp-bench__caption">
-				<span>Sensitive values leaked</span>
-				<span class="hp-bench__legend"><i class="is-shadow"></i>Shadow <i></i>Standalone tools</span>
-			</figcaption>
-			<table class="hp-bars">
-				<caption class="sr-only">Share of sensitive values leaked on the held-out test set, lower is better</caption>
-				<thead class="sr-only">
-					<tr><th scope="col">Tool</th><th scope="col">Leaked</th></tr>
-				</thead>
-				<tbody>
-					{
-						rows.map((r) => (
-							<tr class:list={{ 'is-shadow': r.shadow }}>
-								<th scope="row">{r.name}</th>
-								<td>
-									<span class="hp-bars__track">
-										<span class="hp-bars__fill" style={`--w:${Math.max((r.leak / max) * 100, 0.6)}%`} />
-									</span>
-									<span class="hp-bars__value">{fmt(r.leak)}</span>
-								</td>
-							</tr>
-						))
-					}
-				</tbody>
-			</table>
-		</figure>
-		<ul class="hp-bench__stats">
-			{
-				stats.map((s) => (
-					<li class="hp-card">
-						<strong>{s.value}</strong>
-						<span>{s.label}</span>
-					</li>
-				))
-			}
-		</ul>
-	</div>
-	<p class="hp-bench__note">
+	<figure class="hp-bench surface" data-bench>
+		<figcaption class="hp-bench__head">
+			<span>Sensitive values leaked</span>
+			<span class="hp-bench__legend"><span><i class="is-shadow"></i>Shadow</span><span><i></i>Standalone tools</span></span>
+		</figcaption>
+		<table class="hp-bench__table">
+			<caption class="sr-only">Share of sensitive values leaked on the held-out test set, lower is better</caption>
+			<thead class="sr-only">
+				<tr><th scope="col">Tool</th><th scope="col">Leaked</th></tr>
+			</thead>
+			<tbody>
+				{
+					rows.map((r, i) => (
+						<tr class:list={{ 'is-shadow': r.shadow }}>
+							<th scope="row">{r.name}</th>
+							<td class="hp-bench__bar">
+								<span class="hp-bench__track">
+									<span class="hp-bench__fill" style={`--w:${Math.max((r.leak / max) * 100, 0.6)}%;--d:${i * 110}ms`} />
+								</span>
+							</td>
+							<td class="hp-bench__val">{fmt(r.leak)}</td>
+						</tr>
+					))
+				}
+			</tbody>
+		</table>
+		<p class="hp-note">Share of sensitive values leaked on the held-out test set, lower is better</p>
+	</figure>
+	<ul class="hp-figures">
+		{
+			stats.map((s) => (
+				<li>
+					<strong>{s.value}</strong>
+					<span>{s.label}</span>
+				</li>
+			))
+		}
+	</ul>
+	<p class="hp-aside hp-aside--wide">
 		On a third-party set of financial documents in seven languages (Gretel), every tool leaks more and GLiNER on its own
 		leaks less than Shadow's built-in rules; the benchmarks page has both results.
 	</p>
-	<p class="hp-section__more">
-		<a href={LINKS.benchmarks}>Methodology, datasets and full results <span aria-hidden="true">→</span></a>
-	</p>
+	<a class="hp-more" href={LINKS.benchmarks}>Methodology, datasets and full results <span aria-hidden="true">→</span></a>
 </Section>
+
+<script>
+	// Grow the bars once the chart is in view (they are full width without JS).
+	const chart = document.querySelector<HTMLElement>('[data-bench]');
+	if (chart && 'IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		chart.classList.add('is-armed');
+		const io = new IntersectionObserver(([e]) => {
+			if (e!.isIntersecting) {
+				chart.classList.add('is-in');
+				io.disconnect();
+			}
+		}, { threshold: 0.3 });
+		io.observe(chart);
+	}
+</script>

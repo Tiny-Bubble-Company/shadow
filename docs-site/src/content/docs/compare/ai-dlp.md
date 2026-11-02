@@ -22,12 +22,12 @@ faq:
   - q: "Should an AI DLP tool block or redact?"
     a: "Blocking is simplest for data that must never reach an external AI, but it stops the task. Redaction lets the request through without the value but can weaken the answer. Reversible pseudonymisation sends realistic stand-ins and restores the real values in the response."
   - q: "Is there an open-source AI DLP tool?"
-    a: "Shadow Core is open source (Apache-2.0). It masks PII and secrets in requests to AI services with reversible fakes on each laptop or server. Shadow Hub, the commercial team console, is in early access with a waitlist."
+    a: "Shadow Core is open source (Apache-2.0). It masks PII and secrets in requests to AI services with reversible fakes on each laptop or server. Shadow Hub, the commercial team console, has a 14-day free trial and is free for up to 3 users."
   - q: "Does AI DLP make us compliant?"
     a: "No tool makes an organisation compliant on its own. AI DLP helps meet requirements such as data minimisation and confidentiality as part of a wider programme."
 ---
 
-**Choose endpoint DLP or a browser extension if employees pasting into AI web apps is your main risk and you want one policy across SaaS, files and the browser. Choose an LLM proxy such as Shadow if AI traffic comes from developers, agents and scripts and answers must keep working. Core is free; Shadow Hub is in early access.**
+**Choose endpoint DLP or a browser extension if employees pasting into AI web apps is your main risk and you want one policy across SaaS, files and the browser. Choose an LLM proxy such as Shadow if AI traffic comes from developers, agents and scripts and answers must keep working. Core is free; Shadow Hub is free for up to 3 users.**
 
 [Shadow Hub for teams](/shadow/hub/) · [Install Core free](/shadow/getting-started/quick-start/)
 
@@ -37,7 +37,7 @@ The three approaches below are categories. The vendor examples in each column co
 
 | | Endpoint DLP | Browser-extension AI DLP | Shadow Core (LLM proxy) | Shadow Hub |
 |---|---|---|---|---|
-| **Deployment model** | Agent on each managed device, with a central console (for example Microsoft Purview Endpoint DLP, Nightfall) | Extension pushed to managed browsers, with a central console (for example LayerX, now Akamai Workforce Protector; Harmonic Security) | Free local proxy, a single binary on each laptop or server | Hosted console in early access (waitlist); members run one command that installs Core and enrols the machine |
+| **Deployment model** | Agent on each managed device, with a central console (for example Microsoft Purview Endpoint DLP, Nightfall) | Extension pushed to managed browsers, with a central console (for example LayerX, now Akamai Workforce Protector; Harmonic Security) | Free local proxy, a single binary on each laptop or server | Hosted console with a 14-day free trial; members run one command that installs Core and enrols the machine |
 | **Where it runs** | On the device: browser activity, clipboard, uploads, file movement | Inside the browser: text input, copy and paste, uploads and downloads | Between apps and AI services: model APIs, coding agents, and with the system proxy on, ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser | Masking stays on each machine; the hub receives what the organisation chooses to share: counts only, sanitised prompts or full detail |
 | **Masking vs blocking** | Mostly warn and block; some vendors also redact | Warn, coach, block; some vendors also redact | Masks PII and secrets with realistic fakes; blocks file uploads by policy | Same as Core, plus a view of what was masked or blocked per person, machine, app and AI service |
 | **Reversible pseudonymisation** | Not described by the vendors cited | Not described by the vendors cited | Yes, real values restored in answers | Yes, through Core |
@@ -81,7 +81,7 @@ More vendor comparisons: [Zscaler](/shadow/compare/zscaler/), [Palo Alto AI Acce
 - **AI traffic comes from outside the browser.** Developers, coding agents (Claude Code, Codex, Gemini CLI, GitHub Copilot), scripts and services call AI services directly. Core sits in front of them and recognises 288 AI services.
 - **Answers must keep working.** Shadow sends realistic, consistent fakes instead of placeholders and restores the real values in the answer. See [how it works](/shadow/concepts/how-it-works/).
 - **You want to start free and bottom-up.** Core is open source under Apache-2.0, needs no account and runs on the machine. See the [quick start](/shadow/getting-started/quick-start/).
-- **You want a team view without collecting real values.** With [Shadow Hub](/shadow/hub/) (early access, waitlist), admins invite members by link and see what was masked or blocked per person, machine, app and AI service. Each organisation chooses whether machines share counts only, sanitised prompts or full detail.
+- **You want a team view without collecting real values.** With [Shadow Hub](/shadow/hub/) (14-day free trial, free for up to 3 users), admins invite members by link and see what was masked or blocked per person, machine, app and AI service. Each organisation chooses whether machines share counts only, sanitised prompts or full detail.
 
 Know Shadow's limits. It does not cover phone apps, apps that pin certificates, WebSocket features, or apps that ignore the system proxy unless pointed at it. Cursor, Windsurf, Amazon Q and Kiro use binary protocols Shadow cannot mask; it shows them as "seen, not protected". Shadow is not a browser extension, has no SaaS app connectors, no DLP for files on disk and no SOC 2 or other certification.
 

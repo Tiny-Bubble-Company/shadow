@@ -16,25 +16,9 @@ keywords:
   - prompt anonymization
   - mask PII before sending to OpenAI
 hero:
+  # Rendered by src/components/home/Hero.astro (Starlight's Hero is overridden in astro.config.mjs).
   title: Use AI at work without leaking your data.
-  tagline: '<span class="hero-oss">Core: free &amp; open source · Apache-2.0</span>Shadow Core is a free, open-source proxy that masks PII and secrets before they reach ChatGPT, Claude, Copilot or any LLM, and restores them in the answer. Shadow Hub gives your security team one dashboard for every user.'
-  image:
-    file: ../../assets/logo.svg
-    alt: Shadow logo, a crescent partly covered by a shadow
-  actions:
-    - text: Install Core free
-      link: getting-started/quick-start/
-      icon: right-arrow
-    - text: Shadow Hub for teams
-      link: hub/
-      variant: secondary
-    - text: Read the docs
-      link: getting-started/introduction/
-      variant: minimal
-    - text: GitHub
-      link: https://github.com/Tiny-Bubble-Company/shadow
-      icon: external
-      variant: minimal
+  tagline: Shadow Core is a free, open-source proxy that masks PII and secrets before they reach ChatGPT, Claude, Copilot or any LLM, and restores them in the answer. Shadow Hub gives your security team one dashboard for every user.
 faq:
   - q: How do I get help with Shadow?
     a: "Email support@getshadow.dev with questions about installing, configuring or rolling out Shadow. Bugs and feature requests are welcome as GitHub issues, and security vulnerabilities should be reported privately as described in the security policy."
@@ -61,9 +45,8 @@ faq:
 ---
 
 import FaqSection from '../../components/FaqSection.astro';
-import Proof from '../../components/home/Proof.astro';
-import InstallBar from '../../components/home/InstallBar.astro';
 import CoreAndHub from '../../components/home/CoreAndHub.astro';
+import Intro from '../../components/home/Intro.astro';
 import Problem from '../../components/home/Problem.astro';
 import HowItWorks from '../../components/home/HowItWorks.astro';
 import Features from '../../components/home/Features.astro';
@@ -73,17 +56,9 @@ import Integrations from '../../components/home/Integrations.astro';
 import Audiences from '../../components/home/Audiences.astro';
 import FinalCta from '../../components/home/FinalCta.astro';
 
-<InstallBar />
-
 <CoreAndHub />
 
-<Proof />
-
-<div class="hp-intro">
-
-**Shadow is an open-source privacy layer that sits between your apps and AI providers such as OpenAI, Anthropic and Google Gemini.** It finds personal data, customer names, credentials and internal identifiers in every outbound prompt, replaces them with realistic, format-preserving fakes, and translates the fakes back in the response. It is PII redaction and AI data loss prevention that keeps ChatGPT-style assistants, Claude, coding agents and your own LLM apps useful. It runs as a local HTTPS proxy, a gateway base URL, a Docker sidecar or the `shadow-core` Rust library, and the mapping between real and fake values never leaves the machine.
-
-</div>
+<Intro />
 
 <Problem />
 

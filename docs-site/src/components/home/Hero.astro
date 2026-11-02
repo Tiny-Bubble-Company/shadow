@@ -1,0 +1,73 @@
+---
+// Home page hero. Overrides Starlight's Hero (astro.config.mjs `components.Hero`); only the
+// home page sets `hero:` in its frontmatter, so this renders nowhere else. Holds the page's
+// only H1 (id="_top", as Starlight's own hero does).
+import { Image } from 'astro:assets';
+import { product } from '../../assets/product';
+import { CORE_CTA } from '../../data/hub';
+import InstallCmd from './InstallCmd.astro';
+import { LINKS, href } from './links';
+import HubCta from '../HubCta.astro';
+
+const { data } = Astro.locals.starlightRoute.entry;
+const title = data.hero?.title ?? data.title;
+const tagline = data.hero?.tagline;
+const logo = href('/favicon.svg');
+const shot = {
+	sizes: '(min-width: 64rem) 1008px, 100vw',
+	widths: [480, 800, 1200, 1600, 2000],
+	alt: 'Shadow activity dashboard showing masked and blocked AI requests by data type, destination provider and source app',
+	loading: 'eager' as const,
+	decoding: 'async' as const,
+};
+---
+
+<section class="hp-hero not-content">
+	<div class="hp-hero__wash" aria-hidden="true"></div>
+	<div class="hp-wrap hp-hero__inner">
+		<div class="hp-mark" aria-hidden="true">
+			<span class="hp-mark__ring"></span>
+			<span class="hp-mark__ring hp-mark__ring--late"></span>
+			<svg viewBox="0 0 112 112" class="hp-mark__spin">
+				<circle cx="56" cy="56" r="52" fill="none" stroke="var(--sh-accent)" stroke-opacity="0.35" stroke-width="1" stroke-dasharray="3 9" stroke-linecap="round"></circle>
+			</svg>
+			<svg viewBox="0 0 112 112" class="hp-mark__spin hp-mark__spin--fast">
+				<circle cx="56" cy="56" r="52" fill="none" stroke="var(--sh-accent)" stroke-width="2" stroke-linecap="round" stroke-dasharray="40 287"></circle>
+				<circle cx="56" cy="4" r="3" fill="var(--sh-accent)"></circle>
+			</svg>
+			<div class="hp-mark__tile surface">
+				<img src={logo} alt="" width="32" height="32" />
+			</div>
+		</div>
+
+		<a class="hp-pill surface" href={LINKS.repo} rel="noopener">
+			<span class="hp-pill__dot"></span>
+			Core: free &amp; open source · Apache-2.0
+		</a>
+
+		<h1 id="_top" data-page-title class="hp-h1 text-fade" set:html={title} />
+		{tagline && <p class="hp-hero__lead" set:html={tagline} />}
+
+		<div class="hp-actions">
+			<a class="sh-btn sh-btn--fg" href={LINKS.quickStart}>{CORE_CTA}</a>
+			<a class="sh-btn sh-btn--surface" href={LINKS.hub}>Shadow Hub for teams</a>
+			<a class="sh-btn sh-btn--surface" href={LINKS.introduction}>Read the docs</a>
+			<a class="sh-btn sh-btn--surface" href={LINKS.repo} rel="noopener">GitHub</a>
+		</div>
+
+		<InstallCmd class="hp-hero__install" />
+		<p class="hp-install__alt">
+			macOS and Linux. Windows, Cargo and Docker: see <a href={LINKS.installation}>installation</a>. Source on{' '}
+			<a href={LINKS.repo} rel="noopener">GitHub</a>.
+		</p>
+		<div class="hp-hero__links">
+			<HubCta location="hero" show={['hub', 'demo']} primary="install" compact />
+		</div>
+
+		<div class="hp-hero__shot surface">
+			<Image src={product.dashboardLight} {...shot} class="dark:sl-hidden" />
+			<Image src={product.dashboardDark} {...shot} class="light:sl-hidden" />
+		</div>
+
+	</div>
+</section>

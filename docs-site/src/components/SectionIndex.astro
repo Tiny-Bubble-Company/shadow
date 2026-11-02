@@ -37,9 +37,9 @@ const group = (await sectionGroups())[dir];
 		flex-direction: column;
 		gap: 0.35rem;
 		height: 100%;
-		padding: 1rem 1.1rem;
+		padding: 1.25rem 1.35rem;
 		border: 1px solid var(--sh-border);
-		border-radius: 8px;
+		border-radius: calc(var(--sh-radius) + 4px);
 		background: var(--sh-panel);
 		color: var(--sh-text);
 		text-decoration: none;
@@ -51,7 +51,7 @@ const group = (await sectionGroups())[dir];
 		background: var(--sh-raised);
 	}
 	.section-index__title {
-		font-weight: 590;
+		font-weight: 500;
 		letter-spacing: -0.012em;
 	}
 	.section-index__desc {

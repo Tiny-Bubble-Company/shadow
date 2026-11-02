@@ -16,7 +16,7 @@ keywords:
   - GenAI DLP
 faq:
   - q: "Is Shadow an alternative to Prompt Security?"
-    a: "For keeping sensitive data out of AI prompts, partly. Prompt Security, from SentinelOne, is a broad AI security platform covering employee AI use, developer tools, homegrown AI apps and agents. Shadow does one job: Core masks PII and secrets with reversible fakes on each machine, and Shadow Hub (early access) shows teams what was masked or blocked."
+    a: "For keeping sensitive data out of AI prompts, partly. Prompt Security, from SentinelOne, is a broad AI security platform covering employee AI use, developer tools, homegrown AI apps and agents. Shadow does one job: Core masks PII and secrets with reversible fakes on each machine, and Shadow Hub shows teams what was masked or blocked."
   - q: "Is Prompt Security part of SentinelOne?"
     a: "Yes. Prompt Security brands itself as Prompt Security from SentinelOne, and its platform pages are on sentinelone.com as part of the Singularity Platform."
   - q: "Does Prompt Security redact sensitive data?"
@@ -24,10 +24,10 @@ faq:
   - q: "How much does Prompt Security cost?"
     a: "Not published (as of 2 Nov 2026). SentinelOne's packages page lists prices for Singularity endpoint packages but none for Prompt Security. Shadow Core is free. Shadow Hub's planned pricing is free for 1-3 users, then from $8 per user per month; these prices are provisional."
   - q: "Is Shadow Hub available now?"
-    a: "Not generally. Shadow Hub is in early access with a waitlist. Shadow Core is available today and free."
+    a: "Yes. Shadow Hub has a 14-day free trial with no card, then stays free for up to 3 users. Shadow Core is free and open source."
 ---
 
-**Choose Prompt Security if you want a broad AI security platform from SentinelOne that governs employee AI use, developer tools, homegrown AI apps and agents, including prompt-injection defence. Choose Shadow if your goal is narrower: mask sensitive data in prompts with reversible fakes so answers stay useful. Core is free; Shadow Hub is in early access.**
+**Choose Prompt Security if you want a broad AI security platform from SentinelOne that governs employee AI use, developer tools, homegrown AI apps and agents, including prompt-injection defence. Choose Shadow if your goal is narrower: mask sensitive data in prompts with reversible fakes so answers stay useful. Core is free; Shadow Hub is free for up to 3 users.**
 
 [Shadow Hub for teams](/shadow/hub/) · [Install Core free](/shadow/getting-started/quick-start/)
 
@@ -35,7 +35,7 @@ faq:
 
 | | Prompt Security | Shadow Core | Shadow Hub |
 |---|---|---|---|
-| **Deployment model** | Commercial platform, part of SentinelOne's Singularity Platform | Free local proxy, a single binary on each laptop or server | Hosted console in early access (waitlist); members run one command that installs Core and enrols the machine |
+| **Deployment model** | Commercial platform, part of SentinelOne's Singularity Platform | Free local proxy, a single binary on each laptop or server | Hosted console with a 14-day free trial; members run one command that installs Core and enrols the machine |
 | **Where it runs** | Browser, desktop and embedded copilots for employees; developer tools such as GitHub Copilot, Cursor and Claude Code; homegrown AI apps; agents and MCP servers | On the device, between apps and AI services: model APIs, coding agents, and with the system proxy on, ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser | Masking stays on each machine; the hub receives what the organisation chooses to share: counts only, sanitised prompts or full detail |
 | **Masking vs blocking** | Redacts sensitive data, coaches users, blocks unsanctioned tools and adversarial prompts | Masks PII and secrets with realistic fakes; blocks file uploads by policy | Same as Core, plus a view of what was masked or blocked per person, machine, app and AI service |
 | **Reversible pseudonymisation** | Not described on its public pages | Yes, real values restored in answers | Yes, through Core |
@@ -56,7 +56,7 @@ faq:
 - **Answers must keep working.** Shadow replaces names, emails, card numbers and secrets with realistic, consistent fakes, so the model can still reason about them, and restores the real values in the answer. See [how it works](/shadow/concepts/how-it-works/).
 - **You want a focused, inspectable tool.** Core is open source under Apache-2.0, needs no account and runs on the machine. It recognises 288 AI services and sits in front of model APIs and coding agents such as Claude Code, Codex, Gemini CLI and GitHub Copilot. See the [quick start](/shadow/getting-started/quick-start/).
 - **You want to start bottom-up.** Developers can install Core today; the team can add Shadow Hub later.
-- **You want a team view without collecting real values.** With [Shadow Hub](/shadow/hub/) (early access, waitlist), admins invite members by link and see what was masked or blocked per person, machine, app and AI service. Each organisation chooses whether machines share counts only, sanitised prompts or full detail.
+- **You want a team view without collecting real values.** With [Shadow Hub](/shadow/hub/) (14-day free trial, free for up to 3 users), admins invite members by link and see what was masked or blocked per person, machine, app and AI service. Each organisation chooses whether machines share counts only, sanitised prompts or full detail.
 
 Know Shadow's limits before choosing it. It does not cover phone apps, apps that pin certificates, WebSocket features, or apps that ignore the system proxy unless pointed at it. Cursor, Windsurf, Amazon Q and Kiro use binary protocols Shadow cannot mask; it shows them as "seen, not protected". Shadow does not detect prompt injection, is not a browser extension, has no SaaS app connectors, no DLP for files on disk and no SOC 2 or other certification.
 

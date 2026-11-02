@@ -1,11 +1,75 @@
 /* Site header (src/components/Header.astro) and footer (src/components/SiteFooter.astro). */
 
+/* ---------- Buttons (design system: h-9 / h-8, 0.5rem radius) ---------- */
+.sh-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	height: 2.25rem;
+	padding: 0 1rem;
+	border: 1px solid transparent;
+	border-radius: calc(var(--sh-radius) - 2px);
+	font: inherit;
+	font-size: 0.875rem;
+	font-weight: 500;
+	line-height: 1;
+	white-space: nowrap;
+	text-decoration: none;
+	cursor: pointer;
+	transition:
+		background-color var(--sh-ease),
+		border-color var(--sh-ease),
+		color var(--sh-ease);
+}
+.sh-btn--sm {
+	height: 2rem;
+	padding: 0 0.75rem;
+}
+.sh-btn--fg {
+	background: var(--sh-text);
+	color: var(--sh-bg);
+}
+.sh-btn--fg:hover {
+	background: color-mix(in oklab, var(--sh-text) 90%, transparent);
+	color: var(--sh-bg);
+}
+.sh-btn--primary {
+	background: var(--sh-accent);
+	color: var(--sh-on-accent);
+}
+.sh-btn--primary:hover {
+	background: color-mix(in oklab, var(--sh-accent) 90%, transparent);
+	color: var(--sh-on-accent);
+}
+.sh-btn--surface {
+	background: var(--sh-panel);
+	border-color: var(--sh-border);
+	color: var(--sh-text);
+}
+.sh-btn--surface:hover {
+	background: var(--sh-hover);
+	color: var(--sh-text);
+}
+
 /* ---------- Header ---------- */
 .sh-header {
 	display: flex;
 	align-items: center;
-	gap: 0.75rem;
+	gap: 0.5rem;
 	height: 100%;
+}
+.sh-header:not(.has-sidebar) {
+	max-width: 72rem;
+	margin-inline: auto;
+}
+.sh-header__install {
+	flex: none;
+}
+@media (max-width: 22rem) {
+	.sh-header__install {
+		display: none;
+	}
 }
 .sh-header__title {
 	flex: none;
@@ -33,12 +97,11 @@
 	align-items: center;
 	gap: 0.2rem;
 	height: 2rem;
-	padding: 0 0.65rem;
-	border-radius: 6px;
+	padding: 0 0.75rem;
+	border-radius: calc(var(--sh-radius) - 4px);
 	color: var(--sh-muted);
-	font-size: 0.8125rem;
-	font-weight: 510;
-	letter-spacing: -0.003em;
+	font-size: 0.875rem;
+	font-weight: 400;
 	transition:
 		color 140ms ease-out,
 		background-color 140ms ease-out;
@@ -56,7 +119,6 @@
 .sh-nav__item > summary:hover,
 .sh-nav__link:hover,
 .sh-nav__item[open] > summary {
-	background: var(--sh-hover);
 	color: var(--sh-text);
 }
 .sh-nav__item > summary:focus-visible,
@@ -64,7 +126,7 @@
 .sh-menu > summary:focus-visible,
 .sh-menu__group > summary:focus-visible {
 	outline: none;
-	box-shadow: 0 0 0 2px rgba(124, 108, 255, 0.45);
+	box-shadow: var(--sh-focus);
 }
 .sh-caret {
 	transition: transform 140ms ease-out;
@@ -103,8 +165,14 @@
 .sh-panel__cols--2 {
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 }
+.sh-panel__cols--3 {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 .sh-panel__cols--4 {
 	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.sh-panel__cols--5 {
+	grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 .sh-panel__cols--many .sh-panel__group ul {
 	columns: 3 14rem;
@@ -123,7 +191,7 @@
 	margin: 0 0 0.35rem;
 	padding: 0 0.55rem;
 	font-size: 0.75rem;
-	font-weight: 510;
+	font-weight: 500;
 	letter-spacing: -0.003em;
 	color: var(--sh-faint);
 }
@@ -141,7 +209,7 @@
 	border-radius: 6px;
 	color: var(--sh-text);
 	font-size: 0.8125rem;
-	font-weight: 510;
+	font-weight: 500;
 	line-height: 1.35;
 	text-decoration: none;
 }
@@ -168,7 +236,7 @@
 	margin: 0.75rem 0.55rem 0.1rem;
 	color: var(--sl-color-accent-high);
 	font-size: var(--sl-text-sm);
-	font-weight: 510;
+	font-weight: 500;
 	text-decoration: none;
 }
 .sh-panel__all:hover {
@@ -189,27 +257,22 @@
 	display: none;
 	flex: none;
 	align-items: center;
-	gap: 0.75rem;
+	gap: 0.5rem;
 }
 .sh-gh {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.4rem;
 	height: 2rem;
-	padding: 0 0.4rem 0 0.65rem;
-	border: 1px solid var(--sh-border-strong);
-	border-radius: 6px;
-	color: var(--sh-text);
-	font-size: 0.8125rem;
-	transition:
-		background-color 140ms ease-out,
-		border-color 140ms ease-out;
-	font-weight: 510;
+	padding: 0 0.6rem;
+	border-radius: calc(var(--sh-radius) - 4px);
+	color: var(--sh-muted);
+	font-size: 0.875rem;
+	transition: color 140ms ease-out;
 	text-decoration: none;
 	white-space: nowrap;
 }
 .sh-gh:hover {
-	background: var(--sh-hover);
 	color: var(--sh-text);
 }
 .sh-gh__badge {
@@ -218,7 +281,7 @@
 	background: var(--sh-accent-soft);
 	color: var(--sl-color-accent-high);
 	font-size: 0.72rem;
-	font-weight: 510;
+	font-weight: 500;
 }
 
 /* Compact "Menu" panel (below 75rem) */
@@ -267,7 +330,7 @@
 	align-items: center;
 	padding: 0.85rem 0.25rem;
 	color: var(--sl-color-white);
-	font-weight: 510;
+	font-weight: 500;
 	text-decoration: none;
 	cursor: pointer;
 	list-style: none;
@@ -275,7 +338,7 @@
 .sh-menu__group > summary::after {
 	content: '+';
 	color: var(--sl-color-gray-3);
-	font-weight: 510;
+	font-weight: 500;
 }
 .sh-menu__group[open] > summary::after {
 	content: '−';
@@ -341,133 +404,114 @@
 	/* Sit above Starlight's fixed "On this page" column when scrolled to the bottom. */
 	position: relative;
 	z-index: 2;
-	container-type: inline-size;
 	margin-top: 6rem;
-	padding: 4rem clamp(1rem, 4vw, 3rem) 2rem;
+	padding: 4rem 1.5rem 2rem;
 	border-top: 1px solid var(--sh-border);
 	background: var(--sh-bg);
-	font-size: 0.8125rem;
+	font-size: 0.875rem;
 }
 .sh-footer__inner {
-	max-width: 72rem;
+	max-width: 69rem;
 	margin-inline: auto;
 }
 .sh-footer a {
 	text-decoration: none;
 }
-.sh-footer__brand {
-	max-width: 38rem;
-	margin-bottom: 2.75rem;
+.sh-footer__top {
+	display: grid;
+	gap: 2.5rem;
+}
+@media (min-width: 48rem) {
+	.sh-footer__top {
+		grid-template-columns: 1.2fr 3fr;
+	}
 }
 .sh-footer__logo {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.6rem;
+	gap: 0.5rem;
 	color: var(--sh-text);
-	font-size: var(--sl-text-lg);
-	font-weight: 590;
-	letter-spacing: -0.018em;
+	font-size: 0.9375rem;
+	font-weight: 500;
 }
 .sh-footer__brand > p {
-	margin: 0.75rem 0 0;
-	color: var(--sl-color-gray-3);
+	max-width: 20rem;
+	margin: 1rem 0 0;
+	color: var(--sh-muted);
 	line-height: 1.6;
 }
 .sh-footer__badges {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 0.4rem;
-	list-style: none;
-	padding: 0;
+	gap: 0.375rem;
+	max-width: 20rem;
 	margin: 1rem 0 0;
+	padding: 0;
+	list-style: none;
 }
 .sh-footer__badges li {
-	padding: 0.15rem 0.55rem;
+	padding: 0.125rem 0.5rem;
 	border: 1px solid var(--sh-border);
-	border-radius: 6px;
+	border-radius: 999px;
 	color: var(--sh-muted);
-	font-size: var(--sl-text-xs);
-	font-weight: 510;
+	font-size: 11px;
 }
-.sh-footer__badges li:first-child {
-	border-color: transparent;
-	background: var(--sl-color-accent-low);
-	color: var(--sl-color-accent-high);
-}
-.sh-footer__actions {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0.6rem;
+.sh-footer__star {
 	margin-top: 1.25rem;
 }
-.sh-footer__btn {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.45rem;
-	height: 2rem;
-	padding: 0 0.85rem;
-	border: 1px solid var(--sh-border-strong);
-	border-radius: 6px;
+.sh-footer__brand > p.sh-footer__support {
+	margin-top: 1.25rem;
+}
+.sh-footer__support a {
 	color: var(--sh-text);
-	font-weight: 510;
-	transition:
-		background-color 140ms ease-out,
-		border-color 140ms ease-out;
+	text-underline-offset: 4px;
 }
-.sh-footer__btn:hover {
-	background: var(--sh-hover);
-	color: var(--sh-text);
+.sh-footer__support a:hover {
+	text-decoration: underline;
 }
-.sh-footer__btn--primary {
-	border-color: transparent;
-	background: var(--sl-color-accent);
-	color: #fff;
-}
-.sh-footer__btn--primary:hover {
-	color: #fff;
-	background: #8b7dff;
-}
-
 .sh-footer__grid {
-	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	grid-auto-flow: row dense;
-	gap: 2.25rem 1.5rem;
-}
-.sh-footer__col.span-2,
-.sh-footer__col.span-3 {
-	grid-column: 1 / -1;
-}
-.sh-footer__col.span-2 ul,
-.sh-footer__col.span-3 ul {
 	columns: 2;
-	column-gap: 1.5rem;
+	column-gap: 2rem;
+}
+@media (min-width: 40rem) {
+	.sh-footer__grid {
+		columns: 3;
+	}
+}
+@media (min-width: 64rem) {
+	.sh-footer__grid {
+		columns: 4;
+	}
+}
+.sh-footer__col {
+	break-inside: avoid;
+	margin-bottom: 2rem;
 }
 .sh-footer__heading {
 	margin: 0 0 0.75rem;
-	font-size: 0.8125rem;
-	font-weight: 510;
-	letter-spacing: -0.003em;
+	font-size: 0.875rem;
+	font-weight: 500;
 	color: var(--sh-text);
 }
 .sh-footer__heading a {
 	color: inherit;
 }
 .sh-footer__heading a:hover {
-	color: var(--sl-color-accent-high);
+	color: var(--sh-accent-text);
 }
 .sh-footer__col ul {
 	list-style: none;
 	margin: 0;
 	padding: 0;
 }
-.sh-footer__col li {
-	break-inside: avoid;
-	padding: 0.2rem 0;
-	line-height: 1.4;
+.sh-footer__col li + li {
+	margin-top: 0.5rem;
 }
 .sh-footer__col li a {
+	display: inline-block;
 	color: var(--sh-muted);
+	font-size: 0.8125rem;
+	line-height: 1.35;
 	transition: color 140ms ease-out;
 }
 .sh-footer__col li a:hover {
@@ -475,8 +519,7 @@
 }
 .sh-footer__bottom {
 	display: flex;
-	flex-wrap: wrap;
-	justify-content: space-between;
+	flex-direction: column;
 	gap: 0.5rem 2rem;
 	margin-top: 3rem;
 	padding-top: 1.5rem;
@@ -485,50 +528,28 @@
 	font-size: 0.75rem;
 	line-height: 1.6;
 }
+@media (min-width: 48rem) {
+	.sh-footer__bottom {
+		flex-direction: row;
+		justify-content: space-between;
+	}
+}
 .sh-footer__bottom p {
 	margin: 0;
-	max-width: 40rem;
 }
 .sh-footer__bottom a {
-	color: var(--sl-color-gray-2);
+	color: var(--sh-muted);
 	text-decoration: underline;
 	text-underline-offset: 2px;
 }
-
-@container (min-width: 40rem) {
-	.sh-footer__grid {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-	}
-	.sh-footer__col.span-2 {
-		grid-column: span 2;
-	}
-	.sh-footer__col.span-3 ul {
-		columns: 3;
-	}
-}
-@container (min-width: 64rem) {
-	.sh-footer__grid {
-		grid-template-columns: repeat(5, minmax(0, 1fr));
-	}
-	.sh-footer__col.span-3 {
-		grid-column: span 3;
-	}
+.sh-footer__bottom a:hover {
+	color: var(--sh-text);
 }
 
 @media (prefers-reduced-motion: reduce) {
 	.sh-caret {
 		transition: none;
 	}
-}
-
-.sh-footer__support {
-	margin: 0.9rem 0 0;
-	font-size: var(--sl-text-sm);
-	color: var(--sl-color-gray-3);
-}
-.sh-footer__support a {
-	color: var(--sl-color-text-accent);
-	font-weight: 510;
 }
 
 /* The buyer CTA in the header bar (the menu panel carries it on narrow screens). */
@@ -546,4 +567,51 @@
 	.sh-header__cta {
 		display: block;
 	}
+}
+
+/* Compact header controls: the theme picker shows only its icon, and the search box shrinks
+   to an icon button until there is room for the full field. */
+.sh-header__right starlight-theme-select label {
+	--sl-select-width: 2rem;
+}
+.sh-header__right starlight-theme-select select {
+	padding-inline: 0;
+	color: transparent;
+	cursor: pointer;
+}
+.sh-header__right starlight-theme-select select option {
+	color: var(--sh-text);
+	background: var(--sh-panel);
+}
+.sh-header__right starlight-theme-select .caret {
+	display: none;
+}
+.sh-header__right starlight-theme-select .label-icon {
+	inset-inline-start: 0.55rem;
+	pointer-events: none;
+	color: var(--sh-muted);
+}
+@media (min-width: 50rem) and (max-width: 87.99rem) {
+	.sh-header__search {
+		flex: 1 1 auto;
+	}
+	.sh-header__search site-search {
+		width: auto;
+	}
+	.sh-header__search site-search button[data-open-modal] {
+		width: 2rem;
+		padding: 0;
+		justify-content: center;
+	}
+	.sh-header__search site-search button[data-open-modal] > :not(svg) {
+		display: none !important;
+	}
+}
+
+/* The ⌘K hint doesn't fit the compact search box and would overlap the theme picker. */
+.sh-header__search site-search kbd {
+	display: none !important;
+}
+.sh-header__search site-search button[data-open-modal] {
+	overflow: hidden;
 }

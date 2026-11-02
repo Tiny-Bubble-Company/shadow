@@ -28,7 +28,7 @@ const estimatorTiers = JSON.stringify(HUB_TIERS.map((t) => ({ id: t.id, name: t.
 					<button type="button" data-billing-set="annual" aria-pressed="true">Annual</button>
 					<button type="button" data-billing-set="monthly" aria-pressed="false">Monthly</button>
 				</div>
-				<p class="sh-pricing__hint">Prices per monitored user per month, in USD. Hub is in early access: plans and prices may change.</p>
+				<p class="sh-pricing__hint">Prices per monitored user per month, in USD. Plans and prices may change.</p>
 			</div>
 		)
 	}
@@ -152,7 +152,7 @@ const estimatorTiers = JSON.stringify(HUB_TIERS.map((t) => ({ id: t.id, name: t.
 		display: inline-flex;
 		padding: 3px;
 		border: 1px solid var(--sh-border);
-		border-radius: 8px;
+		border-radius: var(--sh-radius);
 		background: var(--sh-panel);
 	}
 	.sh-pricing__toggle button {
@@ -160,11 +160,11 @@ const estimatorTiers = JSON.stringify(HUB_TIERS.map((t) => ({ id: t.id, name: t.
 		background: transparent;
 		color: var(--sh-muted);
 		font: inherit;
-		font-weight: 510;
+		font-weight: 500;
 		font-size: 0.8125rem;
 		transition: color 140ms ease-out, background-color 140ms ease-out;
 		padding: 0.3rem 0.9rem;
-		border-radius: 6px;
+		border-radius: calc(var(--sh-radius) - 2px);
 		cursor: pointer;
 	}
 	.sh-pricing__toggle button[aria-pressed='true'] {
@@ -188,22 +188,22 @@ const estimatorTiers = JSON.stringify(HUB_TIERS.map((t) => ({ id: t.id, name: t.
 		display: flex;
 		flex-direction: column;
 		gap: 0.4rem;
-		padding: 1.25rem 1.25rem 1.35rem;
+		padding: 1.5rem;
 		border: 1px solid var(--sh-border);
-		border-radius: 12px;
+		border-radius: calc(var(--sh-radius) + 4px);
 		background: var(--sh-panel);
 	}
 	.sh-tier.is-featured {
 		border-color: color-mix(in srgb, var(--sh-accent) 55%, transparent);
 		background:
-			radial-gradient(18rem 10rem at 50% 0%, rgba(124, 108, 255, 0.1), transparent 70%),
+			radial-gradient(18rem 10rem at 50% 0%, color-mix(in oklab, var(--sh-accent) 10%, transparent), transparent 70%),
 			var(--sh-panel);
-		box-shadow: 0 24px 70px -36px rgba(124, 108, 255, 0.5);
+		box-shadow: 0 24px 70px -36px var(--shadow-glow);
 	}
 	.sh-tier h3 {
 		margin: 0;
 		font-size: 0.9375rem;
-		font-weight: 590;
+		font-weight: 500;
 		letter-spacing: -0.012em;
 	}
 	.sh-tier__size,
@@ -217,9 +217,10 @@ const estimatorTiers = JSON.stringify(HUB_TIERS.map((t) => ({ id: t.id, name: t.
 		display: grid;
 	}
 	.sh-tier__amount {
+		font-family: var(--sl-font-mono);
 		font-size: 2rem;
-		font-weight: 590;
-		letter-spacing: -0.022em;
+		font-weight: 500;
+		letter-spacing: -0.035em;
 		color: var(--sh-text);
 	}
 	.sh-tier ul {
@@ -237,14 +238,14 @@ const estimatorTiers = JSON.stringify(HUB_TIERS.map((t) => ({ id: t.id, name: t.
 		display: inline-flex;
 		justify-content: center;
 		align-items: center;
-		min-height: 2.3rem;
+		min-height: 2.25rem;
 		border: 1px solid var(--sh-border-strong);
-		border-radius: 6px;
+		border-radius: calc(var(--sh-radius) - 2px);
 		background: transparent;
 		color: var(--sh-text);
 		font: inherit;
-		font-weight: 510;
-		font-size: 0.8125rem;
+		font-weight: 500;
+		font-size: 0.875rem;
 		text-decoration: none;
 		cursor: pointer;
 		transition: background-color 140ms ease-out, border-color 140ms ease-out;
@@ -255,7 +256,7 @@ const estimatorTiers = JSON.stringify(HUB_TIERS.map((t) => ({ id: t.id, name: t.
 	.sh-tier__btn.is-primary {
 		background: var(--sh-accent);
 		border-color: var(--sh-accent);
-		color: #fff;
+		color: var(--sh-on-accent);
 	}
 	.sh-tier__btn.is-primary:hover {
 		background: var(--sh-accent-hover);
@@ -271,7 +272,7 @@ const estimatorTiers = JSON.stringify(HUB_TIERS.map((t) => ({ id: t.id, name: t.
 		margin: 1rem 0;
 		padding: 1.1rem 1.25rem;
 		border: 1px solid var(--sh-border);
-		border-radius: 12px;
+		border-radius: calc(var(--sh-radius) + 4px);
 		background: var(--sh-panel);
 		display: grid;
 		gap: 0.5rem;
@@ -282,7 +283,7 @@ const estimatorTiers = JSON.stringify(HUB_TIERS.map((t) => ({ id: t.id, name: t.
 	}
 	.sh-estimator__result {
 		margin: 0;
-		font-weight: 510;
+		font-weight: 500;
 	}
 	.sh-anchor {
 		position: absolute;

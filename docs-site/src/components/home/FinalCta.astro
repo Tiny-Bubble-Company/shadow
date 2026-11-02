@@ -1,6 +1,5 @@
 ---
-import { Icon } from '@astrojs/starlight/components';
-import { LINKS } from './links';
+import { LINKS, href } from './links';
 import { SUPPORT_EMAIL } from '../../site.mjs';
 
 const next = [
@@ -10,32 +9,30 @@ const next = [
 ];
 ---
 
-<section class="hp-cta not-content" aria-labelledby="get-started">
-	<div class="hp-cta__copy">
-		<h2 id="get-started">Keep using AI. Keep your data.</h2>
-		<p>Free and open source under Apache-2.0. One binary, no account, nothing to sign up for.</p>
-		<p class="hp-cta__support">Questions? Email <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.</p>
-		<div class="hp-cta__actions">
-			<a class="hp-btn hp-btn--primary" href={LINKS.quickStart}>
-				Get started <Icon name="right-arrow" size="1.1rem" />
-			</a>
-			<a class="hp-btn hp-btn--ghost" href={LINKS.repo} rel="noopener">
-				<Icon name="github" size="1.1rem" /> Star on GitHub
-			</a>
+<section class="hp-sec hp-final reveal not-content" aria-labelledby="get-started">
+	<div class="hp-final__wash" aria-hidden="true"></div>
+	<div class="hp-wrap hp-final__inner">
+		<img src={href('/favicon.svg')} alt="" width="56" height="56" />
+		<h2 id="get-started" class="text-fade">Keep using AI. Keep your data.</h2>
+		<p class="hp-final__lead">Free and open source under Apache-2.0. One binary, no account, nothing to sign up for.</p>
+		<p class="hp-final__support">Questions? Email <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.</p>
+		<div class="hp-actions">
+			<a class="sh-btn sh-btn--fg" href={LINKS.quickStart}>Get started</a>
+			<a class="sh-btn sh-btn--surface" href={LINKS.repo} rel="noopener">Star on GitHub</a>
 		</div>
+		<ul class="hp-next">
+			{
+				next.map((n) => (
+					<li>
+						<a class="surface" href={n.link}>
+							<strong>
+								{n.title} <span aria-hidden="true">→</span>
+							</strong>
+							<span>{n.text}</span>
+						</a>
+					</li>
+				))
+			}
+		</ul>
 	</div>
-	<ul class="hp-cta__next">
-		{
-			next.map((n) => (
-				<li>
-					<a href={n.link}>
-						<strong>
-							{n.title} <span aria-hidden="true">→</span>
-						</strong>
-						<span>{n.text}</span>
-					</a>
-				</li>
-			))
-		}
-	</ul>
 </section>

@@ -1,26 +1,25 @@
 ---
-// Site-wide footer (home + docs), rendered by PageFrame.astro below every page.
+// Site-wide footer (home + docs), rendered by PageFrame.astro below every page: the brand
+// blurb, GitHub and support on the left, the site map in balanced CSS columns on the right.
 // Lists come from the docs collection via src/nav/site-nav.ts.
-import { Icon } from '@astrojs/starlight/components';
 import { ORG_NAME, ORG_URL, REPO_URL, SUPPORT_EMAIL } from '../site.mjs';
 import { RESOURCE_LINKS, mainNav, sectionGroups, sitePath, type NavGroup } from '../nav/site-nav';
-import HubCta from './HubCta.astro';
 
 const groups = await sectionGroups();
 const nav = await mainNav();
 const g = (dir: string): NavGroup => groups[dir] ?? { id: dir, label: dir, links: [] };
 
-const columns: (NavGroup & { span?: number })[] = [
+const columns: NavGroup[] = [
 	{ ...nav.product, label: 'Shadow Core' },
 	{ ...nav.hub, label: 'Shadow Hub' },
 	{ ...g('getting-started'), label: 'Get started' },
 	{ ...g('integrate'), label: 'Integrations' },
 	{ ...g('concepts'), label: 'Concepts' },
 	{ ...g('reference'), label: 'Reference' },
-	{ ...g('use-cases'), label: 'Use cases', span: 2 },
+	{ ...g('use-cases'), label: 'Use cases' },
 	{ ...g('company-size'), label: 'By company size' },
-	{ ...g('industries'), label: 'Industries', span: 2 },
-	{ ...g('compare'), label: 'Compare and alternatives', span: 3 },
+	{ ...g('industries'), label: 'Industries' },
+	{ ...g('compare'), label: 'Compare and alternatives' },
 	{ id: 'benchmarks', label: 'Benchmarks', href: sitePath('/benchmarks/'), links: [
 		{ label: 'PII redaction benchmark results', href: sitePath('/benchmarks/') },
 		{ label: 'Shadow vs Presidio accuracy', href: sitePath('/compare/presidio/') },
@@ -35,57 +34,54 @@ const year = new Date().getFullYear();
 
 <footer class="sh-footer not-content" aria-labelledby="site-footer-title">
 	<div class="sh-footer__inner">
-		<div class="sh-footer__brand">
-			<a class="sh-footer__logo" href={sitePath('/')}>
-				<img src={sitePath('/favicon.svg')} alt="Shadow logo: a crescent moon" width="28" height="28" />
-				<span id="site-footer-title">Shadow</span>
-			</a>
-			<p>
-				The free, open-source privacy layer for AI. Shadow swaps names, emails, customer data and secrets for
-				realistic, reversible fakes before prompts reach the OpenAI, Anthropic, Gemini and other LLM APIs, and restores them in the answer.
-			</p>
-			<ul class="sh-footer__badges" aria-label="Project facts">
-				{badges.map((b) => <li>{b}</li>)}
-			</ul>
-			<HubCta location="footer" show={['install', 'hub', 'demo']} primary="install" compact />
-			<div class="sh-footer__actions">
-				<a class="sh-footer__btn" href={REPO_URL} rel="noopener">
-					<Icon name="github" size="1rem" /> Star on GitHub
+		<div class="sh-footer__top">
+			<div class="sh-footer__brand">
+				<a class="sh-footer__logo" href={sitePath('/')}>
+					<img src={sitePath('/favicon.svg')} alt="" width="24" height="24" />
+					<span id="site-footer-title">Shadow</span>
 				</a>
+				<p>
+					The free, open-source privacy layer for AI. Shadow swaps names, emails, customer data and secrets for
+					realistic, reversible fakes before prompts reach the OpenAI, Anthropic, Gemini and other LLM APIs, and
+					restores them in the answer.
+				</p>
+				<ul class="sh-footer__badges" aria-label="Project facts">
+					{badges.map((b) => <li>{b}</li>)}
+				</ul>
+				<a class="sh-btn sh-btn--sm sh-btn--surface sh-footer__star" href={REPO_URL} rel="noopener">
+					<span aria-hidden="true">★</span> Star on GitHub
+				</a>
+				<p class="sh-footer__support">
+					Questions or need help? Email <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+				</p>
 			</div>
-			<p class="sh-footer__support">
-				Questions or need help? Email <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
-			</p>
-		</div>
 
-		<nav class="sh-footer__grid" aria-label="Site map">
-			{
-				columns.map((c) => (
-					<div class:list={['sh-footer__col', c.span && `span-${c.span}`]}>
-						<p class="sh-footer__heading">{c.href ? <a href={c.href}>{c.label}</a> : c.label}</p>
-						<ul>
-							{c.links.map((l) => (
-								<li>
-									<a href={l.href} rel={l.external ? 'noopener' : undefined}>
-										{l.label}
-									</a>
-								</li>
-							))}
-						</ul>
-					</div>
-				))
-			}
-		</nav>
+			<nav class="sh-footer__grid" aria-label="Site map">
+				{
+					columns.map((c) => (
+						<div class="sh-footer__col">
+							<p class="sh-footer__heading">{c.href ? <a href={c.href}>{c.label}</a> : c.label}</p>
+							<ul>
+								{c.links.map((l) => (
+									<li>
+										<a href={l.href} rel={l.external ? 'noopener' : undefined}>
+											{l.label}
+										</a>
+									</li>
+								))}
+							</ul>
+						</div>
+					))
+				}
+			</nav>
+		</div>
 
 		<div class="sh-footer__bottom">
 			<p>
-				© {year} <a href={ORG_URL} rel="noopener">{ORG_NAME}</a>. Shadow is free and open-source software released under
-				the <a href={`${REPO_URL}/blob/main/LICENSE`} rel="noopener">Apache-2.0 licence</a>.
+				© {year} <a href={ORG_URL} rel="noopener">{ORG_NAME}</a>. Shadow is free software under the{' '}
+				<a href={`${REPO_URL}/blob/main/LICENSE`} rel="noopener">Apache-2.0 licence</a>.
 			</p>
-			<p>
-				Product names on comparison pages belong to their owners; Shadow is not affiliated with them. Comparisons are
-				based on public documentation.
-			</p>
+			<p>Product names on comparison pages belong to their owners; Shadow is not affiliated with them.</p>
 		</div>
 	</div>
 </footer>

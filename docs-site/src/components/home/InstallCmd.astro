@@ -1,0 +1,27 @@
+---
+// The one-line Core install command in a surface box with a copy button. The command stays
+// selectable without JS; the copy itself is handled by src/scripts/track.ts ([data-copy-cmd]).
+import { INSTALL_CMD } from '../../data/hub';
+
+interface Props {
+	/** Show the "$" prompt. */
+	prompt?: boolean;
+	class?: string;
+}
+const { prompt = true, class: className } = Astro.props;
+---
+
+<div class:list={['hp-install surface', className]}>
+	{prompt && <span class="hp-install__prompt" aria-hidden="true">$</span>}
+	<code class="hp-install__cmd">{INSTALL_CMD}</code>
+	<button
+		type="button"
+		class="hp-install__copy"
+		data-copy-cmd={INSTALL_CMD}
+		data-track="install_copy"
+		data-track-props='{"method":"script"}'
+		aria-label="Copy install command"
+	>
+		<span data-copy-label>Copy</span>
+	</button>
+</div>

@@ -91,13 +91,13 @@ const cls = (k: string) => ['sh-cta__btn', k === primary ? 'is-primary' : 'is-se
 		display: inline-flex;
 		align-items: center;
 		gap: 0.4rem;
-		min-height: 2.5rem;
-		padding: 0 1.1rem;
-		border-radius: 6px;
+		min-height: 2.25rem;
+		padding: 0 1rem;
+		border-radius: calc(var(--sh-radius) - 2px);
 		font: inherit;
-		font-weight: 510;
-		font-size: 0.9375rem;
-		letter-spacing: -0.003em;
+		font-weight: 500;
+		font-size: 0.875rem;
+		white-space: nowrap;
 		text-decoration: none;
 		cursor: pointer;
 		border: 1px solid var(--sh-border-strong);
@@ -109,19 +109,21 @@ const cls = (k: string) => ['sh-cta__btn', k === primary ? 'is-primary' : 'is-se
 	}
 	.sh-cta__btn:hover {
 		background: var(--sh-hover);
+		color: var(--sh-text);
 	}
 	.sh-cta__btn.is-primary {
 		background: var(--sh-accent);
 		border-color: var(--sh-accent);
-		color: #fff;
+		color: var(--sh-on-accent);
 	}
 	.sh-cta__btn.is-primary:hover {
 		background: var(--sh-accent-hover);
 		border-color: var(--sh-accent-hover);
+		color: var(--sh-on-accent);
 	}
 	.sh-cta.is-compact .sh-cta__btn {
 		min-height: 2rem;
 		padding: 0 0.75rem;
-		font-size: 0.8125rem;
+		font-size: 0.875rem;
 	}
 </style>

@@ -13,6 +13,7 @@ export function href(path: string): string {
 
 export const LINKS = {
 	quickStart: href('/getting-started/quick-start/'),
+	hub: href('/hub/'),
 	installation: href('/getting-started/installation/'),
 	introduction: href('/getting-started/introduction/'),
 	howItWorks: href('/concepts/how-it-works/'),

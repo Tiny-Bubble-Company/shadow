@@ -1,21 +1,50 @@
 ---
-// A home page section: eyebrow, heading, lead paragraph and content.
+// A home page section: full-width hairline on top, a 72rem column, eyebrow, heading and
+// optional lead, then the content. Sections fade in on scroll (.reveal); the hidden state
+// only applies under html.js and never with prefers-reduced-motion, so content is always
+// visible without JavaScript.
 interface Props {
 	id: string;
 	eyebrow?: string;
 	title: string;
 	lead?: string;
-	align?: 'center' | 'start';
 	class?: string;
 }
-const { id, eyebrow, title, lead, align = 'center', class: className } = Astro.props;
+const { id, eyebrow, title, lead, class: className } = Astro.props;
+const headingId = `${id}-title`;
 ---
 
-<section class:list={['hp-section', 'not-content', `hp-section--${align}`, className]} aria-labelledby={id}>
-	<header class="hp-section__head">
-		{eyebrow && <p class="hp-eyebrow">{eyebrow}</p>}
-		<h2 id={id}>{title}</h2>
-		{lead && <p class="hp-lead" set:html={lead} />}
-	</header>
-	<slot />
+<section id={id} class:list={['hp-sec', 'reveal', 'not-content', className]} aria-labelledby={headingId}>
+	<div class="hp-wrap">
+		<header class="hp-head">
+			{eyebrow && <p class="hp-eyebrow">{eyebrow}</p>}
+			<h2 id={headingId} class="hp-h2 text-fade">
+				{title}
+			</h2>
+			{lead && <p class="hp-lead">{lead}</p>}
+		</header>
+		<slot />
+	</div>
 </section>
+
+<script>
+	// Scroll reveal: add .reveal-in once a section is a little way into the viewport.
+	const sections = document.querySelectorAll<HTMLElement>('.reveal');
+	const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+	if (reduce || !('IntersectionObserver' in window)) {
+		sections.forEach((s) => s.classList.add('reveal-in'));
+	} else {
+		const io = new IntersectionObserver(
+			(entries) => {
+				for (const e of entries) {
+					if (e.isIntersecting) {
+						e.target.classList.add('reveal-in');
+						io.unobserve(e.target);
+					}
+				}
+			},
+			{ rootMargin: '0px 0px -12% 0px', threshold: 0.05 },
+		);
+		sections.forEach((s) => io.observe(s));
+	}
+</script>

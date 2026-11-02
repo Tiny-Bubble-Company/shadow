@@ -1,0 +1,185 @@
+---
+// "Mask · restore" demo: what you type, what the provider sees, what you get back. Rendered
+// complete on the server (the no-JS and reduced-motion state); with JS it plays as a loop
+// once in view: type and detect, mask, then restore in the answer.
+type Seg = string | { v: string; tag?: string };
+const cards: { label: string; where: string; whereAccent?: boolean; kind: 'real' | 'fake'; segs: Seg[]; busy: string; done: string }[] = [
+	{
+		label: '1 · You ask',
+		where: 'Your machine',
+		kind: 'real',
+		busy: 'Detecting…',
+		done: '4 values found',
+		segs: [
+			'Summarise this discharge note for the ward handover: ',
+			{ v: 'Maria Lopez', tag: 'NAME' },
+			', NHS ',
+			{ v: '943 476 5919', tag: 'NHS' },
+			', admitted with chest pain, troponin normal, seen by ',
+			{ v: 'Dr Amara Okafor', tag: 'NAME' },
+			'. Family contact ',
+			{ v: '+44 7700 900123', tag: 'PHONE' },
+			'.',
+		],
+	},
+	{
+		label: '2 · The provider sees',
+		where: 'OpenAI · Anthropic',
+		whereAccent: true,
+		kind: 'fake',
+		busy: 'Masking…',
+		done: 'Sent, 0 real values',
+		segs: [
+			'Summarise this discharge note for the ward handover: ',
+			{ v: 'Mei Lin', tag: 'masked' },
+			', NHS ',
+			{ v: '401 023 2137', tag: 'masked' },
+			', admitted with chest pain, troponin normal, seen by ',
+			{ v: 'Dr Wei Zhang', tag: 'masked' },
+			'. Family contact ',
+			{ v: '+44 7700 900456', tag: 'masked' },
+			'.',
+		],
+	},
+	{
+		label: '3 · You get back',
+		where: 'Your machine',
+		kind: 'real',
+		busy: 'Restoring…',
+		done: 'Originals restored',
+		segs: [
+			'Handover: ',
+			{ v: 'Maria Lopez' },
+			' (NHS ',
+			{ v: '943 476 5919' },
+			'), chest pain, troponin normal. Reviewed by ',
+			{ v: 'Dr Amara Okafor' },
+			'. Update family on ',
+			{ v: '+44 7700 900123' },
+			'.',
+		],
+	},
+];
+---
+
+<div class="hp-demo" data-demo>
+	{
+		cards.map((c) => (
+			<div class:list={['hp-demo__card surface', `is-${c.kind}`]} data-demo-card data-segs={JSON.stringify(c.segs)} data-busy={c.busy} data-done={c.done}>
+				<div class="hp-demo__head">
+					<span>{c.label}</span>
+					<span class:list={{ 'is-accent': c.whereAccent }}>{c.where}</span>
+				</div>
+				<p class="hp-demo__text" data-demo-text>
+					{c.segs.map((s) =>
+						typeof s === 'string' ? (
+							s
+						) : (
+							<mark>
+								{s.v}
+								{s.tag && <span class="hp-demo__tag">{s.tag}</span>}
+							</mark>
+						),
+					)}
+				</p>
+				<div class="hp-demo__status">
+					<span class="hp-demo__dot" />
+					<span data-demo-status>{c.done}</span>
+				</div>
+			</div>
+		))
+	}
+</div>
+
+<script>
+	type Seg = string | { v: string; tag?: string };
+	const root = document.querySelector<HTMLElement>('[data-demo]');
+	const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+	if (root && !reduce) {
+		const cards = [...root.querySelectorAll<HTMLElement>('[data-demo-card]')].map((el) => ({
+			el,
+			text: el.querySelector<HTMLElement>('[data-demo-text]')!,
+			status: el.querySelector<HTMLElement>('[data-demo-status]')!,
+			segs: JSON.parse(el.dataset.segs || '[]') as Seg[],
+			busy: el.dataset.busy || '',
+			done: el.dataset.done || '',
+		}));
+		const total = (segs: Seg[]) => segs.reduce((n, s) => n + (typeof s === 'string' ? s : s.v).length, 0);
+
+		/** Render the first `n` characters of a card's segments. */
+		const render = (card: (typeof cards)[number], n: number, caret: boolean) => {
+			const frag = document.createDocumentFragment();
+			let left = n;
+			for (const s of card.segs) {
+				if (left <= 0) break;
+				const str = typeof s === 'string' ? s : s.v;
+				const part = str.slice(0, left);
+				left -= part.length;
+				if (typeof s === 'string') frag.append(part);
+				else {
+					const m = document.createElement('mark');
+					m.append(part);
+					if (s.tag) {
+						const t = document.createElement('span');
+						t.className = 'hp-demo__tag tag-pop';
+						t.textContent = s.tag;
+						m.append(t);
+					}
+					frag.append(m);
+				}
+			}
+			if (caret) {
+				const c = document.createElement('span');
+				c.className = 'caret';
+				frag.append(c);
+			}
+			card.text.replaceChildren(frag);
+		};
+
+		const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+		let visible = false;
+		const waitVisible = async () => {
+			while (!visible) await sleep(250);
+		};
+
+		const play = async () => {
+			// Keep each card at its finished height so typing never shifts the page.
+			cards.forEach((c) => (c.text.style.minHeight = `${c.text.offsetHeight}px`));
+			window.addEventListener('resize', () =>
+				cards.forEach((c) => {
+					c.text.style.minHeight = '';
+				}),
+			);
+			for (;;) {
+				await waitVisible();
+				cards.forEach((c) => {
+					c.el.classList.remove('is-active');
+					c.el.classList.add('is-idle');
+					c.text.replaceChildren();
+					c.status.textContent = 'Waiting';
+					c.el.classList.remove('is-busy');
+				});
+				await sleep(400);
+				for (const c of cards) {
+					c.el.classList.add('is-active', 'is-busy');
+					c.el.classList.remove('is-idle');
+					c.status.textContent = c.busy;
+					const len = total(c.segs);
+					for (let i = 0; i <= len; i += 2) {
+						render(c, i, true);
+						await sleep(28);
+					}
+					render(c, len, false);
+					c.status.textContent = c.done;
+					c.el.classList.remove('is-busy');
+					await sleep(900);
+					c.el.classList.remove('is-active');
+				}
+				await sleep(2600);
+			}
+		};
+
+		new IntersectionObserver(([e]) => (visible = e!.isIntersecting), { threshold: 0.25 }).observe(root);
+		play();
+	}
+</script>

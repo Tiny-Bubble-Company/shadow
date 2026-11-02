@@ -1,59 +1,64 @@
-/* Shadow docs theme: Linear-style typography, surfaces and hairlines in Shadow's colours
-   (accent #7c6cff, ok #1fae8a, danger #ef4f6b, warn #d48a1e). Inter Variable is self-hosted
-   via @fontsource-variable/inter (listed first in astro.config.mjs customCss). */
+/* Shadow site theme: tokens, typography and Starlight overrides (home and docs).
+   Colours are the design system's oklch tokens (violet primary, hue 285); dark is the hero theme.
+   Fonts: Geist and Geist Mono, self-hosted from @fontsource-variable/geist and
+   @fontsource-variable/geist-mono (listed first in astro.config.mjs customCss). No font CDN. */
 
 :root {
-	--sl-font: 'Inter Variable', Inter, 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+	--sl-font: 'Geist Variable', Geist, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
 		Roboto, 'Helvetica Neue', Arial, sans-serif;
-	--sl-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono',
-		monospace;
-	--sl-nav-height: 4rem;
+	--sl-font-mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas,
+		'Liberation Mono', monospace;
+	--sl-nav-height: 3.5rem;
 	--sl-line-height: 1.65;
 	--sl-line-height-headings: 1.15;
-	--shadow-glow: rgba(124, 108, 255, 0.22);
-
-	/* Shared Shadow tokens (dark is the hero theme) */
-	--sh-accent: #7c6cff;
-	--sh-accent-hover: #8b7dff;
-	--sh-accent-soft: rgba(124, 108, 255, 0.12);
-	--sh-ok: #1fae8a;
-	--sh-danger: #ef4f6b;
-	--sh-warn: #d48a1e;
-	--sh-focus: 0 0 0 2px rgba(124, 108, 255, 0.45);
-	--sh-bg: #08090a;
-	--sh-panel: #0f1011;
-	--sh-raised: #141516;
-	--sh-sidebar: #0b0c0d;
-	--sh-border: rgba(255, 255, 255, 0.08);
-	--sh-border-strong: rgba(255, 255, 255, 0.12);
-	--sh-hover: rgba(255, 255, 255, 0.05);
-	--sh-text: #f7f8f8;
-	--sh-muted: #8a8f98;
-	--sh-faint: #62666d;
+	--sh-radius: 0.625rem;
 	--sh-ease: 140ms ease-out;
 }
 
-/* Dark mode (default) */
+/* Dark mode (default): the design's .dark tokens */
 :root,
 ::backdrop {
-	--sl-color-accent-low: #1d1838;
-	--sl-color-accent: #7c6cff;
-	--sl-color-accent-high: #c9c1ff;
-	--sl-color-white: #f7f8f8;
-	--sl-color-gray-1: #e2e4e7;
-	--sl-color-gray-2: #b4b8bf;
-	--sl-color-gray-3: #8a8f98;
-	--sl-color-gray-4: #62666d;
-	--sl-color-gray-5: #26272a;
-	--sl-color-gray-6: #141516;
-	--sl-color-black: #08090a;
-	--sl-color-green-high: #5fd3b0;
-	--sl-color-green: #1fae8a;
-	--sl-color-red: #ef4f6b;
-	--sl-color-orange: #d48a1e;
+	--sh-bg: oklch(13% 0.012 285);
+	--sh-text: oklch(96% 0.006 285);
+	--sh-panel: oklch(18.5% 0.013 285); /* card */
+	--sh-raised: oklch(22% 0.013 285); /* secondary */
+	--sh-muted-bg: oklch(23% 0.013 285); /* muted */
+	--sh-hover: oklch(25% 0.014 285); /* accent (hover surface) */
+	--sh-muted: oklch(70% 0.015 285); /* muted-foreground */
+	--sh-faint: oklch(58% 0.015 285); /* subtle */
+	--sh-border: oklch(96% 0.006 285 / 0.1);
+	--sh-border-strong: oklch(96% 0.006 285 / 0.16); /* input */
+	--sh-sidebar: var(--sh-bg);
+	--sh-accent: oklch(64% 0.19 285); /* primary */
+	--sh-accent-hover: oklch(69% 0.17 285);
+	--sh-accent-text: oklch(76% 0.12 285); /* primary-soft */
+	--sh-accent-soft: color-mix(in oklab, var(--sh-accent) 15%, transparent);
+	--sh-on-accent: oklch(99% 0 0);
+	--sh-ok: oklch(70% 0.14 155);
+	--sh-danger: oklch(66% 0.19 25);
+	--sh-warn: oklch(75% 0.15 70);
+	--sh-focus: 0 0 0 2px color-mix(in oklab, var(--sh-accent) 55%, transparent);
+	--sh-hero-wash: radial-gradient(62% 52% at 50% 0%, color-mix(in oklab, var(--sh-accent) 16%, transparent) 0%, transparent 72%);
+	--shadow-glow: color-mix(in oklab, var(--sh-accent) 22%, transparent);
+
+	--sl-color-accent-low: oklch(26% 0.07 285);
+	--sl-color-accent: var(--sh-accent);
+	--sl-color-accent-high: var(--sh-accent-text);
+	--sl-color-white: var(--sh-text);
+	--sl-color-gray-1: oklch(90% 0.008 285);
+	--sl-color-gray-2: oklch(80% 0.012 285);
+	--sl-color-gray-3: var(--sh-muted);
+	--sl-color-gray-4: var(--sh-faint);
+	--sl-color-gray-5: oklch(30% 0.013 285);
+	--sl-color-gray-6: var(--sh-panel);
+	--sl-color-black: var(--sh-bg);
+	--sl-color-green-high: oklch(82% 0.1 155);
+	--sl-color-green: var(--sh-ok);
+	--sl-color-red: var(--sh-danger);
+	--sl-color-orange: var(--sh-warn);
 
 	--sl-color-bg: var(--sh-bg);
-	--sl-color-bg-nav: rgba(8, 9, 10, 0.72);
+	--sl-color-bg-nav: color-mix(in oklab, var(--sh-bg) 80%, transparent);
 	--sl-color-bg-sidebar: var(--sh-sidebar);
 	--sl-color-bg-inline-code: var(--sh-raised);
 	--sl-color-hairline-light: var(--sh-border-strong);
@@ -61,42 +66,60 @@
 	--sl-color-hairline-shade: var(--sh-border);
 }
 
-/* Light mode */
+/* Light mode: the design's :root tokens */
 :root[data-theme='light'],
 [data-theme='light'] ::backdrop {
-	--sl-color-accent-low: #ecebff;
-	--sl-color-accent: #5a48e8;
-	--sl-color-accent-high: #3a2bb8;
-	--sl-color-white: #0f1011;
-	--sl-color-gray-1: #1f2023;
-	--sl-color-gray-2: #3c3f44;
-	--sl-color-gray-3: #62666d;
-	--sl-color-gray-4: #8a8f98;
-	--sl-color-gray-5: #e6e6e9;
-	--sl-color-gray-6: #f3f3f5;
-	--sl-color-gray-7: #f7f8f9;
-	--sl-color-black: #ffffff;
-	--sl-color-green-high: #0b7a5f;
-	--sl-color-green: #1fae8a;
-	--shadow-glow: rgba(90, 72, 232, 0.12);
+	--sh-bg: oklch(100% 0 0);
+	--sh-text: oklch(16% 0.012 285);
+	--sh-panel: oklch(100% 0 0);
+	--sh-raised: oklch(96.5% 0.005 285);
+	--sh-muted-bg: oklch(95.5% 0.006 285);
+	--sh-hover: oklch(95.5% 0.006 285);
+	--sh-muted: oklch(50% 0.015 285);
+	--sh-faint: oklch(55% 0.015 285);
+	--sh-border: oklch(16% 0.012 285 / 0.09);
+	--sh-border-strong: oklch(16% 0.012 285 / 0.14);
+	--sh-sidebar: oklch(98.5% 0.003 285);
+	--sh-accent: oklch(62% 0.19 285);
+	--sh-accent-hover: oklch(57% 0.19 285);
+	--sh-accent-text: oklch(52% 0.19 285);
+	--sh-accent-soft: color-mix(in oklab, var(--sh-accent) 11%, transparent);
+	--sh-ok: oklch(60% 0.15 155);
+	--sh-danger: oklch(58% 0.21 25);
+	--sh-warn: oklch(62% 0.15 65);
+	--sh-hero-wash: radial-gradient(60% 50% at 50% 0%, color-mix(in oklab, var(--sh-accent) 7%, transparent) 0%, transparent 70%);
+	--shadow-glow: color-mix(in oklab, var(--sh-accent) 12%, transparent);
 
-	--sh-bg: #ffffff;
-	--sh-panel: #ffffff;
-	--sh-raised: #f7f8f9;
-	--sh-sidebar: #f7f8f9;
-	--sh-border: rgba(0, 0, 0, 0.08);
-	--sh-border-strong: rgba(0, 0, 0, 0.12);
-	--sh-hover: rgba(0, 0, 0, 0.04);
-	--sh-text: #0f1011;
-	--sh-muted: #62666d;
-	--sh-faint: #8a8f98;
+	--sl-color-accent-low: oklch(94% 0.035 285);
+	--sl-color-accent: var(--sh-accent-text);
+	--sl-color-accent-high: oklch(40% 0.17 285);
+	--sl-color-white: var(--sh-text);
+	--sl-color-gray-1: oklch(25% 0.012 285);
+	--sl-color-gray-2: oklch(36% 0.014 285);
+	--sl-color-gray-3: var(--sh-muted);
+	--sl-color-gray-4: oklch(66% 0.012 285);
+	--sl-color-gray-5: oklch(91% 0.006 285);
+	--sl-color-gray-6: var(--sh-muted-bg);
+	--sl-color-gray-7: oklch(98% 0.003 285);
+	--sl-color-black: var(--sh-bg);
+	--sl-color-green-high: oklch(45% 0.12 155);
+	--sl-color-green: var(--sh-ok);
 
-	--sl-color-bg-nav: rgba(255, 255, 255, 0.78);
+	--sl-color-bg-nav: color-mix(in oklab, var(--sh-bg) 80%, transparent);
 	--sl-color-bg-sidebar: var(--sh-sidebar);
 	--sl-color-bg-inline-code: var(--sh-raised);
 	--sl-color-hairline-light: var(--sh-border-strong);
 	--sl-color-hairline: var(--sh-border);
 	--sl-color-hairline-shade: var(--sh-border);
+}
+
+/* Shared utilities from the design system */
+.surface {
+	background: var(--sh-panel);
+	border: 1px solid var(--sh-border);
+}
+.text-fade {
+	color: var(--sh-text);
 }
 
 /* ---------- Base typography ---------- */
@@ -107,11 +130,9 @@ html {
 }
 body {
 	background-color: var(--sh-bg);
-	font-feature-settings: 'cv01', 'ss03';
-	letter-spacing: -0.003em;
 }
 ::selection {
-	background: rgba(124, 108, 255, 0.32);
+	background: color-mix(in oklab, var(--sh-accent) 32%, transparent);
 }
 :focus-visible {
 	outline: none;
@@ -125,28 +146,25 @@ h3,
 h4,
 h5,
 .sl-markdown-content :is(h1, h2, h3, h4, h5) {
-	font-weight: 590;
+	font-weight: 500;
 	color: var(--sl-color-white);
 }
+/* Headings: medium weight, tight tracking, foreground colour (the design's text-fade) */
 .sl-markdown-content h1,
 h1#_top {
-	letter-spacing: -0.022em;
+	font-weight: 500;
+	letter-spacing: -0.035em;
+	line-height: 1.08;
 }
 .sl-markdown-content h2 {
-	letter-spacing: -0.018em;
+	letter-spacing: -0.03em;
 	padding-top: 0.25rem;
 }
 .sl-markdown-content :is(h3, h4) {
-	letter-spacing: -0.012em;
-}
-h1#_top {
-	background: linear-gradient(180deg, var(--sl-color-white) 45%, color-mix(in srgb, var(--sl-color-white) 74%, transparent));
-	-webkit-background-clip: text;
-	background-clip: text;
-	color: transparent;
+	letter-spacing: -0.02em;
 }
 .sl-markdown-content strong {
-	font-weight: 590;
+	font-weight: 600;
 	color: var(--sl-color-white);
 }
 .sl-markdown-content a:not(:where(.not-content *)) {
@@ -162,22 +180,23 @@ h1#_top {
 	border-color: var(--sh-border);
 }
 
-/* ---------- Header: 64px, blurred translucent bar, hairline ---------- */
+/* ---------- Header: 56px, translucent bar with backdrop blur, hairline ---------- */
 .header {
-	backdrop-filter: saturate(180%) blur(12px);
-	-webkit-backdrop-filter: saturate(180%) blur(12px);
+	backdrop-filter: blur(24px);
+	-webkit-backdrop-filter: blur(24px);
 	border-bottom: 1px solid var(--sh-border);
 }
 .site-title {
-	font-weight: 590;
+	gap: 0.5rem;
+	font-weight: 500;
 	font-size: 0.9375rem;
-	letter-spacing: -0.012em;
+	letter-spacing: -0.01em;
 	color: var(--sh-text);
 }
 site-search button[data-open-modal] {
 	height: 2rem;
 	border: 1px solid var(--sh-border-strong);
-	border-radius: 6px;
+	border-radius: calc(var(--sh-radius) - 4px);
 	background: transparent;
 	color: var(--sh-muted);
 	font-size: 0.8125rem;
@@ -192,7 +211,7 @@ site-search button[data-open-modal]:hover {
 }
 site-search dialog {
 	border: 1px solid var(--sh-border-strong);
-	border-radius: 12px;
+	border-radius: var(--sh-radius);
 	background: var(--sh-panel);
 	box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
 }
@@ -208,7 +227,7 @@ starlight-theme-select select {
 	font-size: 0.8125rem;
 }
 .sidebar-content a {
-	border-radius: 6px;
+	border-radius: calc(var(--sh-radius) - 4px);
 	color: var(--sh-muted);
 	font-weight: 400;
 	padding-block: 0.3em;
@@ -225,11 +244,11 @@ starlight-theme-select select {
 .sidebar-content a[aria-current='page']:focus {
 	background: var(--sh-accent-soft);
 	color: var(--sh-text);
-	font-weight: 510;
+	font-weight: 500;
 }
 .sidebar-content :is(.group-label, summary) .large {
 	font-size: 0.8125rem;
-	font-weight: 510;
+	font-weight: 500;
 	color: var(--sh-text);
 	letter-spacing: -0.003em;
 }
@@ -247,7 +266,7 @@ starlight-toc a[aria-current='true'] {
 starlight-toc h2,
 .right-sidebar-panel h2 {
 	font-size: 0.75rem;
-	font-weight: 510;
+	font-weight: 500;
 	color: var(--sh-faint);
 	letter-spacing: -0.003em;
 }
@@ -257,11 +276,11 @@ starlight-toc h2,
 
 /* ---------- Buttons (Starlight LinkButton + hero actions) ---------- */
 .sl-link-button {
-	min-height: 2.5rem;
-	padding: 0 1.1rem;
-	border-radius: 6px;
-	font-size: 0.9375rem;
-	font-weight: 510;
+	min-height: 2.25rem;
+	padding: 0 1rem;
+	border-radius: calc(var(--sh-radius) - 2px);
+	font-size: 0.875rem;
+	font-weight: 500;
 	letter-spacing: -0.003em;
 	transition:
 		background-color var(--sh-ease),
@@ -270,19 +289,19 @@ starlight-toc h2,
 }
 @media (min-width: 50rem) {
 	.sl-link-button {
-		padding: 0 1.15rem;
-		font-size: 0.9375rem;
+		padding: 0 1rem;
+		font-size: 0.875rem;
 	}
 }
 .sl-link-button.primary {
 	background: var(--sh-accent);
 	border-color: var(--sh-accent);
-	color: #fff;
+	color: var(--sh-on-accent);
 }
 .sl-link-button.primary:hover {
 	background: var(--sh-accent-hover);
 	border-color: var(--sh-accent-hover);
-	color: #fff;
+	color: var(--sh-on-accent);
 }
 .sl-link-button.secondary {
 	border-color: var(--sh-border-strong);
@@ -305,7 +324,7 @@ starlight-toc h2,
 	font-size: 0.875rem;
 	line-height: 1.5;
 	border: 1px solid var(--sh-border);
-	border-radius: 8px;
+	border-radius: calc(var(--sh-radius) - 2px);
 	border-collapse: separate;
 	border-spacing: 0;
 	background: var(--sh-panel);
@@ -329,7 +348,7 @@ starlight-toc h2,
 	background: transparent;
 	color: var(--sh-muted);
 	font-size: 0.75rem;
-	font-weight: 510;
+	font-weight: 500;
 	letter-spacing: -0.003em;
 }
 .sl-markdown-content tbody tr:last-child > :is(th, td):not(:where(.not-content *)) {
@@ -366,17 +385,17 @@ starlight-toc h2,
 .starlight-aside {
 	border: 1px solid var(--sh-border);
 	border-inline-start: 2px solid var(--sl-color-asides-border);
-	border-radius: 8px;
+	border-radius: calc(var(--sh-radius) - 2px);
 	background: var(--sh-panel);
 }
 .starlight-aside__title {
-	font-weight: 590;
+	font-weight: 600;
 	letter-spacing: -0.012em;
 }
 .card,
 .sl-link-card {
 	border: 1px solid var(--sh-border);
-	border-radius: 12px;
+	border-radius: var(--sh-radius);
 	background: var(--sh-panel);
 	box-shadow: none;
 	transition:
@@ -390,16 +409,16 @@ starlight-toc h2,
 }
 .card .title,
 .sl-link-card .title {
-	font-weight: 590;
+	font-weight: 600;
 	letter-spacing: -0.012em;
 }
 .sl-badge {
 	border-radius: 4px;
-	font-weight: 510;
+	font-weight: 500;
 }
 .pagination-links a {
 	border: 1px solid var(--sh-border);
-	border-radius: 8px;
+	border-radius: calc(var(--sh-radius) - 2px);
 	box-shadow: none;
 	transition:
 		border-color var(--sh-ease),
@@ -410,53 +429,21 @@ starlight-toc h2,
 	background: var(--sh-hover);
 }
 .pagination-links a .link-title {
-	font-weight: 510;
+	font-weight: 500;
 	letter-spacing: -0.012em;
 }
 starlight-tabs [role='tab'] {
-	font-weight: 510;
+	font-weight: 500;
 }
 
 /* Diagrams */
 .sl-markdown-content img[src*='architecture'] {
 	border: 1px solid var(--sh-border);
-	border-radius: 12px;
+	border-radius: var(--sh-radius);
 	box-shadow: 0 30px 80px -40px var(--shadow-glow);
 }
 
-/* ---------- Splash hero ---------- */
-[data-has-hero] .page {
-	background: radial-gradient(56rem 28rem at 50% -12rem, rgba(124, 108, 255, 0.14), transparent 70%);
-}
-:root[data-theme='light'] [data-has-hero] .page {
-	background: radial-gradient(56rem 28rem at 50% -12rem, rgba(124, 108, 255, 0.08), transparent 70%);
-}
-.hero {
-	padding-block: clamp(2.5rem, 8vw, 6rem);
-}
-.hero h1 {
-	font-size: clamp(2.6rem, 6vw, 4.5rem);
-	line-height: 1.05;
-	font-weight: 590;
-	letter-spacing: -0.022em;
-	background: linear-gradient(180deg, var(--sl-color-white) 45%, color-mix(in srgb, var(--sl-color-white) 74%, transparent));
-	-webkit-background-clip: text;
-	background-clip: text;
-	color: transparent;
-}
-.hero .tagline {
-	font-size: clamp(1rem, 1.6vw, 1.125rem);
-	line-height: 1.6;
-	color: var(--sh-muted);
-}
-.hero img {
-	filter: drop-shadow(0 20px 60px var(--shadow-glow));
-	aspect-ratio: 1 / 1;
-	height: auto;
-}
-
 /* Splash pages (home, Hub, pricing): wider measure and calm body copy */
-[data-has-hero] .sl-markdown-content,
 .main-pane:has(.hub-shot--hero) .sl-markdown-content {
 	font-size: 1.0625rem;
 }
@@ -489,7 +476,7 @@ starlight-tabs [role='tab'] {
 	gap: 0;
 	margin-top: 1.25rem;
 	border: 1px solid var(--sh-border);
-	border-radius: 12px;
+	border-radius: var(--sh-radius);
 	background: var(--sh-panel);
 	overflow: hidden;
 }
@@ -507,7 +494,7 @@ starlight-tabs [role='tab'] {
 .sl-markdown-content .faq-item h3 {
 	margin: 0;
 	font-size: 1rem;
-	font-weight: 590;
+	font-weight: 600;
 	line-height: 1.4;
 	letter-spacing: -0.012em;
 }

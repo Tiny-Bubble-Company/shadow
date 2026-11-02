@@ -16,7 +16,7 @@ keywords:
   - GenAI DLP
 faq:
   - q: "Is Shadow an alternative to Harmonic Security?"
-    a: "Partly. Both act on AI use at the endpoint, but in different ways. Harmonic classifies AI activity with small language models and logs, warns, coaches or blocks. Shadow Core masks PII and secrets with realistic, reversible fakes so the request still goes through, and Shadow Hub (early access) shows teams what was masked or blocked."
+    a: "Partly. Both act on AI use at the endpoint, but in different ways. Harmonic classifies AI activity with small language models and logs, warns, coaches or blocks. Shadow Core masks PII and secrets with realistic, reversible fakes so the request still goes through, and Shadow Hub shows teams what was masked or blocked."
   - q: "How does Harmonic Security detect sensitive data?"
     a: "Harmonic says small language models read the full interaction and make a judgement in under 200 milliseconds, classifying AI activity by business use case rather than by pattern matching. These are Harmonic's own statements."
   - q: "Does Harmonic redact or mask prompts?"
@@ -24,10 +24,10 @@ faq:
   - q: "How much does Harmonic Security cost?"
     a: "Harmonic's pricing page lists Explore, Guide and Command plans without prices: not published (as of 2 Nov 2026). Shadow Core is free. Shadow Hub's planned pricing is free for 1-3 users, then from $8 per user per month; these prices are provisional."
   - q: "Is Shadow Hub available now?"
-    a: "Not generally. Shadow Hub is in early access with a waitlist. Shadow Core is available today and free."
+    a: "Yes. Shadow Hub has a 14-day free trial with no card, then stays free for up to 3 users. Shadow Core is free and open source."
 ---
 
-**Choose Harmonic Security if you want AI governance across your workforce: discovery of AI tools, classification of what people use them for, and coaching or blocking in the browser, desktop apps and MCP. Choose Shadow if you want prompts masked with reversible fakes so work continues: Core is free for developers, and Shadow Hub (early access) adds a team view.**
+**Choose Harmonic Security if you want AI governance across your workforce: discovery of AI tools, classification of what people use them for, and coaching or blocking in the browser, desktop apps and MCP. Choose Shadow if you want prompts masked with reversible fakes so work continues: Core is free for developers, and Shadow Hub adds a team view.**
 
 [Shadow Hub for teams](/shadow/hub/) · [Install Core free](/shadow/getting-started/quick-start/)
 
@@ -35,7 +35,7 @@ faq:
 
 | | Harmonic Security | Shadow Core | Shadow Hub |
 |---|---|---|---|
-| **Deployment model** | Commercial platform: browser extension, endpoint rollout through Intune, Jamf, Kandji or Group Policy, and an MCP Gateway | Free local proxy, a single binary on each laptop or server | Hosted console in early access (waitlist); members run one command that installs Core and enrols the machine |
+| **Deployment model** | Commercial platform: browser extension, endpoint rollout through Intune, Jamf, Kandji or Group Policy, and an MCP Gateway | Free local proxy, a single binary on each laptop or server | Hosted console with a 14-day free trial; members run one command that installs Core and enrols the machine |
 | **Where it runs** | Supported browsers; desktop apps such as Claude CoWork, Cursor and ChatGPT Desktop; command-line tools, IDEs, AI APIs and MCP workflows on Windows, macOS and Linux | On the device, between apps and AI services: model APIs, coding agents, and with the system proxy on, ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser | Masking stays on each machine; the hub receives what the organisation chooses to share: counts only, sanitised prompts or full detail |
 | **Masking vs blocking** | Silent logging, contextual warnings, employee coaching, real-time blocking | Masks PII and secrets with realistic fakes; blocks file uploads by policy | Same as Core, plus a view of what was masked or blocked per person, machine, app and AI service |
 | **Reversible pseudonymisation** | Not described on its public pages | Yes, real values restored in answers | Yes, through Core |
@@ -56,7 +56,7 @@ faq:
 - **The request should go through, safely.** Shadow replaces names, emails, card numbers and secrets with realistic, consistent fakes, and restores the real values in the answer, so people do not have to rewrite or abandon the prompt. See [how it works](/shadow/concepts/how-it-works/).
 - **Developers and agents are the main AI users.** Core sits in front of model APIs, inference clouds and coding agents such as Claude Code, Codex, Gemini CLI and GitHub Copilot, and recognises 288 AI services.
 - **You want to start free and bottom-up.** Core is open source under Apache-2.0, needs no account and runs on the machine. See the [quick start](/shadow/getting-started/quick-start/).
-- **You want a team view without collecting real values.** With [Shadow Hub](/shadow/hub/) (early access, waitlist), admins invite members by link and see what was masked or blocked per person, machine, app and AI service, with incident detail and insights. Each organisation chooses whether machines share counts only, sanitised prompts or full detail.
+- **You want a team view without collecting real values.** With [Shadow Hub](/shadow/hub/) (14-day free trial, free for up to 3 users), admins invite members by link and see what was masked or blocked per person, machine, app and AI service, with incident detail and insights. Each organisation chooses whether machines share counts only, sanitised prompts or full detail.
 
 Know Shadow's limits before choosing it. It does not cover phone apps, apps that pin certificates, WebSocket features, or apps that ignore the system proxy unless pointed at it. Cursor, Windsurf, Amazon Q and Kiro use binary protocols Shadow cannot mask; it shows them as "seen, not protected". Shadow is not a browser extension, has no SaaS app connectors, no DLP for files on disk and no SOC 2 or other certification.
 

@@ -1,0 +1,187 @@
+---
+// Activity dashboard: a simulated live panel (counters, a detections feed and category bars),
+// clearly labelled as illustration. The server-rendered numbers are the no-JS state; with JS
+// the counters count up once in view and then tick, and the feed adds a row every ~1.8s.
+// Nothing moves under prefers-reduced-motion.
+
+const counters = [
+	{ value: 4313, label: 'Traffic monitored', key: 'requests' },
+	{ value: 12845, label: 'Sensitive data masked', key: 'masked' },
+	{ value: 8, label: 'Requests blocked', key: 'blocked' },
+	{ value: 7, label: 'Added per request', key: 'latency', unit: 'ms' },
+];
+const feed = [
+	{ tag: 'IBAN', value: 'DE89 •••• 3000', app: 'ChatGPT', ms: 3 },
+	{ tag: 'API_KEY', value: 'sk-live-••••9f2', app: 'Claude Code', ms: 3 },
+	{ tag: 'HOST', value: 'db-•••.internal', app: 'Aider', ms: 3 },
+	{ tag: 'EMAIL', value: 'j•••@acme.com', app: 'Codex CLI', ms: 4 },
+	{ tag: 'PHONE', value: '+44 •••• 0123', app: 'Claude Code', ms: 5 },
+];
+const bars = [
+	{ label: 'Emails & names', value: 420 },
+	{ label: 'API keys & tokens', value: 319 },
+	{ label: 'Internal hostnames', value: 246 },
+	{ label: 'Customer IDs', value: 180 },
+	{ label: 'Card & IBAN numbers', value: 90 },
+];
+const max = Math.max(...bars.map((b) => b.value));
+const fmt = (n: number, unit?: string) => (unit ? `${n}${unit}` : n.toLocaleString('en-US'));
+---
+
+	<div class="hp-live" data-live>
+		<div class="hp-live__left">
+			<dl class="hp-counters">
+				{
+					counters.map((c) => (
+						<div>
+							<dd class="hp-counter" data-counter={c.key} data-value={c.value} data-unit={c.unit ?? ''}>
+								{fmt(c.value, c.unit)}
+							</dd>
+							<dt>{c.label}</dt>
+						</div>
+					))
+				}
+			</dl>
+			<div class="hp-feed">
+				<div class="hp-feed__head">
+					<span>Live detections</span>
+					<span class="hp-feed__live"><span class="live-dot"></span>LIVE</span>
+				</div>
+				<ul class="hp-feed__list" data-feed>
+					{
+						feed.map((f, i) => (
+							<li style={`opacity:${(1 - i * 0.17).toFixed(2)}`}>
+								<span class="hp-tag">{f.tag}</span>
+								<span class="hp-feed__val">{f.value}</span>
+								<span class="hp-feed__app">{f.app}</span>
+								<span class="hp-feed__ms">{f.ms}ms</span>
+							</li>
+						))
+					}
+				</ul>
+			</div>
+		</div>
+		<div class="hp-bars">
+			<div class="hp-bars__head">
+				<span>Sensitive data masked, by type</span>
+				<span class="hp-mono">last 24h</span>
+			</div>
+			<ul>
+				{
+					bars.map((b, i) => (
+						<li>
+							<div class="hp-bars__row">
+								<span>{b.label}</span>
+								<span class="hp-mono" data-bar-value={i}>
+									{b.value}
+								</span>
+							</div>
+							<div class="hp-bars__track">
+								<div class="hp-bars__fill" data-bar={i} style={`width:${((b.value / max) * 100).toFixed(1)}%`} />
+							</div>
+						</li>
+					))
+				}
+			</ul>
+			<p class="hp-note">Simulated live traffic, for illustration.</p>
+		</div>
+	</div>
+
+<script>
+	// Illustrative only: random detections in the same categories as the bars.
+	const POOL: { tag: string; value: string; bar: number }[] = [
+		{ tag: 'NAME', value: 'M••• L•••', bar: 0 },
+		{ tag: 'EMAIL', value: 'j•••@acme.com', bar: 0 },
+		{ tag: 'PHONE', value: '+44 •••• 0123', bar: 0 },
+		{ tag: 'API_KEY', value: 'sk-live-••••9f2', bar: 1 },
+		{ tag: 'TOKEN', value: 'ghp_••••••••', bar: 1 },
+		{ tag: 'HOST', value: 'db-•••.internal', bar: 2 },
+		{ tag: 'CUST_ID', value: 'CUS-••••-812', bar: 3 },
+		{ tag: 'IBAN', value: 'DE89 •••• 3000', bar: 4 },
+		{ tag: 'CARD', value: '4111 •••• 1111', bar: 4 },
+	];
+	const APPS = ['ChatGPT', 'Claude Code', 'Codex CLI', 'Aider', 'Copilot'];
+	const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)]!;
+
+	const root = document.querySelector<HTMLElement>('[data-live]');
+	const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+	if (root && !reduce) {
+		const counters = new Map<string, { el: HTMLElement; value: number; unit: string }>();
+		root.querySelectorAll<HTMLElement>('[data-counter]').forEach((el) => {
+			counters.set(el.dataset.counter!, { el, value: Number(el.dataset.value), unit: el.dataset.unit ?? '' });
+		});
+		const fmt = (n: number, unit: string) => (unit ? `${Math.round(n)}${unit}` : Math.round(n).toLocaleString('en-US'));
+		const set = (key: string, n: number, tick = false) => {
+			const c = counters.get(key);
+			if (!c) return;
+			c.value = n;
+			c.el.textContent = fmt(n, c.unit);
+			if (tick) {
+				c.el.classList.remove('num-tick');
+				void c.el.offsetWidth;
+				c.el.classList.add('num-tick');
+			}
+		};
+		const bars = [...root.querySelectorAll<HTMLElement>('[data-bar-value]')].map((el) => Number(el.textContent));
+		const feed = root.querySelector<HTMLUListElement>('[data-feed]')!;
+
+		const countUp = () => {
+			const targets = [...counters.entries()].map(([k, c]) => [k, c.value] as const);
+			const t0 = performance.now();
+			const step = (t: number) => {
+				const p = Math.min(1, (t - t0) / 1400);
+				const e = 1 - Math.pow(1 - p, 3);
+				for (const [k, v] of targets) set(k, v * e);
+				if (p < 1) requestAnimationFrame(step);
+			};
+			requestAnimationFrame(step);
+		};
+
+		const addDetection = () => {
+			const d = pick(POOL);
+			const ms = 3 + Math.floor(Math.random() * 3);
+			const li = document.createElement('li');
+			li.className = 'feed-in';
+			for (const [cls, text] of [
+				['hp-tag', d.tag],
+				['hp-feed__val', d.value],
+				['hp-feed__app', pick(APPS)],
+				['hp-feed__ms', `${ms}ms`],
+			]) {
+				const s = document.createElement('span');
+				s.className = cls!;
+				s.textContent = text!;
+				li.append(s);
+			}
+			feed.prepend(li);
+			while (feed.children.length > 5) feed.lastElementChild!.remove();
+			[...feed.children].forEach((el, i) => ((el as HTMLElement).style.opacity = (1 - i * 0.17).toFixed(2)));
+
+			const masked = counters.get('masked')!.value + 1 + Math.floor(Math.random() * 3);
+			set('masked', masked, true);
+			set('requests', counters.get('requests')!.value + 1, true);
+			set('latency', 6 + Math.floor(Math.random() * 4));
+			if (Math.random() < 0.06) set('blocked', counters.get('blocked')!.value + 1, true);
+			bars[d.bar]!++;
+			const max = Math.max(...bars);
+			root.querySelectorAll<HTMLElement>('[data-bar-value]').forEach((el, i) => (el.textContent = String(bars[i])));
+			root.querySelectorAll<HTMLElement>('[data-bar]').forEach((el, i) => (el.style.width = `${((bars[i]! / max) * 100).toFixed(1)}%`));
+		};
+
+		let timer: number | undefined;
+		let started = false;
+		const io = new IntersectionObserver(([e]) => {
+			if (e!.isIntersecting) {
+				if (!started) {
+					started = true;
+					countUp();
+				}
+				timer ??= window.setInterval(addDetection, 1800);
+			} else if (timer !== undefined) {
+				clearInterval(timer);
+				timer = undefined;
+			}
+		});
+		io.observe(root);
+	}
+</script>

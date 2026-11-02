@@ -1,0 +1,116 @@
+---
+// Devices → Shadow → AI providers, with animated packets (SVG SMIL). Used in "How it works".
+// Phones get a stacked version of the same three columns instead of a tiny diagram.
+import { href } from './links';
+import { CATALOG_LABEL } from './catalog';
+
+const left = [
+	{ y: 40, title: 'Laptops', sub: 'ChatGPT · Copilot' },
+	{ y: 170, title: 'Servers', sub: 'Apps · RAG · jobs' },
+	{ y: 300, title: 'Agents & IDEs', sub: 'Claude Code · Cursor' },
+];
+const right = [
+	{ y: 40, title: 'OpenAI', sub: 'api.openai.com' },
+	{ y: 170, title: 'Anthropic', sub: 'api.anthropic.com' },
+	{ y: 300, title: 'Gemini & more', sub: CATALOG_LABEL },
+];
+const paths = [
+	{ id: 'in0', d: 'M 210 70 C 330 70, 330 200, 420 200', begin: 0, out: false },
+	{ id: 'in1', d: 'M 210 200 C 330 200, 330 200, 420 200', begin: 0.5, out: false },
+	{ id: 'in2', d: 'M 210 330 C 330 330, 330 200, 420 200', begin: 1, out: false },
+	{ id: 'out0', d: 'M 580 200 C 670 200, 670 70, 790 70', begin: 0.3, out: true },
+	{ id: 'out1', d: 'M 580 200 C 670 200, 670 200, 790 200', begin: 0.7, out: true },
+	{ id: 'out2', d: 'M 580 200 C 670 200, 670 330, 790 330', begin: 1.1, out: true },
+];
+const s = (n: number) => `${Math.round(n * 10) / 10}s`;
+---
+
+	<div class="hp-flow surface">
+		<div class="hp-flow__bar">
+			<span>Your machines · real data</span>
+			<span class="hp-flow__mid">Shadow · masks out, restores in</span>
+			<span>AI providers · stand-ins only</span>
+		</div>
+
+		<svg viewBox="0 0 1000 400" class="hp-flow__svg" role="img" aria-label="Shadow sits between your laptops, servers and agents and cloud AI providers such as OpenAI, Anthropic and Gemini">
+			<defs>
+				<pattern id="hp-dots" width="20" height="20" patternUnits="userSpaceOnUse">
+					<circle cx="1" cy="1" r="1" class="f-dot"></circle>
+				</pattern>
+			</defs>
+			<rect width="1000" height="400" fill="url(#hp-dots)"></rect>
+			<line x1="640" y1="20" x2="640" y2="380" class="f-line" stroke-dasharray="4 6"></line>
+			<text x="650" y="34" class="f-sub">CLOUD →</text>
+			<text x="350" y="34" text-anchor="end" class="f-sub">← YOUR NETWORK</text>
+			{
+				paths.map((p) => (
+					<g>
+						<path id={`hp-${p.id}`} d={p.d} fill="none" class="f-line" stroke-width="1.5" />
+						{[0, 1.2].map((o) => (
+							<g>
+								<circle r="4" class={p.out ? 'f-fake' : 'f-real'}>
+									<animateMotion dur="2.4s" repeatCount="indefinite" begin={s(p.begin + o)}>
+										<mpath href={`#hp-${p.id}`} />
+									</animateMotion>
+								</circle>
+								<circle r="4" class={p.out ? 'f-fake2' : 'f-real2'}>
+									<animateMotion dur="2.4s" repeatCount="indefinite" begin={s(p.begin + o + 0.6)} keyPoints="1;0" keyTimes="0;1" calcMode="linear">
+										<mpath href={`#hp-${p.id}`} />
+									</animateMotion>
+								</circle>
+							</g>
+						))}
+					</g>
+				))
+			}
+			<circle cx="500" cy="200" r="96" class="f-halo">
+				<animate attributeName="r" values="86;104;86" dur="3s" repeatCount="indefinite"></animate>
+				<animate attributeName="opacity" values="1;0.35;1" dur="3s" repeatCount="indefinite"></animate>
+			</circle>
+			<rect x="420" y="144" width="160" height="112" rx="14" class="f-shadow" stroke-width="1.5"></rect>
+			<image href={href('/favicon.svg')} x="484" y="158" width="32" height="32"></image>
+			<text x="500" y="210" text-anchor="middle" class="f-title f-title--lg">Shadow</text>
+			<text x="500" y="228" text-anchor="middle" class="f-sub">mask · vault · restore</text>
+			{
+				[...left.map((n) => ({ ...n, x: 40, fake: false })), ...right.map((n) => ({ ...n, x: 790, fake: true }))].map((n) => (
+					<g transform={`translate(${n.x} ${n.y})`}>
+						<rect width="170" height="60" rx="10" class="f-node" stroke-width="1" />
+						<circle cx="20" cy="30" r="4" class={n.fake ? 'f-fake' : 'f-pin'} />
+						<text x="34" y="27" class="f-title">{n.title}</text>
+						<text x="34" y="44" class="f-sub">{n.sub}</text>
+					</g>
+				))
+			}
+		</svg>
+
+		<ol class="hp-flow__stack" aria-hidden="true">
+			<li>
+				<span class="hp-flow__k">Your machines</span>
+				<span>{left.map((n) => n.title).join(' · ')}</span>
+			</li>
+			<li class="is-shadow">
+				<img src={href('/favicon.svg')} alt="" width="20" height="20" />
+				<span class="hp-flow__k">Shadow</span>
+				<span>mask · vault · restore</span>
+			</li>
+			<li class="is-cloud">
+				<span class="hp-flow__k">AI providers</span>
+				<span>OpenAI · Anthropic · Gemini · {CATALOG_LABEL}</span>
+			</li>
+		</ol>
+
+		<div class="hp-flow__legend">
+			<span><i class="hp-dot hp-dot--real"></i> Real data — stays on your side</span>
+			<span><i class="hp-dot hp-dot--fake"></i> Stand-in — what the AI provider sees</span>
+		</div>
+	</div>
+
+<script>
+	// SMIL ignores CSS, so stop the packets explicitly for reduced motion.
+	if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		document.querySelectorAll<SVGSVGElement>('.hp-flow__svg').forEach((svg) => {
+			svg.pauseAnimations();
+			svg.setCurrentTime(1);
+		});
+	}
+</script>

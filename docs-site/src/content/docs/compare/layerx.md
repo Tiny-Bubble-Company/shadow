@@ -18,18 +18,18 @@ faq:
   - q: "What happened to LayerX Security?"
     a: "Akamai acquired LayerX. Akamai's product page says LayerX is now Akamai Workforce Protector and is part of Akamai's security portfolio, and layerxsecurity.com redirects there."
   - q: "Is Shadow an alternative to LayerX?"
-    a: "For AI prompts, partly. LayerX is a browser extension that secures AI, SaaS, web and private apps in the browser. Shadow is a local proxy: Core masks PII and secrets in requests to AI services with reversible fakes, including from coding agents and scripts outside the browser. Shadow Hub (early access) shows teams what was masked or blocked."
+    a: "For AI prompts, partly. LayerX is a browser extension that secures AI, SaaS, web and private apps in the browser. Shadow is a local proxy: Core masks PII and secrets in requests to AI services with reversible fakes, including from coding agents and scripts outside the browser. Shadow Hub shows teams what was masked or blocked."
   - q: "Does LayerX redact data before it reaches AI apps?"
     a: "Akamai's page says Workforce Protector applies adaptive controls that warn, redact, block or guide user actions, and protects sensitive data before it reaches AI applications. It does not describe restoring the original values in answers; Shadow does."
   - q: "How much does LayerX cost?"
     a: "Not published (as of 2 Nov 2026). Akamai's product page offers contact sales. Shadow Core is free. Shadow Hub's planned pricing is free for 1-3 users, then from $8 per user per month; these prices are provisional."
   - q: "Is Shadow Hub available now?"
-    a: "Not generally. Shadow Hub is in early access with a waitlist. Shadow Core is available today and free."
+    a: "Yes. Shadow Hub has a 14-day free trial with no card, then stays free for up to 3 users. Shadow Core is free and open source."
   - q: "Can LayerX and Shadow run together?"
     a: "Yes. LayerX works inside the browser and Shadow works as a local proxy, so LayerX can govern browser and SaaS activity while Shadow masks prompts from developer tools, coding agents and scripts."
 ---
 
-**Choose LayerX, now Akamai Workforce Protector, if you want a browser extension that governs AI, SaaS and web apps in the browsers you already run, with warn, redact, block and guide. Choose Shadow if you want AI prompts masked with reversible fakes, including from coding agents and scripts outside the browser. Core is free; Shadow Hub is in early access.**
+**Choose LayerX, now Akamai Workforce Protector, if you want a browser extension that governs AI, SaaS and web apps in the browsers you already run, with warn, redact, block and guide. Choose Shadow if you want AI prompts masked with reversible fakes, including from coding agents and scripts outside the browser. Core is free; Shadow Hub is free for up to 3 users.**
 
 [Shadow Hub for teams](/shadow/hub/) · [Install Core free](/shadow/getting-started/quick-start/)
 
@@ -37,7 +37,7 @@ faq:
 
 | | LayerX (Akamai Workforce Protector) | Shadow Core | Shadow Hub |
 |---|---|---|---|
-| **Deployment model** | Commercial browser extension with a management console and cloud intelligence; no proxies or network changes | Free local proxy, a single binary on each laptop or server | Hosted console in early access (waitlist); members run one command that installs Core and enrols the machine |
+| **Deployment model** | Commercial browser extension with a management console and cloud intelligence; no proxies or network changes | Free local proxy, a single binary on each laptop or server | Hosted console with a 14-day free trial; members run one command that installs Core and enrols the machine |
 | **Where it runs** | In Chrome, Edge, Firefox and Safari on Windows, macOS and Linux, with iOS and Android deployment; covers AI apps, agentic browsers and PWA desktop apps | On the device, between apps and AI services: model APIs, coding agents, and with the system proxy on, ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser | Masking stays on each machine; the hub receives what the organisation chooses to share: counts only, sanitised prompts or full detail |
 | **Masking vs blocking** | Warn, redact, block or guide; DLP for text input, copy and paste, uploads and downloads | Masks PII and secrets with realistic fakes; blocks file uploads by policy | Same as Core, plus a view of what was masked or blocked per person, machine, app and AI service |
 | **Reversible pseudonymisation** | Not described on its public pages | Yes, real values restored in answers | Yes, through Core |
@@ -58,7 +58,7 @@ faq:
 - **Answers must keep working.** Shadow replaces names, emails, card numbers and secrets with realistic, consistent fakes, so the model can still reason about them, and restores the real values in the answer. See [how it works](/shadow/concepts/how-it-works/).
 - **AI traffic leaves from outside the browser.** Core sits in front of model APIs, inference clouds and coding agents such as Claude Code, Codex, Gemini CLI and GitHub Copilot, and recognises 288 AI services. With the system proxy on, it also covers ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser.
 - **You want to start free and bottom-up.** Core is open source under Apache-2.0, needs no account and runs on the machine. See the [quick start](/shadow/getting-started/quick-start/).
-- **You want a team view without collecting real values.** With [Shadow Hub](/shadow/hub/) (early access, waitlist), admins invite members by link and see what was masked or blocked per person, machine, app and AI service. Each organisation chooses whether machines share counts only, sanitised prompts or full detail.
+- **You want a team view without collecting real values.** With [Shadow Hub](/shadow/hub/) (14-day free trial, free for up to 3 users), admins invite members by link and see what was masked or blocked per person, machine, app and AI service. Each organisation chooses whether machines share counts only, sanitised prompts or full detail.
 
 Know Shadow's limits before choosing it. It does not cover phone apps, apps that pin certificates, WebSocket features, or apps that ignore the system proxy unless pointed at it. Cursor, Windsurf, Amazon Q and Kiro use binary protocols Shadow cannot mask; it shows them as "seen, not protected". Shadow is not a browser extension, has no SaaS app connectors, no DLP for files on disk and no SOC 2 or other certification.
 

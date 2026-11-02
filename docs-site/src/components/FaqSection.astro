@@ -20,33 +20,36 @@ const paragraphs = (a: string) => a.split(/\n\s*\n/).map((p) => inlineMarkdownTo
 
 {
 	variant === 'accordion' ? (
-		<section class="hp-section hp-section--center hp-faq not-content" aria-labelledby="faq">
-			<header class="hp-section__head">
-				{eyebrow && <p class="hp-eyebrow">{eyebrow}</p>}
-				<h2 id="faq">{title}</h2>
-				{lead && <p class="hp-lead" set:html={lead} />}
-			</header>
-			<div class="hp-faq__list">
-				{items.map(({ q, a }) => (
-					<details class="hp-faq__item">
-						<summary>
-							<span set:html={inlineMarkdownToHtml(q)} />
-						</summary>
-						<div class="hp-faq__answer">
-							{paragraphs(a).map((html) => (
-								<p set:html={html} />
-							))}
-						</div>
-					</details>
-				))}
+		<section id="faq-section" class="hp-sec hp-faq reveal not-content" aria-labelledby="faq">
+			<div class="hp-wrap hp-faq__grid">
+				<div>
+					<header class="hp-head">
+						{eyebrow && <p class="hp-eyebrow">{eyebrow}</p>}
+						<h2 id="faq" class="hp-h2 text-fade">{title}</h2>
+						{lead && <p class="hp-lead" set:html={lead} />}
+					</header>
+					{more && (
+						<a class="hp-more hp-more--tight" href={more.href}>
+							{more.label} <span aria-hidden="true">→</span>
+						</a>
+					)}
+				</div>
+				<div class="hp-faq__list">
+					{items.map(({ q, a }) => (
+						<details class="hp-faq__item">
+							<summary>
+								<span set:html={inlineMarkdownToHtml(q)} />
+								<span class="hp-faq__plus" aria-hidden="true">+</span>
+							</summary>
+							<div class="hp-faq__answer">
+								{paragraphs(a).map((html) => (
+									<p set:html={html} />
+								))}
+							</div>
+						</details>
+					))}
+				</div>
 			</div>
-			{more && (
-				<p class="hp-section__more">
-					<a href={more.href}>
-						{more.label} <span aria-hidden="true">→</span>
-					</a>
-				</p>
-			)}
 		</section>
 	) : (
 		<section class="faq" aria-labelledby="faq">

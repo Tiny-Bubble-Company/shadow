@@ -1,124 +1,73 @@
 ---
-// Home page: the two products (Core free and open source, Hub for teams), how teams roll it
-// out, and the global CTAs. Prices come from src/data/pricing.ts.
-import HubCta from '../HubCta.astro';
+// Home page: the two products (Core free and open source, Hub for teams), then how teams roll
+// it out with the key facts. Prices come from src/data/pricing.ts, Hub links from src/data/hub.ts.
+import Section from './Section.astro';
+import InstallCmd from './InstallCmd.astro';
 import { HUB_FROM } from '../../data/pricing';
-import { INSTALL_CMD } from '../../data/hub';
-import { LINKS, href } from './links';
+import { hub } from '../../data/hub';
+import { CATALOG_LABEL } from './catalog';
+import { LINKS } from './links';
+
+const steps = [
+	{ title: 'Install Core', text: 'Free, on each laptop or server.' },
+	{ title: 'shadow hub connect', code: true, text: 'Each machine joins your Hub workspace, after the person confirms.' },
+	{ title: 'Invite the team', text: 'Send invite links; MDM rollout is on the way.' },
+	{ title: 'Watch the dashboard', text: 'What was protected, by whom, in which tool.' },
+];
+const facts = [
+	{ value: 'Apache-2.0', label: 'Free and open source' },
+	{ value: 'Single binary', label: 'macOS, Linux, Windows' },
+	{ value: 'No cloud', label: 'No account, no telemetry' },
+	{ value: CATALOG_LABEL, label: 'OpenAI, Anthropic, Gemini…' },
+];
 ---
 
-<section class="hp-ch not-content" aria-label="Shadow Core and Shadow Hub">
-	<HubCta location="hero" show={['hub', 'demo']} primary="hub" />
-	<div class="hp-ch__cards">
-		<article class="hp-ch__card">
-			<p class="hp-ch__eyebrow">Free · open source · Apache-2.0</p>
-			<h2>Shadow Core</h2>
-			<p>For individuals and servers. A local proxy that masks PII and secrets before they reach any AI service, and restores them in the answer. No account, no telemetry.</p>
-			<code class="hp-ch__cmd">{INSTALL_CMD}</code>
-			<a href={LINKS.quickStart}>Quick start →</a>
-		</article>
-		<article class="hp-ch__card is-hub">
-			<p class="hp-ch__eyebrow">For teams · {HUB_FROM}</p>
-			<h2>Shadow Hub</h2>
-			<p>See what was masked or blocked, by user, tool and AI service, across every laptop and server. One dashboard for your security team; free for up to 3 users.</p>
-			<a href={href('/hub/')}>See Shadow Hub →</a>
-		</article>
-	</div>
-	<div class="hp-ch__rollout">
-		<h2>How teams roll it out</h2>
-		<ol>
-			<li><strong>Install Core</strong><span>Free, on each laptop or server.</span></li>
-			<li><strong><code>shadow hub connect</code></strong><span>Each machine joins your Hub workspace, after the person confirms.</span></li>
-			<li><strong>Invite the team</strong><span>Send invite links; MDM rollout is on the way.</span></li>
-			<li><strong>Watch the dashboard</strong><span>What was protected, by whom, in which tool.</span></li>
-		</ol>
+<section id="products" class="hp-sec reveal not-content" aria-label="Shadow Core and Shadow Hub">
+	<div class="hp-wrap">
+		<div class="hp-products">
+			<article class="hp-product surface">
+				<p class="hp-product__kicker">Free · open source · Apache-2.0</p>
+				<h2>Shadow Core</h2>
+				<p class="hp-product__text">
+					For individuals and servers. A local proxy that masks PII and secrets before they reach any AI service, and
+					restores them in the answer. No account, no telemetry.
+				</p>
+				<InstallCmd prompt={false} class="hp-product__install" />
+				<a class="sh-btn sh-btn--fg hp-product__cta" href={LINKS.quickStart}>Quick start <span aria-hidden="true">→</span></a>
+			</article>
+			<article class="hp-product surface">
+				<p class="hp-product__kicker">For teams · {HUB_FROM}</p>
+				<h2>Shadow Hub</h2>
+				<p class="hp-product__text">
+					See what was masked or blocked, by user, tool and AI service, across every laptop and server. One dashboard for
+					your security team: {hub.trial}.
+				</p>
+				<a class="sh-btn sh-btn--primary hp-product__cta" href={LINKS.hub}>See Shadow Hub <span aria-hidden="true">→</span></a>
+			</article>
+		</div>
 	</div>
 </section>
 
-<style>
-	.hp-ch {
-		margin: 2rem 0;
-	}
-	.hp-ch__cards {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-		gap: 1rem;
-		margin: 1.25rem 0;
-	}
-	.hp-ch__card {
-		display: grid;
-		gap: 0.5rem;
-		align-content: start;
-		padding: 1.25rem 1.3rem;
-		border: 1px solid var(--sh-border);
-		border-radius: 12px;
-		background: var(--sh-panel);
-	}
-	.hp-ch__card.is-hub {
-		border-color: color-mix(in srgb, var(--sh-accent) 50%, transparent);
-		box-shadow: 0 24px 70px -40px rgba(124, 108, 255, 0.5);
-	}
-	.hp-ch__card h2,
-	.hp-ch__rollout h2 {
-		margin: 0;
-		font-size: 1.25rem;
-		font-weight: 590;
-		letter-spacing: -0.018em;
-	}
-	.hp-ch__card p {
-		margin: 0;
-		color: var(--sl-color-gray-2);
-	}
-	.hp-ch__eyebrow {
-		font-size: 0.8125rem;
-		font-weight: 510;
-		letter-spacing: -0.003em;
-		color: var(--sl-color-accent) !important;
-	}
-	.hp-ch__cmd {
-		display: block;
-		overflow-x: auto;
-		white-space: nowrap;
-		padding: 0.5rem 0.65rem;
-		border-radius: 6px;
-		border: 1px solid var(--sh-border);
-		background: var(--sh-raised);
-		font-size: 0.78rem;
-	}
-	.hp-ch__rollout {
-		padding: 1.25rem 1.3rem;
-		border: 1px solid var(--sh-border);
-		border-radius: 12px;
-		background: var(--sh-panel);
-	}
-	.hp-ch__rollout ol {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-		gap: 1rem;
-		margin: 0.9rem 0 0;
-		padding: 0;
-		list-style: none;
-		counter-reset: step;
-	}
-	.hp-ch__rollout li {
-		display: grid;
-		gap: 0.25rem;
-		counter-increment: step;
-	}
-	.hp-ch__rollout li::before {
-		content: counter(step);
-		display: grid;
-		place-items: center;
-		width: 1.6rem;
-		height: 1.6rem;
-		border-radius: 50%;
-		background: var(--sl-color-accent-low);
-		color: var(--sl-color-white);
-		font-size: 0.8rem;
-		font-weight: 590;
-	}
-	.hp-ch__rollout span {
-		color: var(--sl-color-gray-3);
-		font-size: 0.9rem;
-	}
-</style>
+<Section id="rollout" title="How teams roll it out">
+	<ol class="hp-steps">
+		{
+			steps.map((s, i) => (
+				<li>
+					<span class="hp-steps__n">{String(i + 1).padStart(2, '0')}</span>
+					<h3>{s.code ? <code>{s.title}</code> : s.title}</h3>
+					<p>{s.text}</p>
+				</li>
+			))
+		}
+	</ol>
+	<ul class="hp-facts" aria-label="Key facts">
+		{
+			facts.map((f) => (
+				<li>
+					<strong>{f.value}</strong>
+					<span>{f.label}</span>
+				</li>
+			))
+		}
+	</ul>
+</Section>

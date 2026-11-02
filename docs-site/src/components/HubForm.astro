@@ -12,8 +12,8 @@ const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
 		<button class="sh-form__close" aria-label="Close">×</button>
 	</form>
 	<h2 id="sh-form-title" data-title-waitlist="Join the Shadow Hub waitlist" data-title-demo="Book a Shadow Hub demo">Join the Shadow Hub waitlist</h2>
-	<p class="sh-form__lead" data-lead-waitlist="Hub is in early access. We'll email you when your workspace is ready. No newsletter." data-lead-demo="Tell us a little about your team and we'll find a time.">
-		Hub is in early access. We'll email you when your workspace is ready. No newsletter.
+	<p class="sh-form__lead" data-lead-waitlist="We'll reply within one working day. No newsletter." data-lead-demo="Tell us a little about your team and we'll find a time.">
+		We'll reply within one working day. No newsletter.
 	</p>
 	<form class="sh-form__body" novalidate>
 		<input type="hidden" name="form_type" value="waitlist" />
@@ -167,7 +167,7 @@ const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
 		display: grid;
 		gap: 0.25rem;
 		font-size: 0.85rem;
-		font-weight: 510;
+		font-weight: 500;
 	}
 	.sh-form__body input,
 	.sh-form__body select,
@@ -185,9 +185,9 @@ const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
 		border: 0;
 		border-radius: 6px;
 		background: var(--sl-color-accent);
-		color: #fff;
+		color: var(--sh-on-accent);
 		font: inherit;
-		font-weight: 510;
+		font-weight: 500;
 		cursor: pointer;
 	}
 	.sh-form__status {

@@ -1,11 +1,9 @@
 ---
-import { Icon } from '@astrojs/starlight/components';
 import Section from './Section.astro';
 import { LINKS, href } from './links';
 
 const columns = [
 	{
-		icon: 'rocket',
 		title: 'Use cases',
 		allLabel: 'All use cases',
 		all: LINKS.useCases,
@@ -18,7 +16,6 @@ const columns = [
 		],
 	},
 	{
-		icon: 'open-book',
 		title: 'Industries',
 		allLabel: 'All industries',
 		all: LINKS.industries,
@@ -31,7 +28,6 @@ const columns = [
 		],
 	},
 	{
-		icon: 'star',
 		title: 'Company size',
 		allLabel: 'All company sizes',
 		all: LINKS.companySize,
@@ -60,11 +56,11 @@ const rows = [
 	title="Why not just block or redact?"
 	lead="Blocking breaks the tool, so people route around it. Placeholders keep requests flowing but destroy meaning. Shadow translates."
 >
-	<div class="hp-compare hp-card">
+	<div class="hp-table">
 		<table>
 			<thead>
 				<tr>
-					<th scope="col"><span class="sr-only">Capability</span></th>
+					<th scope="col">Capability</th>
 					<th scope="col">Block<span>typical DLP gateway</span></th>
 					<th scope="col">Redact<span>placeholders</span></th>
 					<th scope="col" class="is-shadow">Shadow<span>reversible fakes</span></th>
@@ -84,9 +80,7 @@ const rows = [
 			</tbody>
 		</table>
 	</div>
-	<p class="hp-section__more">
-		<a href={LINKS.compare}>Shadow vs Presidio, LLM Guard, LiteLLM, Nightfall and 30 more <span aria-hidden="true">→</span></a>
-	</p>
+	<a class="hp-more" href={LINKS.compare}>Shadow vs Presidio, LLM Guard, LiteLLM, Nightfall and 30 more <span aria-hidden="true">→</span></a>
 </Section>
 
 <Section
@@ -95,16 +89,11 @@ const rows = [
 	title="From one laptop to a regulated fleet"
 	lead="Developers, security and privacy teams, and platform teams building LLM features use the same binary."
 >
-	<div class="hp-grid hp-grid--3">
+	<div class="hp-audiences">
 		{
 			columns.map((c) => (
-				<div class="hp-card hp-audience">
-					<div class="hp-card__icon">
-						<Icon name={c.icon as any} size="1.25rem" />
-					</div>
-					<h3>
-						<a href={c.all}>{c.title}</a>
-					</h3>
+				<div class="hp-audience surface">
+					<a class="hp-audience__title" href={c.all}>{c.title}</a>
 					<ul>
 						{c.links.map(([label, link]) => (
 							<li>
@@ -112,7 +101,7 @@ const rows = [
 							</li>
 						))}
 					</ul>
-					<a class="hp-audience__all" href={c.all}>
+					<a class="hp-more hp-more--tight" href={c.all}>
 						{c.allLabel} <span aria-hidden="true">→</span>
 					</a>
 				</div>

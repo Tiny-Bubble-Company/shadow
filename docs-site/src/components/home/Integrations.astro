@@ -38,10 +38,10 @@ const groups = [
 	title="Plugs into what you already use"
 	lead="No code changes for most tools: point them at Shadow with one environment variable or a base URL."
 >
-	<div class="hp-grid hp-grid--2 hp-modes">
+	<div class="hp-modes">
 		{
 			modes.map((m) => (
-				<a class="hp-card hp-card--link hp-mode" href={href(m.link)}>
+				<a class="hp-mode surface" href={href(m.link)}>
 					<span class="hp-mode__name">{m.name}</span>
 					<span class="hp-mode__for">{m.for}</span>
 					<code class="hp-mode__code">{m.code}</code>
@@ -49,21 +49,17 @@ const groups = [
 			))
 		}
 	</div>
-	<div class="hp-grid hp-grid--2 hp-integrations">
+	<div class="hp-lists">
 		{
 			groups.map((g) => (
-				<div class="hp-card hp-integ">
-					<h3>
-						<a href={href(g.link)}>{g.title}</a>
-					</h3>
-					<ul class="hp-chips">
+				<div>
+					<a class="hp-lists__title" href={href(g.link)}>{g.title}</a>
+					<ul>
 						{g.items.map((i) => <li>{i}</li>)}
 					</ul>
 				</div>
 			))
 		}
 	</div>
-	<p class="hp-section__more">
-		<a href={LINKS.integrate}>Choose an integration mode <span aria-hidden="true">→</span></a>
-	</p>
+	<a class="hp-more" href={LINKS.integrate}>Choose an integration mode <span aria-hidden="true">→</span></a>
 </Section>

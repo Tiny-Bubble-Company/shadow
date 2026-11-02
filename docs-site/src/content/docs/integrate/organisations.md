@@ -10,12 +10,12 @@ faq:
   - q: "Do employees know their machine is managed?"
     a: "Yes. The menu-bar app, the local dashboard and `shadow status` all say which organisation manages the machine and what is shared with its admins."
   - q: "Is Shadow Hub open source?"
-    a: "No. Shadow Core, which protects each machine, is open source under Apache-2.0 and never phones home. Shadow Hub, the central dashboard for organisations, is a commercial service in early access. See [Shadow Hub](/shadow/hub/)."
+    a: "No. Shadow Core, which protects each machine, is open source under Apache-2.0 and never phones home. Shadow Hub, the central dashboard for organisations, is a commercial service with a 14-day free trial and a free plan for up to 3 users. See [Shadow Hub](/shadow/hub/)."
 ---
 
 Shadow protects one machine at a time. **Shadow Hub** brings those machines together for an organisation: admins invite employees, every enrolled laptop and server reports what Shadow protected, and the hub shows it per person, per machine and across the workforce, including what kinds of data leak most and to which AI services.
 
-Shadow itself (everything in this documentation) stays open source and works on its own. Shadow Hub is a separate, commercial product, now in early access: see [Shadow Hub](/shadow/hub/) and [pricing](/shadow/pricing/), or write to [support@getshadow.dev](mailto:support@getshadow.dev).
+Shadow itself (everything in this documentation) stays open source and works on its own. Shadow Hub is a separate, commercial product with a 14-day free trial: see [Shadow Hub](/shadow/hub/) and [pricing](/shadow/pricing/), or write to [support@getshadow.dev](mailto:support@getshadow.dev).
 
 ## Joining an organisation
 

@@ -1,7 +1,7 @@
 ---
 // Site header for the home page and every docs page (overrides Starlight's Header).
-// Logo · menu (Docs, Hub, Pricing, Compare, Solutions, Trust) · search · GitHub · the
-// buyer CTA · theme. Also mounts the funnel tracking and the waitlist/demo form once. Menus are <details>; a small script only closes them on Escape,
+// 56px translucent bar: logo · menu (Docs, Hub, Compare, Solutions, Pricing, Trust) · search ·
+// GitHub · the buyer CTA · "Install Core free" · theme. Also mounts the funnel tracking and the waitlist/demo form once. Menus are <details>; a small script only closes them on Escape,
 // outside click or when another one opens. Below 75rem the groups move into one "Menu"
 // panel (on docs pages under 50rem Starlight's own sidebar menu takes over).
 import Search from '@astrojs/starlight/components/Search.astro';
@@ -9,6 +9,7 @@ import SiteTitle from '@astrojs/starlight/components/SiteTitle.astro';
 import ThemeSelect from '@astrojs/starlight/components/ThemeSelect.astro';
 import { Icon } from '@astrojs/starlight/components';
 import { REPO_URL } from '../site.mjs';
+import { CORE_CTA } from '../data/hub';
 import { mainNav, sitePath, type NavGroup } from '../nav/site-nav';
 import HubCta from './HubCta.astro';
 import HubForm from './HubForm.astro';
@@ -18,7 +19,6 @@ type Menu = { id: string; label: string; wide?: boolean; columns?: NavGroup[]; h
 const menus: Menu[] = [
 	{ id: 'docs', label: 'Docs', wide: true, columns: nav.docs.columns },
 	{ id: 'hub', label: 'Hub', columns: [nav.hub], all: { label: 'Shadow Hub overview', href: sitePath('/hub/') } },
-	{ id: 'pricing', label: 'Pricing', href: sitePath('/pricing/') },
 	{
 		id: 'compare',
 		label: 'Compare',
@@ -27,6 +27,7 @@ const menus: Menu[] = [
 		all: nav.compare.href ? { label: 'Compare all AI data-leak tools', href: nav.compare.href } : undefined,
 	},
 	{ id: 'solutions', label: 'Solutions', wide: true, columns: nav.solutions.columns },
+	{ id: 'pricing', label: 'Pricing', href: sitePath('/pricing/') },
 	{ id: 'trust', label: 'Trust', href: sitePath('/trust/') },
 ];
 const { hasSidebar } = Astro.locals.starlightRoute;
@@ -91,14 +92,15 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 	</div>
 
 	<div class="sh-header__right print:hidden">
-		<a class="sh-gh" href={REPO_URL} rel="noopener">
-			<Icon name="github" size="1.1rem" />
-			<span>GitHub</span>
-			<span class="sh-gh__badge">Open source</span>
-		</a>
-		<div class="sh-header__cta"><HubCta location="header" show={['hub']} compact /></div>
 		<ThemeSelect />
+		<a class="sh-gh" href={REPO_URL} rel="noopener">
+			<Icon name="github" size="1rem" />
+			<span>GitHub</span>
+		</a>
+		<div class="sh-header__cta"><HubCta location="header" show={['hub']} primary="install" compact /></div>
 	</div>
+
+	<a class="sh-btn sh-btn--fg sh-btn--sm sh-header__install print:hidden" href={sitePath('/getting-started/quick-start/')}>{CORE_CTA}</a>
 
 	<details class="sh-menu print:hidden" data-sh-menu>
 		<summary aria-label="Site menu">

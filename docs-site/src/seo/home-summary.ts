@@ -11,7 +11,7 @@ curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 \`\`\`
 
 - Single binary for macOS, Linux and Windows; no cloud service, account or telemetry.
-- Works with 15+ provider APIs, including OpenAI, Anthropic, Google Gemini, Vertex AI, Azure OpenAI, AWS Bedrock, Mistral, OpenRouter, Groq, DeepSeek, xAI and Cohere, plus self-hosted APIs.
+- Its catalog lists 280+ AI services (model APIs, inference clouds, routers, coding agents and chat apps), including OpenAI, Anthropic, Google Gemini, Vertex AI, Azure OpenAI, AWS Bedrock, Mistral, OpenRouter, Groq, DeepSeek, xAI and Cohere, plus self-hosted APIs.
 - Covers apps that call AI provider APIs (such as api.openai.com and api.anthropic.com). With the opt-in system proxy (\`shadow install --system-proxy --apply\`) it also masks ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser. Phone apps are not covered.
 
 ## The problem: prompts carry far more than the question

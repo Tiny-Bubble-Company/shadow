@@ -34,15 +34,26 @@ export default defineConfig({
 			social: [{ icon: 'github', label: 'GitHub', href: REPO_URL }],
 			editLink: { baseUrl: `${REPO_URL}/edit/main/docs-site/` },
 			lastUpdated: false,
-			customCss: ['@fontsource-variable/inter', './src/styles/custom.css', './src/styles/home.css', './src/styles/site-chrome.css'],
+			customCss: [
+				// Self-hosted variable fonts (no font CDN): Geist for text, Geist Mono for code.
+				'@fontsource-variable/geist',
+				'@fontsource-variable/geist-mono',
+				'./src/styles/custom.css', './src/styles/home.css', './src/styles/site-chrome.css'],
 			routeMiddleware: './src/seo/middleware.ts',
 			components: {
 				MarkdownContent: './src/components/MarkdownContent.astro',
 				Header: './src/components/Header.astro',
+				// Only the home page has `hero:`; it renders the custom home hero (one H1).
+				Hero: './src/components/home/Hero.astro',
+				// Docs pages: plain H1. Hub, Pricing, Trust: marketing hero.
+				PageTitle: './src/components/PageTitle.astro',
 				PageFrame: './src/components/PageFrame.astro',
 			},
 			head: [
 				{ tag: 'meta', attrs: { name: 'theme-color', content: '#7C6CFF' } },
+				// Marks that JS runs, before first paint: scroll-reveal and other hidden-until-animated
+				// states only apply under html.js, so content stays visible without JavaScript.
+				{ tag: 'script', content: "document.documentElement.classList.add('js')" },
 				// Cloudflare Web Analytics: cookie-free page views (see src/site.mjs).
 				...(CF_BEACON_TOKEN
 					? [

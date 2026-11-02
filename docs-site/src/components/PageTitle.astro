@@ -1,0 +1,36 @@
+---
+// Page H1 (overrides Starlight's PageTitle). Docs pages keep a plain H1. Splash pages without
+// a home hero (Hub, Pricing, Trust, 404) get the marketing hero: hero wash, eyebrow and a
+// large tight-tracked heading, matching the home page.
+const { entry, id } = Astro.locals.starlightRoute;
+const isSplash = entry.data.template === 'splash';
+const EYEBROWS: Record<string, string> = {
+	hub: 'Shadow Hub',
+	pricing: 'Pricing',
+	trust: 'Trust and data',
+};
+const eyebrow = EYEBROWS[id.replace(/\/$/, '')];
+---
+
+{
+	isSplash ? (
+		<header class="mk-hero">
+			<div class="mk-hero__wash" aria-hidden="true" />
+			{eyebrow && <p class="mk-hero__eyebrow"><span class="hp-pill__dot" />{eyebrow}</p>}
+			<h1 id="_top" class="mk-hero__title text-fade">{entry.data.title}</h1>
+		</header>
+	) : (
+		<h1 id="_top">{entry.data.title}</h1>
+	)
+}
+
+<style>
+	h1:not(.mk-hero__title) {
+		margin-top: 1rem;
+		font-size: var(--sl-text-h1);
+		line-height: 1.1;
+		font-weight: 500;
+		letter-spacing: -0.035em;
+		color: var(--sl-color-white);
+	}
+</style>
