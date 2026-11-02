@@ -3,8 +3,8 @@
 
 export const hub = {
 	/** Hub signup is open. While false, buyer CTAs open the waitlist form instead. */
-	hubLive: false,
-	/** Hub signup page, used once `hubLive` is true. PLACEHOLDER: final Hub domain. */
+	hubLive: true,
+	/** Hub signup page, used once `hubLive` is true. */
 	signupUrl: 'https://hub.getshadow.dev/signup',
 	/** A booking link (for example Cal.com). PLACEHOLDER: empty until one exists; the demo form is used instead. */
 	demoBookingUrl: '',
