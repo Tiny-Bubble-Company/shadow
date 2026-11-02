@@ -261,6 +261,29 @@ pub async fn upload_pending(
     }
 }
 
+/// Tell the hub this machine is running, and refresh the sharing level.
+async fn heartbeat(client: &reqwest::Client, data_dir: &Path) {
+    let Some(mut en) = Enrollment::load(data_dir) else {
+        return;
+    };
+    let Ok(r) = client
+        .get(format!("{}/api/device/policy", en.hub_url))
+        .bearer_auth(&en.device_token)
+        .send()
+        .await
+    else {
+        return;
+    };
+    let reply: Value =
+        serde_json::from_str(&r.text().await.unwrap_or_default()).unwrap_or_default();
+    if let Some(level) = reply.get("share_level").and_then(Value::as_str) {
+        if level != en.share_level {
+            en.share_level = level.to_string();
+            let _ = en.save(data_dir);
+        }
+    }
+}
+
 /// Upload new events until the process exits. Errors are retried on the next tick.
 pub async fn run_uploader(log: Arc<ActivityLog>, data_dir: PathBuf) {
     let client = match client() {
@@ -268,10 +291,24 @@ pub async fn run_uploader(log: Arc<ActivityLog>, data_dir: PathBuf) {
         Err(e) => return tracing::warn!("hub uploader unavailable: {e}"),
     };
     let mut warned = false;
+    let mut idle = 0u32;
     loop {
         tokio::time::sleep(INTERVAL).await;
         match upload_pending(&client, &log, &data_dir).await {
-            Ok(_) => warned = false,
+            Ok(0) => {
+                warned = false;
+                idle += 1;
+                // About once a minute with nothing to send: a heartbeat, which also picks up
+                // a changed sharing level.
+                if idle >= 6 {
+                    idle = 0;
+                    heartbeat(&client, &data_dir).await;
+                }
+            }
+            Ok(_) => {
+                warned = false;
+                idle = 0;
+            }
             Err(e) if !warned => {
                 tracing::warn!("hub upload failed, will retry: {e:#}");
                 warned = true;
