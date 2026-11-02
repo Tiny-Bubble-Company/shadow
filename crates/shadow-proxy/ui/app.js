@@ -1,6 +1,7 @@
 // Shadow activity dashboard. Talks only to this origin (/shadow/activity*); no
 // third-party code. `?demo=1` renders synthetic data, `?theme=dark|light` forces a theme,
-// `?embed=1` trims chrome for the tray popover, `?w=1h|24h|7d|30d` picks the window.
+// `?embed=1` trims chrome for the tray popover, `?w=1h|24h|7d|30d` picks the window,
+// `?reveal=1` shows caught values unblurred.
 // Pages: `#` overview, `#/incidents` every incident, `#/incidents/<id>` one incident.
 (function () {
   "use strict";
@@ -18,6 +19,7 @@
     view: "overview", id: 0, actionFilter: "", reveal: readReveal(), promptMode: "orig" };
 
   function readReveal() {
+    if (params.get("reveal") === "1") return true;
     try { return localStorage.getItem("shadow.reveal") === "1"; } catch (e) { return false; }
   }
 
@@ -97,12 +99,13 @@
     email: "Email addresses", phone: "Phone numbers", person: "Names", org: "Organisations",
     term: "Protected terms", address: "Postal addresses", iban: "IBANs", credit_card: "Card numbers",
     national_id: "National IDs", ip: "IP addresses", mac: "MAC addresses", hostname: "Hostnames",
-    secret: "Secrets & API keys", username: "Usernames", identifier: "User identifiers"
+    secret: "Secrets & API keys", username: "Usernames", identifier: "User identifiers",
+    date: "Personal dates"
   };
   var KIND_SHORT = {
     email: "Email", phone: "Phone", person: "Name", org: "Org", term: "Term", address: "Address",
     iban: "IBAN", credit_card: "Card", national_id: "National ID", ip: "IP", mac: "MAC",
-    hostname: "Host", secret: "Secret", username: "Username", identifier: "User ID"
+    hostname: "Host", secret: "Secret", username: "Username", identifier: "User ID", date: "Date"
   };
   var REASON_LABELS = {
     image_blocked: "Image blocked by policy", pdf_blocked: "PDF blocked by policy",
@@ -128,6 +131,7 @@
   // Feather-style 24px icons drawn with strokes only.
   var ICONS = {
     email: ["M4 6h16v12H4z", "M4 7l8 6 8-6"],
+    date: ["M3 5h18v16H3z", "M3 10h18", "M8 3v4", "M16 3v4"],
     person: ["M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"],
     secret: ["M14.5 9.5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0z", "M13.2 12.8L21 20.5", "M18 17.5l2-2"],
     phone: ["M7 3h10v18H7z", "M11 18h2"],

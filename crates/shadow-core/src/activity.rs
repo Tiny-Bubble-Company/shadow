@@ -388,6 +388,7 @@ pub fn kind_label(kind: &str) -> String {
         "secret" => "Secrets & API keys",
         "username" => "Usernames",
         "identifier" => "User identifiers",
+        "date" => "Personal dates",
         other => other,
     }
     .to_string()

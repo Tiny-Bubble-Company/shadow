@@ -58,8 +58,40 @@ Shadow **translates**. A fake email is still an email. A fake card still passes 
 | `/Users/jdoe/src/billing` | `/Users/huizhao/src/billing` |
 | `sk-proj-…` (an API key) | a fake key of the same shape, or `[REDACTED_SECRET]` if you opt in |
 | 400 customer rows in a report | `[PERSON_0001]`, `[EMAIL_0001]`, … restored in the answer |
+| "Draft a referral letter to Dr Amara Okafor (amara.okafor@clinic.co.uk) about Maria Lopez, NHS 943 476 5919" | Dr Okafor and her email **unchanged** (she is who the letter is for); Maria Lopez and her NHS number replaced |
 
 The same real value always gets the same fake, and no two real values share one, so restoring is exact. Restoration works on whole fakes and on a fake person's first or last name on its own; other fragments (the last four digits of a card, part of an email) stay fake.
+
+Shadow never swaps the person you asked the AI to write to or act on. If it did, the model would greet, research or email the wrong person. It reads the goal of each request first: the recipient goes through as written (and is logged), and everyone and everything else in the request is masked.
+
+## See what it caught
+
+Every request Shadow masks or blocks becomes an incident you can open: the app and process that sent it, the AI and model it went to, each value caught next to what replaced it, and the prompt as written and as the AI received it. Below, a referral letter: the doctor it is addressed to goes through unchanged, and the patient's name, NHS number, date of birth and phone are replaced.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screens/incident-dark.png">
+  <img src="assets/screens/incident-light.png" alt="Shadow incident page: source app and process, destination model, a table of caught values with what replaced them, and the prompt with changed values highlighted" width="100%">
+</picture>
+
+The dashboard runs on your machine at `http://127.0.0.1:8877/shadow/ui`: traffic, what was protected, where it was going, which apps sent it, and every incident.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screens/dashboard-dark.png">
+  <img src="assets/screens/dashboard-light.png" alt="Shadow activity dashboard with requests monitored, values protected, requests blocked, a traffic timeline and breakdowns by data type, destination and app" width="100%">
+</picture>
+
+<table>
+  <tr>
+    <td width="38%" valign="top"><img src="assets/screens/tray.png" alt="Shadow menu-bar popover on macOS showing today's protection status and traffic" width="100%"></td>
+    <td valign="top"><img src="assets/screens/terminal.png" alt="shadow top terminal dashboard with traffic, protected data and incidents" width="100%"></td>
+  </tr>
+  <tr>
+    <td valign="top"><b>Mac menu bar.</b> A crescent icon in the top bar shows whether Shadow is protecting the Mac. Its menu lists today's requests, values protected and requests blocked; <b>Open dashboard</b> shows this popover, and <b>Incidents and prompts</b> opens the incident list. Windows gets the same in the system tray.</td>
+    <td valign="top"><b>Terminal.</b> <code>shadow top</code> for a live view on servers, <code>shadow incidents</code> to list incidents and <code>shadow incidents &lt;ID&gt;</code> to see one in full.</td>
+  </tr>
+</table>
+
+The log on disk holds counts only. Prompt text and caught values are kept in memory for the last 200 incidents, never written to disk, and blurred in the dashboard until you choose to show them.
 
 ## Features
 
