@@ -1,0 +1,89 @@
+name: Release
+
+# Builds Shadow for every supported platform when a version tag (v*) is pushed and attaches
+# the archives to a GitHub release. packaging/install.sh and install.ps1 (served at
+# https://hub.getshadow.dev/core/install.sh and .ps1) download them from
+# releases/latest:
+#   shadow-<target>.tar.gz   macOS and Linux: `shadow`, plus `shadow-tray` on macOS
+#   shadow-<target>.zip      Windows: `shadow.exe` and `shadow-tray.exe`
+# Linux builds are static (musl), so they run on any distribution.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re)build, e.g. v0.1.0"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: aarch64-apple-darwin, os: macos-latest, tray: true }
+          - { target: x86_64-apple-darwin, os: macos-latest, tray: true }
+          - { target: x86_64-unknown-linux-musl, os: ubuntu-latest, tray: false }
+          - { target: aarch64-unknown-linux-musl, os: ubuntu-24.04-arm, tray: false }
+          - { target: x86_64-pc-windows-msvc, os: windows-latest, tray: true }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - uses: dtolnay/rust-toolchain@360a4e93673de6630fac2478bc9e35244b01a759 # 1.88
+        with:
+          targets: ${{ matrix.target }}
+      - name: musl toolchain
+        if: contains(matrix.target, 'musl')
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - name: Build shadow
+        run: cargo build --release --locked -p shadow-cli --target ${{ matrix.target }}
+      - name: Build shadow-tray
+        if: matrix.tray
+        working-directory: apps/shadow-tray
+        run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Package (macOS, Linux)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir dist
+          cp target/${{ matrix.target }}/release/shadow dist/
+          if [ "${{ matrix.tray }}" = true ]; then cp apps/shadow-tray/target/${{ matrix.target }}/release/shadow-tray dist/; fi
+          tar -czf shadow-${{ matrix.target }}.tar.gz -C dist .
+          shasum -a 256 shadow-${{ matrix.target }}.tar.gz > shadow-${{ matrix.target }}.tar.gz.sha256
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory dist | Out-Null
+          Copy-Item target/${{ matrix.target }}/release/shadow.exe dist/
+          Copy-Item apps/shadow-tray/target/${{ matrix.target }}/release/shadow-tray.exe dist/
+          Compress-Archive -Path dist/* -DestinationPath shadow-${{ matrix.target }}.zip
+          (Get-FileHash shadow-${{ matrix.target }}.zip -Algorithm SHA256).Hash.ToLower() + "  shadow-${{ matrix.target }}.zip" | Out-File -Encoding ascii shadow-${{ matrix.target }}.zip.sha256
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: shadow-${{ matrix.target }}
+          path: shadow-${{ matrix.target }}.*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
+            || gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "Shadow $TAG" --generate-notes
+          gh release upload "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber

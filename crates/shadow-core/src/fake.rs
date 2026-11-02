@@ -203,12 +203,28 @@ impl<'a> Faker<'a> {
 
     fn person_name(&mut self, words: usize) -> String {
         let r = self.persona.region_data();
-        let last = *r.last.choose(&mut self.rng).unwrap();
         if words <= 1 {
-            last.to_string()
-        } else {
-            format!("{} {last}", r.first.choose(&mut self.rng).unwrap())
+            return r.last.choose(&mut self.rng).unwrap().to_string();
         }
+        // Answers often use just the first or last name, and only parts of three letters
+        // or more are restored on their own ("Wu" is too likely to be a real word), so a
+        // full name is built from such parts when the region has them.
+        let mut pick = |names: &[&'static str]| {
+            let long: Vec<&str> = names
+                .iter()
+                .copied()
+                .filter(|n| n.chars().count() >= 3)
+                .collect();
+            let pool = if long.is_empty() {
+                names.to_vec()
+            } else {
+                long
+            };
+            *pool.choose(&mut self.rng).unwrap()
+        };
+        let first = pick(r.first);
+        let last = pick(r.last);
+        format!("{first} {last}")
     }
 
     /// A name with a double-barrelled surname.

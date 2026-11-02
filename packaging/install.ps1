@@ -1,5 +1,5 @@
 # Shadow installer for Windows (PowerShell 5+).
-#   irm https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.ps1 | iex
+#   irm https://hub.getshadow.dev/core/install.ps1 | iex
 # Joining an organisation: set $env:SHADOW_ENROLL to the join link from your invite first.
 # It then enrols this machine with the organisation's Shadow Hub and applies the managed
 # setup (scheduled tasks, local CA trust, system proxy).
@@ -44,4 +44,5 @@ if ($env:SHADOW_ENROLL) {
 Write-Host ""
 Write-Host "Installed to $Dest\shadow.exe. Next:"
 Write-Host "  shadow install          # dry run"
-Write-Host "  shadow install --apply  # scheduled tasks (proxy and tray) + trust the local CA (current user)"
+Write-Host "  shadow install --apply --system-proxy  # scheduled tasks (proxy and tray), trust the local CA (current user),"
+Write-Host "                                        # and route browsers and desktop apps (ChatGPT, Claude) through Shadow"

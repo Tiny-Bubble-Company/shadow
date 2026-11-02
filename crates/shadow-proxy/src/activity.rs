@@ -22,10 +22,13 @@ const INDEX_HTML: &str = include_str!("../ui/index.html");
 const APP_JS: &str = include_str!("../ui/app.js");
 const APP_CSS: &str = include_str!("../ui/app.css");
 const LOGO_SVG: &str = include_str!("../ui/logo.svg");
+/// Inter Variable (latin, wght axis), SIL OFL 1.1: see ui/INTER-LICENSE.txt. Embedded so
+/// the dashboard never fetches fonts from a third party and works offline.
+const INTER_WOFF2: &[u8] = include_bytes!("../ui/inter.woff2");
 
 /// Content-Security-Policy of the dashboard: nothing but this origin, no inline code.
 pub const UI_CSP: &str = "default-src 'none'; script-src 'self'; style-src 'self'; \
-img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; \
+img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; \
 frame-ancestors 'none'";
 
 /// How a request reached the proxy.
@@ -200,9 +203,13 @@ fn providers_response() -> Response<Body> {
 }
 
 fn asset(ct: &str, body: &'static str) -> Response<Body> {
+    asset_bytes(ct, "no-cache", body.as_bytes())
+}
+
+fn asset_bytes(ct: &str, cache: &str, body: &'static [u8]) -> Response<Body> {
     Response::builder()
         .header(header::CONTENT_TYPE, ct)
-        .header(header::CACHE_CONTROL, "no-cache")
+        .header(header::CACHE_CONTROL, cache)
         .header(header::CONTENT_SECURITY_POLICY, UI_CSP)
         .header("x-content-type-options", "nosniff")
         .header("x-frame-options", "DENY")
@@ -248,6 +255,11 @@ impl Proxy {
             "/shadow/ui/app.js" => asset("text/javascript; charset=utf-8", APP_JS),
             "/shadow/ui/app.css" => asset("text/css; charset=utf-8", APP_CSS),
             "/shadow/ui/logo.svg" => asset("image/svg+xml", LOGO_SVG),
+            "/shadow/ui/inter.woff2" => asset_bytes(
+                "font/woff2",
+                "public, max-age=31536000, immutable",
+                INTER_WOFF2,
+            ),
             "/shadow/activity" | "/shadow/activity/" => self.activity_events(q),
             "/shadow/activity/summary" => self.activity_summary(q),
             "/shadow/activity/stream" => self.activity_stream(q),

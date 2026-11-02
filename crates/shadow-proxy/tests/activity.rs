@@ -306,6 +306,7 @@ async fn dashboard_is_served_with_strict_csp() {
         .to_string();
     assert!(csp.contains("default-src 'none'") && csp.contains("script-src 'self'"));
     assert!(!csp.contains("unsafe"));
+    assert!(csp.contains("font-src 'self'"));
     let html = r.text().await.unwrap();
     assert!(html.contains("/shadow/ui/app.js"));
     assert!(
@@ -316,6 +317,7 @@ async fn dashboard_is_served_with_strict_csp() {
         ("app.js", "text/javascript"),
         ("app.css", "text/css"),
         ("logo.svg", "image/svg+xml"),
+        ("inter.woff2", "font/woff2"),
     ] {
         let r = client()
             .get(format!("{}/shadow/ui/{path}", env.url))

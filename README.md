@@ -116,10 +116,10 @@ The log on disk holds counts only. Prompt text and caught values are kept in mem
 
 ```sh
 # macOS / Linux
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 
 # Windows (PowerShell)
-irm https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.ps1 | iex
+irm https://hub.getshadow.dev/core/install.ps1 | iex
 
 # From source (Rust 1.88+)
 cargo install --locked --git https://github.com/Tiny-Bubble-Company/shadow shadow-cli

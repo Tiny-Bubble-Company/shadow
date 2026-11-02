@@ -37,6 +37,9 @@ struct Status {
     blocked: u64,
     /// The organisation this machine reports to, when enrolled with a Shadow Hub.
     managed_by: Option<String>,
+    /// The system proxy points at Shadow, so browsers and desktop apps go through it.
+    /// When it is off, only tools configured to use Shadow are covered.
+    routed: bool,
 }
 
 enum UserEvent {
@@ -106,11 +109,66 @@ fn poll(addr: &str) -> Status {
         .and_then(|h| h["org_name"].as_str().map(str::to_string));
     Status {
         managed_by,
+        routed: system_routed(),
         online: true,
         requests: n("requests"),
         values: n("values_protected"),
         restored: n("values_restored"),
         blocked: n("blocked"),
+    }
+}
+
+/// Whether the system proxy settings send this machine's traffic to Shadow's PAC file
+/// (what `shadow system-proxy on --apply` sets).
+fn system_routed() -> bool {
+    let out = |cmd: &str, args: &[&str]| {
+        std::process::Command::new(cmd)
+            .args(args)
+            .output()
+            .ok()
+            .map(|o| String::from_utf8_lossy(&o.stdout).into_owned())
+            .unwrap_or_default()
+    };
+    let ours = |o: &str| o.contains("/proxy.pac?scope=all");
+    if cfg!(target_os = "macos") {
+        let o = out("scutil", &["--proxy"]);
+        ours(&o) && o.contains("ProxyAutoConfigEnable : 1")
+    } else if cfg!(windows) {
+        ours(&out(
+            "reg",
+            &[
+                "query",
+                r"HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings",
+                "/v",
+                "AutoConfigURL",
+            ],
+        ))
+    } else {
+        ours(&out(
+            "gsettings",
+            &["get", "org.gnome.system.proxy", "autoconfig-url"],
+        )) && out("gsettings", &["get", "org.gnome.system.proxy", "mode"]).contains("auto")
+    }
+}
+
+/// Run `shadow system-proxy on --apply` with the `shadow` binary next to this app, else
+/// the one on PATH.
+fn route_all() {
+    let name = if cfg!(windows) {
+        "shadow.exe"
+    } else {
+        "shadow"
+    };
+    let exe = std::env::current_exe()
+        .ok()
+        .and_then(|e| e.parent().map(|d| d.join(name)))
+        .filter(|p| p.is_file())
+        .unwrap_or_else(|| name.into());
+    if let Err(e) = std::process::Command::new(exe)
+        .args(["system-proxy", "on", "--apply"])
+        .spawn()
+    {
+        eprintln!("could not turn on the system proxy: {e}");
     }
 }
 
@@ -152,6 +210,7 @@ fn fmt_n(n: u64) -> String {
 
 struct Items {
     status: MenuItem,
+    coverage: MenuItem,
     requests: MenuItem,
     values: MenuItem,
     blocked: MenuItem,
@@ -168,6 +227,7 @@ impl Items {
     fn new() -> Self {
         Self {
             status: MenuItem::new("Checking Shadow…", true, None),
+            coverage: MenuItem::new("Checking which apps are covered…", true, None),
             requests: MenuItem::new("Today: no requests yet", true, None),
             values: MenuItem::new("No values protected yet", true, None),
             blocked: MenuItem::new("Nothing blocked", true, None),
@@ -184,6 +244,7 @@ impl Items {
         let sep = PredefinedMenuItem::separator;
         let _ = menu.append_items(&[
             &self.status,
+            &self.coverage,
             &sep(),
             &self.requests,
             &self.values,
@@ -211,8 +272,18 @@ impl Items {
                 .as_deref()
                 .map(|o| format!(" · managed by {o}"))
                 .unwrap_or_default();
-            self.status
-                .set_text(format!("🟢 Shadow is protecting {machine}{managed}"));
+            if s.routed {
+                self.status
+                    .set_text(format!("🟢 Shadow is protecting {machine}{managed}"));
+                self.coverage
+                    .set_text("All apps and browsers go through Shadow");
+            } else {
+                self.status.set_text(format!(
+                    "🟡 Only tools set up for Shadow are protected{managed}"
+                ));
+                self.coverage
+                    .set_text(format!("Protect all apps and browsers on {machine}…"));
+            }
             self.requests.set_text(format!(
                 "Today: {} request{} monitored",
                 fmt_n(s.requests),
@@ -234,6 +305,8 @@ impl Items {
             });
         } else {
             self.status.set_text("🔴 Shadow is not running");
+            self.coverage
+                .set_text("Nothing goes through Shadow right now");
             self.requests.set_text("Start it with `shadow run`");
             self.values.set_text("or `shadow install --apply`");
             self.blocked.set_text("Your AI traffic is not protected");
@@ -244,14 +317,20 @@ impl Items {
 fn offline_html() -> String {
     r#"<!doctype html><html><head><meta charset="utf-8"><meta name="color-scheme" content="light dark">
 <style>
-body{margin:0;height:100vh;display:grid;place-items:center;font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-background:#f6f6fb;color:#15142a;text-align:center}
-@media (prefers-color-scheme:dark){body{background:#0c0b14;color:#eeecfb}}
-.c{max-width:300px;padding:24px}.dot{width:56px;height:56px;border-radius:50%;margin:0 auto 18px;
-background:radial-gradient(circle at 70% 30%,transparent 46%,#7c6cff 47%);opacity:.9}
-h1{font-size:18px;margin:0 0 8px}p{color:#8a88a3;margin:0 0 14px;line-height:1.5}
-code{background:rgba(124,108,255,.14);color:#7c6cff;padding:3px 8px;border-radius:6px;font:13px ui-monospace,Menlo,monospace}
-</style></head><body><div class="c"><div class="dot"></div><h1>Shadow isn't running</h1>
+body{margin:0;height:100vh;display:grid;place-items:center;text-align:center;
+font:13px/1.5 "Inter Variable","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-.003em;
+font-feature-settings:"cv01","ss03";-webkit-font-smoothing:antialiased;background:#fff;color:#0f1011}
+@media (prefers-color-scheme:dark){body{background:#08090a;color:#f7f8f8}
+.card{background:#0f1011;border-color:rgba(255,255,255,.08)}p{color:#8a8f98}
+code{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08);color:#d0d6e0}}
+.card{max-width:300px;margin:16px;padding:24px 22px 22px;border:1px solid #e6e6e9;border-radius:8px}
+.dot{width:40px;height:40px;border-radius:50%;margin:0 auto 16px;
+background:radial-gradient(circle at 70% 30%,transparent 46%,#7c6cff 47%)}
+h1{font-size:15px;font-weight:590;letter-spacing:-.012em;margin:0 0 6px}
+p{color:#62666d;margin:0 0 16px}
+code{display:inline-block;background:#f7f8f9;border:1px solid #e6e6e9;color:#3c3f44;padding:4px 10px;border-radius:6px;
+font:12px "JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+</style></head><body><div class="card"><div class="dot"></div><h1>Shadow isn't running</h1>
 <p>Your AI traffic is not being protected right now. Start Shadow and this view will connect on its own.</p>
 <code>shadow run</code></div></body></html>"#
         .to_string()
@@ -390,6 +469,7 @@ fn main() {
         items.quit.id().clone(),
     ];
 
+    let coverage_id = items.coverage.id().clone();
     let status_ids: [MenuId; 2] = [items.status.id().clone(), items.requests.id().clone()];
     let incident_ids: [MenuId; 3] = [
         items.incidents.id().clone(),
@@ -460,7 +540,9 @@ fn main() {
                             let _ = t.set_icon(Some(icon::tray_icon(s.online)));
                             t.set_icon_as_template(cfg!(target_os = "macos"));
                         }
-                        let tip = if s.online {
+                        let tip = if s.online && !s.routed {
+                            "Shadow · only tools set up for Shadow are protected".to_string()
+                        } else if s.online {
                             format!(
                                 "Shadow · protecting · {} values protected today",
                                 fmt_n(s.values)
@@ -509,7 +591,9 @@ fn main() {
                 _ => {}
             },
             Event::UserEvent(UserEvent::Menu(e)) => {
-                if e.id == ids[0] || status_ids.contains(&e.id) {
+                if e.id == coverage_id && status.online && !status.routed {
+                    route_all();
+                } else if e.id == ids[0] || status_ids.contains(&e.id) || e.id == coverage_id {
                     show(&mut popover, anchor, status.online, Some("#"));
                 } else if incident_ids.contains(&e.id) {
                     show(&mut popover, anchor, status.online, Some("#/incidents"));

@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 # Shadow installer for macOS and Linux.
-#   curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+#   curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 # Builds from source with cargo when no release binary is available. Never touches
 # system settings by itself: run `shadow install --apply` afterwards.
 #
@@ -17,7 +17,7 @@ mkdir -p "$BIN_DIR"
 os="$(uname -s | tr '[:upper:]' '[:lower:]')"
 arch="$(uname -m)"
 case "$arch" in arm64|aarch64) arch=aarch64 ;; x86_64|amd64) arch=x86_64 ;; esac
-case "$os" in darwin) target="$arch-apple-darwin" ;; linux) target="$arch-unknown-linux-gnu" ;; *) echo "unsupported OS: $os" >&2; exit 1 ;; esac
+case "$os" in darwin) target="$arch-apple-darwin" ;; linux) target="$arch-unknown-linux-musl" ;; *) echo "unsupported OS: $os" >&2; exit 1 ;; esac
 
 url="$REPO/releases/latest/download/shadow-$target.tar.gz"
 tmp="$(mktemp -d)"
@@ -65,5 +65,6 @@ fi
 echo
 echo "Installed to $BIN_DIR/shadow. Next:"
 echo "  shadow install          # dry run: shows exactly what will change"
-echo "  shadow install --apply  # background service, menu-bar app at login, trust the local CA"
+echo "  shadow install --apply --system-proxy  # background service, menu-bar app, trust the local CA,"
+echo "                                        # and route browsers and desktop apps (ChatGPT, Claude) through Shadow"
 case ":$PATH:" in *":$BIN_DIR:"*) ;; *) echo "  (add $BIN_DIR to your PATH)";; esac

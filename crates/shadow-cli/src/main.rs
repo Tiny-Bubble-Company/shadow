@@ -855,6 +855,21 @@ fn status(cli: &Cli, quiet: bool) -> anyhow::Result<()> {
         Some(e) => ui::kv("organisation", &format!("{} ({})", e.notice(), e.hub_url)),
         None => ui::kv("organisation", "not enrolled (personal use)"),
     }
+    let proxied = service::proxied_by_shadow(&service::network_services());
+    if proxied.is_empty() {
+        ui::kv(
+            "system proxy",
+            &ui::yellow("off: browsers and desktop apps (ChatGPT, Claude) are not covered; run `shadow system-proxy on --apply`"),
+        );
+    } else {
+        ui::kv(
+            "system proxy",
+            &ui::green(&format!(
+                "on ({}): all apps are covered",
+                proxied.join(", ")
+            )),
+        );
+    }
     ui::kv(
         "upstream proxy",
         cfg.proxy
