@@ -1,6 +1,7 @@
 // Shadow activity dashboard. Talks only to this origin (/shadow/activity*); no
 // third-party code. `?demo=1` renders synthetic data, `?theme=dark|light` forces a theme,
 // `?embed=1` trims chrome for the tray popover, `?w=1h|24h|7d|30d` picks the window.
+// Pages: `#` overview, `#/incidents` every incident, `#/incidents/<id>` one incident.
 (function () {
   "use strict";
 
@@ -13,7 +14,12 @@
   if (theme === "dark" || theme === "light") document.documentElement.setAttribute("data-theme", theme);
   if (EMBED) document.body.classList.add("embed");
 
-  var state = { window: pickWindow(), summary: null, incidents: [], online: null, timer: null };
+  var state = { window: pickWindow(), summary: null, incidents: [], all: [], online: null, timer: null,
+    view: "overview", id: 0, actionFilter: "", reveal: readReveal(), promptMode: "orig" };
+
+  function readReveal() {
+    try { return localStorage.getItem("shadow.reveal") === "1"; } catch (e) { return false; }
+  }
 
   function pickWindow() {
     var w = params.get("w");
@@ -160,6 +166,8 @@
   }
 
   function load() {
+    if (state.view === "detail") return;
+    if (state.view === "incidents") return loadAll();
     if (DEMO) {
       var d = demoData(state.window);
       setOnline(true);
@@ -177,6 +185,46 @@
       setOnline(false);
       if (!state.summary) render(emptySummary(state.window), []);
     });
+  }
+
+  function loadAll() {
+    if (DEMO) {
+      setOnline(true);
+      state.all = demoData("30d").incidents;
+      renderIncidentList();
+      return;
+    }
+    fetchJSON("/shadow/activity?action=incidents&limit=2000").then(function (r) {
+      setOnline(true);
+      state.all = r.events || [];
+      renderIncidentList();
+    }).catch(function () {
+      setOnline(false);
+      renderIncidentList();
+    });
+  }
+
+  // ---------------------------------------------------------------- pages
+  function route() {
+    var m = /^#\/incidents(?:\/(\d+))?\/?$/.exec(location.hash);
+    state.view = m ? (m[1] ? "detail" : "incidents") : "overview";
+    state.id = m && m[1] ? Number(m[1]) : 0;
+    $("view-overview").hidden = state.view !== "overview";
+    $("view-incidents").hidden = state.view !== "incidents";
+    $("view-detail").hidden = state.view !== "detail";
+    $("windows").hidden = state.view === "detail";
+    $("tab-overview").setAttribute("aria-current", state.view === "overview" ? "page" : "false");
+    $("tab-incidents").setAttribute("aria-current", state.view === "overview" ? "false" : "page");
+    var name = state.view === "overview" ? "Activity" : state.view === "incidents" ? "Incidents" : "Incident #" + state.id;
+    document.title = "Shadow · " + name + (DEMO ? " (demo)" : "");
+    window.scrollTo(0, 0);
+    if (state.view === "detail") {
+      state.promptMode = "orig";
+      clear($("detail"));
+      loadDetail(state.id);
+    } else {
+      load();
+    }
   }
 
   function schedule() {
@@ -414,31 +462,33 @@
     var t = { masked: "Masked", blocked: "Blocked", clean: "Clean" }[action] || action;
     return h("span", { class: "badge " + action, text: t });
   }
+  function openIncident(e) { location.hash = "#/incidents/" + e.id; }
 
-  function renderIncidents(list) {
-    var el = clear($("incidents"));
+  function incidentTable(el, list, opts) {
+    clear(el);
     if (!list.length) {
-      el.appendChild(h("div", { class: "empty", text: state.online === false ? "Shadow is offline" : "No incidents yet. When Shadow masks or blocks something, it shows up here." }));
+      el.appendChild(h("div", { class: "empty", text: state.online === false ? "Shadow is offline"
+        : opts.emptyText || "No incidents yet. When Shadow masks or blocks something, it shows up here." }));
       return;
     }
-    var rows = list.slice(0, 15);
     var tbody = h("tbody");
-    rows.forEach(function (e) {
-      tbody.appendChild(h("tr", { class: "row", onclick: function () { openSheet(e); } }, [
-        h("td", { class: "when", title: new Date(e.ts).toLocaleString(), text: ago(e.ts) }),
+    list.forEach(function (e) {
+      tbody.appendChild(h("tr", { class: "row", tabindex: "0", onclick: function () { openIncident(e); },
+        onkeydown: function (ev) { if (ev.key === "Enter") openIncident(e); } }, [
+        h("td", { class: "when", title: new Date(e.ts).toLocaleString(), text: opts.full ? clock(e.ts, true) : ago(e.ts) }),
         h("td", null, incidentRoute(e)),
         h("td", null, h("div", { class: "tags" }, incidentWhat(e))),
         h("td", null, badge(e.action)),
-        h("td", null, e.restored ? h("span", { class: "restored", text: "↩ " + fmt(e.restored) }) : h("span", { class: "dim", text: "—" }))
+        h("td", { class: "open" }, e.has_detail ? h("span", { class: "has-prompt", text: "Prompt ›" }) : h("span", { class: "dim", text: "›" }))
       ]));
     });
     el.appendChild(h("table", null, [
-      h("thead", null, h("tr", null, ["When", "Source → destination", "What", "Action", "Restored"].map(function (c) { return h("th", { text: c }); }))),
+      h("thead", null, h("tr", null, ["When", "Source → destination", "What", "Action", ""].map(function (c) { return h("th", { text: c }); }))),
       tbody
     ]));
     var compact = h("div", { class: "inc-list" });
-    rows.slice(0, 12).forEach(function (e) {
-      compact.appendChild(h("div", { class: "inc", onclick: function () { openSheet(e); } }, [
+    list.forEach(function (e) {
+      compact.appendChild(h("div", { class: "inc", onclick: function () { openIncident(e); } }, [
         incidentRoute(e),
         h("div", { class: "when", text: ago(e.ts) }),
         h("div", { class: "tags" }, [badge(e.action)].concat(incidentWhat(e)))
@@ -447,33 +497,252 @@
     el.appendChild(compact);
   }
 
-  function openSheet(e) {
-    var body = clear($("sheet-body"));
-    $("sheet-title").textContent = (e.action === "blocked" ? "Blocked request" : "Masked request") + " · " + clock(e.ts, true);
-    var rows = [
-      ["Action", badge(e.action)],
-      ["App", e.client || "Unknown"],
-      ["Destination", providerName(e.provider, e.provider) + (e.host ? " (" + e.host + ")" : "")],
-      ["Endpoint", { chat: "Chat & completions", embeddings: "Embeddings", files: "File upload", other: "Other API call" }[e.endpoint] || e.endpoint],
-      ["Route", e.mode === "gateway" ? "Gateway (/gw)" : "HTTPS proxy"],
-      e.intent ? ["Intent", e.intent] : null,
-      e.action === "blocked" ? ["Reason", REASON_LABELS[e.block_reason] || e.block_reason || "Policy"] : null,
-      Object.keys(e.kinds || {}).length ? ["Protected", h("div", { class: "tags" }, kindTags(e.kinds, 20))] : null,
-      e.detectors && e.detectors.length ? ["Detectors", e.detectors.join(", ")] : null,
-      ["Restored", e.restored ? plural(e.restored, "value") + " put back in the response" : "None"],
-      ["Response", (e.streamed ? "Streamed · " : "") + "HTTP " + (e.status || "—")],
-      ["Size", bytes(e.bytes_in) + " sent · " + bytes(e.bytes_out) + " received"],
-      ["Time", fmt(e.latency_ms) + " ms"]
-    ].filter(Boolean);
-    var dl = h("dl", { class: "kv" });
-    rows.forEach(function (r) { dl.appendChild(h("dt", { text: r[0] })); dl.appendChild(h("dd", null, r[1])); });
-    body.appendChild(dl);
-    body.appendChild(h("div", { class: "never" }, [h("b", { text: "Never recorded: " }),
-      "the real values, the fakes sent in their place, prompts, responses, file names and headers. This record holds counts only."]));
-    $("overlay").hidden = false;
-    $("sheet-close").focus();
+  function renderIncidents(list) {
+    incidentTable($("incidents"), list.slice(0, EMBED ? 8 : 12), {});
   }
-  function closeSheet() { $("overlay").hidden = true; }
+
+  // ---------------------------------------------------------------- all incidents
+  function renderIncidentList() {
+    var q = ($("inc-search").value || "").trim().toLowerCase();
+    var since = Date.now() - ({ "1h": 3600e3, "24h": 86400e3, "7d": 7 * 86400e3, "30d": 30 * 86400e3 }[state.window] || 86400e3);
+    var list = state.all.filter(function (e) {
+      if (e.ts < since) return false;
+      if (state.actionFilter && e.action !== state.actionFilter) return false;
+      if (!q) return true;
+      var hay = [e.client, e.provider, providerName(e.provider, e.provider), e.host, e.intent, REASON_LABELS[e.block_reason] || ""]
+        .concat(Object.keys(e.kinds || {}).map(function (k) { return (KIND_LABELS[k] || k) + " " + (KIND_SHORT[k] || ""); }))
+        .join(" ").toLowerCase();
+      return hay.indexOf(q) >= 0;
+    });
+    incidentTable($("inc-all"), list.slice(0, 500), { full: true,
+      emptyText: state.all.length ? "No incidents match this filter in the selected time window." : null });
+  }
+
+  // ---------------------------------------------------------------- incident detail
+  var ROLE_LABELS = { system: "System", user: "User", assistant: "Assistant", model: "Model", tool: "Tool", developer: "Developer", function: "Tool" };
+  var INTENT_LABELS = {
+    act: "Asked the AI to act (for example send a message); recipients go through unchanged",
+    report: "Asked for a report or summary", code: "Coding", converse: "Conversation"
+  };
+  var ENDPOINT_LABELS = { chat: "Chat & completions", embeddings: "Embeddings", files: "File upload", other: "Other API call" };
+
+  function kv(rows) {
+    var dl = h("dl", { class: "kv" });
+    rows.filter(Boolean).forEach(function (r) {
+      if (r[1] === null || r[1] === undefined || r[1] === "") return;
+      dl.appendChild(h("dt", { text: r[0] }));
+      dl.appendChild(h("dd", null, r[1]));
+    });
+    return dl;
+  }
+  function infoCard(title, body) {
+    return h("article", { class: "card info" }, [h("div", { class: "card-head" }, h("h2", { text: title })), body]);
+  }
+  function sv(text) { return h("span", { class: "sv", text: text }); }
+
+  // Split `text` into plain runs and <mark>s for every needle; longest needles win overlaps.
+  function highlight(text, needles) {
+    var hits = [];
+    needles.slice().sort(function (a, b) { return b.s.length - a.s.length; }).forEach(function (n) {
+      if (!n.s || n.s.length < 2) return;
+      var from = 0, i;
+      while ((i = text.indexOf(n.s, from)) >= 0) {
+        var end = i + n.s.length;
+        if (!hits.some(function (x) { return i < x.end && end > x.start; })) hits.push({ start: i, end: end, n: n });
+        from = end;
+      }
+    });
+    hits.sort(function (a, b) { return a.start - b.start; });
+    var out = [], last = 0;
+    hits.forEach(function (x) {
+      if (x.start > last) out.push(text.slice(last, x.start));
+      out.push(h("mark", { class: "hl sv " + x.n.cls, title: x.n.title, text: text.slice(x.start, x.end) }));
+      last = x.end;
+    });
+    if (last < text.length) out.push(text.slice(last));
+    return out;
+  }
+
+  function needlesFor(changes, sent) {
+    return changes.map(function (c) {
+      var kept = c.original === c.sent;
+      var label = KIND_SHORT[c.kind] || c.kind;
+      return {
+        s: sent ? c.sent : c.original,
+        cls: kept ? "kept" : (sent ? "fake" : "real"),
+        title: kept ? label + ": sent unchanged on purpose" : sent ? label + ": stands in for your value" : label + ": replaced before sending"
+      };
+    });
+  }
+
+  function promptView(d, mode) {
+    var wrap = h("div", { class: "parts" });
+    var blocked = d.parts.every(function (p) { return p.sent === undefined || p.sent === null; });
+    var needles = needlesFor(d.changes || [], mode === "sent");
+    var quiet = 0;
+    d.parts.forEach(function (p) {
+      var text = mode === "sent" && !blocked ? (p.sent === undefined || p.sent === null ? p.original : p.sent) : p.original;
+      var changed = p.sent !== undefined && p.sent !== null && p.sent !== p.original;
+      var hl = highlight(text, needles);
+      var marked = hl.some(function (n) { return n && n.tagName === "MARK"; });
+      var head = h("div", { class: "part-head" }, [
+        h("span", { class: "role role-" + (p.role || "none"), text: ROLE_LABELS[p.role] || (p.role ? p.role : "Text") }),
+        h("span", { class: "field", text: p.field }),
+        changed ? h("span", { class: "tag", text: "changed" }) : null
+      ]);
+      if (changed || marked || blocked) {
+        wrap.appendChild(h("div", { class: "part" }, [head, h("pre", { class: "text" }, hl)]));
+      } else {
+        quiet++;
+        var short = text.length > 90 ? text.slice(0, 90) + "…" : text;
+        wrap.appendChild(h("details", { class: "part quiet" }, [
+          h("summary", null, [head.cloneNode(true), h("span", { class: "preview", text: short })]),
+          h("pre", { class: "text" }, hl)
+        ]));
+      }
+    });
+    if (d.truncated) wrap.appendChild(h("p", { class: "note", text: "Long text was shortened, and only the messages with changes plus the most recent context are kept." }));
+    return wrap;
+  }
+
+  function renderDetail(data) {
+    var el = clear($("detail"));
+    var e = data.event, d = data.detail;
+    var title = (e.action === "blocked" ? "Blocked request" : "Masked request");
+    var values = Object.keys(e.kinds || {}).reduce(function (a, k) { return a + e.kinds[k]; }, 0);
+    var headline = e.action === "blocked"
+      ? "Shadow stopped this request before it left your machine."
+      : "Shadow replaced " + plural(values, "value") + " before this request left your machine" + (e.restored ? ", and put " + plural(e.restored, "value") + " back in the answer." : ".");
+    var reveal = h("button", { type: "button", class: "btn", id: "reveal", onclick: function () { setReveal(!state.reveal); } },
+      state.reveal ? "Hide values" : "Show values");
+    el.appendChild(h("section", { class: "card detail-head" }, [
+      h("div", null, [
+        h("div", { class: "detail-title" }, [badge(e.action), h("h1", { text: title }), h("span", { class: "when", text: clock(e.ts, true) })]),
+        h("p", { class: "lead", text: headline })
+      ]),
+      d ? reveal : null
+    ]));
+
+    var proc = d && d.process ? d.process.name + " (pid " + d.process.pid + ")" : null;
+    var conv = d && d.conversation && Object.keys(d.conversation).length
+      ? h("div", { class: "mono-list" }, Object.keys(d.conversation).map(function (k) { return h("div", null, [h("span", { class: "dim", text: k + ": " }), d.conversation[k]]); }))
+      : null;
+    el.appendChild(h("section", { class: "grid3" }, [
+      infoCard("Source", kv([
+        ["App", e.client || "Unknown"],
+        ["Process", proc],
+        ["Conversation", conv],
+        ["Connected from", d && d.peer],
+        ["Route", e.mode === "gateway" ? "Gateway (base URL /gw)" : "HTTPS proxy"],
+        ["User agent", d && d.user_agent ? h("span", { class: "mono small", text: d.user_agent }) : null]
+      ])),
+      infoCard("Destination", kv([
+        ["AI", providerName(e.provider, e.provider) + (e.host ? " · " + e.host : "")],
+        ["Model", d && d.model ? h("span", { class: "mono", text: d.model }) : null],
+        ["Path", d && d.path ? h("span", { class: "mono small", text: e.method + " " + d.path }) : null],
+        ["Endpoint", ENDPOINT_LABELS[e.endpoint] || e.endpoint],
+        ["Response", (e.streamed ? "Streamed · " : "") + "HTTP " + (e.status || "—") + " · " + fmt(e.latency_ms) + " ms"],
+        ["Size", bytes(e.bytes_in) + " sent · " + bytes(e.bytes_out) + " received"]
+      ])),
+      infoCard("What Shadow did", kv([
+        ["Action", badge(e.action)],
+        e.action === "blocked" ? ["Reason", (d && d.message) || REASON_LABELS[e.block_reason] || e.block_reason || "Policy"] : null,
+        Object.keys(e.kinds || {}).length ? ["Protected", h("div", { class: "tags" }, kindTags(e.kinds, 20))] : null,
+        ["Restored", e.restored ? plural(e.restored, "value") + " put back in the answer" : "None"],
+        e.intent ? ["Intent", INTENT_LABELS[e.intent] || e.intent] : null,
+        e.detectors && e.detectors.length ? ["Found by", e.detectors.join(", ")] : null
+      ]))
+    ]));
+
+    if (!d) {
+      el.appendChild(h("section", { class: "card notice" }, [
+        h("h2", { text: "Prompt not available" }),
+        h("p", { text: data.details_enabled === false
+          ? "Incident details are turned off. Set [activity] details = true in shadow.toml and restart Shadow to see the prompt and source of new incidents."
+          : "Shadow keeps the prompt text of recent incidents in memory only. This one happened before Shadow last restarted, or has been replaced by newer incidents." })
+      ]));
+      return;
+    }
+
+    var changes = d.changes || [];
+    if (changes.length) {
+      var rows = changes.map(function (c) {
+        var kept = c.original === c.sent;
+        return h("tr", null, [
+          h("td", null, h("span", { class: "kind-cell" }, [kindIcon(c.kind), KIND_SHORT[c.kind] || c.kind])),
+          h("td", { class: "dim", text: c.detector }),
+          h("td", null, h("code", { class: "val" }, sv(c.original))),
+          h("td", null, kept ? h("span", { class: "kept-note", text: "Sent unchanged: the AI needs it to do what you asked" })
+            : h("code", { class: "val fake" }, sv(c.sent)))
+        ]);
+      });
+      el.appendChild(h("section", { class: "card" }, [
+        h("div", { class: "card-head" }, [h("h2", { text: "What was caught" }), h("span", { class: "hint", text: plural(changes.length, "distinct value") })]),
+        h("div", { class: "table-wrap" }, h("table", { class: "caught" }, [
+          h("thead", null, h("tr", null, ["Type", "Found by", "Your value", "Sent to the AI as"].map(function (c) { return h("th", { text: c }); }))),
+          h("tbody", null, rows)
+        ]))
+      ]));
+    }
+
+    if (d.parts && d.parts.length) {
+      var blocked = e.action === "blocked";
+      var body = h("div");
+      var seg = h("nav", { class: "seg", "aria-label": "Prompt view" });
+      var modes = blocked ? [["orig", "As written"]] : [["orig", "As written"], ["sent", "As the AI received it"]];
+      var draw = function () {
+        clear(body).appendChild(promptView(d, state.promptMode));
+        Array.prototype.forEach.call(seg.children, function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-m") === state.promptMode ? "true" : "false"); });
+      };
+      modes.forEach(function (m) {
+        seg.appendChild(h("button", { type: "button", "data-m": m[0], onclick: function () { state.promptMode = m[0]; draw(); } }, m[1]));
+      });
+      if (blocked) state.promptMode = "orig";
+      el.appendChild(h("section", { class: "card" }, [
+        h("div", { class: "card-head" }, [
+          h("div", null, [h("h2", { text: blocked ? "Prompt that was stopped" : "Prompt" }),
+            h("span", { class: "hint", text: blocked ? "Nothing below reached the AI." : "Highlighted text is what Shadow changed. Switch views to compare." })]),
+          seg
+        ]),
+        h("div", { class: "legend" }, blocked ? [] : [
+          h("span", null, [h("i", { class: "sw real" }), "Your value"]),
+          h("span", null, [h("i", { class: "sw fake" }), "Stand-in sent to the AI"]),
+          h("span", null, [h("i", { class: "sw kept" }), "Sent unchanged on purpose"])
+        ]),
+        body
+      ]));
+      draw();
+    }
+  }
+
+  function setReveal(on) {
+    state.reveal = on;
+    document.body.classList.toggle("reveal", on);
+    try { localStorage.setItem("shadow.reveal", on ? "1" : "0"); } catch (e) { /* ignore */ }
+    var b = $("reveal");
+    if (b) b.textContent = on ? "Hide values" : "Show values";
+  }
+
+  function loadDetail(id) {
+    if (DEMO) {
+      var ev = demoEvents(Date.now()).filter(function (x) { return x.id === id; })[0];
+      if (ev) renderDetail({ event: ev, detail: demoDetail(ev), details_enabled: true });
+      else renderMissing();
+      return;
+    }
+    fetchJSON("/shadow/activity/events/" + id).then(function (data) {
+      setOnline(true);
+      renderDetail(data);
+    }).catch(function (err) {
+      if (String(err).indexOf("404") >= 0) { setOnline(true); renderMissing(); } else setOnline(false);
+    });
+  }
+  function renderMissing() {
+    clear($("detail")).appendChild(h("section", { class: "card notice" }, [
+      h("h2", { text: "Incident not found" }),
+      h("p", { text: "It may be older than the activity Shadow keeps. Go back to the list to pick another." })
+    ]));
+  }
 
   // ---------------------------------------------------------------- windows
   function windowRange(w, now) {
@@ -485,10 +754,13 @@
   function setWindow(w) {
     state.window = w;
     try { localStorage.setItem("shadow.window", w); } catch (e) { /* ignore */ }
+    setWindowButtons(w);
+    load();
+  }
+  function setWindowButtons(w) {
     Array.prototype.forEach.call(document.querySelectorAll("#windows button"), function (b) {
       b.setAttribute("aria-pressed", b.getAttribute("data-w") === w ? "true" : "false");
     });
-    load();
   }
 
   // ---------------------------------------------------------------- demo data
@@ -614,11 +886,62 @@
     };
   }
 
+  var DEMO_VALUES = {
+    email: [["maria.lopez@northwell-clinic.org", "mei.lin@kaiyuan-health.cn"], ["j.okafor@brightpath.io", "wei.zhang@lanshan-tech.cn"]],
+    person: [["Maria Lopez", "Mei Lin"], ["Dr Amara Okafor", "Dr Wei Zhang"]],
+    phone: [["+44 7700 900123", "+44 7700 900456"]],
+    secret: [["sk-proj-T7d2Qm9vXr41LwZpK0aJ", "sk-proj-Hn5cBf8sYe27GkUo3VtD"]],
+    hostname: [["db-prod-eu1.internal.northwell.io", "db-03.kaiyuan.lan"]],
+    org: [["Northwell Clinic", "Kaiyuan Health"]],
+    term: [["Project Falcon", "Project Heron"]],
+    ip: [["10.24.8.17", "10.81.3.44"]],
+    username: [["mlopez", "mlin"]],
+    address: [["14 Harley Street, London W1G 9PQ", "88 Nanjing Road, Shanghai 200001"]],
+    credit_card: [["4111 1111 1111 1111", "5555 5555 5555 4444"]],
+    iban: [["GB82 WEST 1234 5698 7654 32", "GB33 BUKB 2020 1555 5555 55"]],
+    national_id: [["943 476 5919", "401 023 2137"]]
+  };
+  var DEMO_SENTENCES = {
+    email: "Her email is %.", person: "The patient is %.", phone: "Call back on %.", secret: "The service key is %.",
+    hostname: "Logs come from %.", org: "This is for %.", term: "It is part of %.", ip: "The failing node is %.",
+    username: "Run it as %.", address: "Send letters to %.", credit_card: "The refund goes to card %.",
+    iban: "Pay into %.", national_id: "NHS number %."
+  };
+  function demoDetail(e) {
+    var changes = [], orig = [], sent = [], blocked = e.action === "blocked";
+    Object.keys(e.kinds || {}).forEach(function (k, i) {
+      var pairs = DEMO_VALUES[k] || [["value-" + k, "stand-in-" + k]];
+      var p = pairs[(e.id + i) % pairs.length], line = DEMO_SENTENCES[k] || "%";
+      changes.push({ kind: k, detector: DEMO_DETECTORS[k] || k, original: p[0], sent: p[1] });
+      orig.push(line.replace("%", p[0]));
+      sent.push(line.replace("%", p[1]));
+    });
+    var ask = blocked ? "What does this scan show?" : "Summarise this referral for the care team in three bullet points. ";
+    var system = "You are a careful clinical assistant.";
+    var parts = [
+      { role: "system", field: "messages[0].content", original: system, sent: blocked ? undefined : system },
+      { role: "user", field: "messages[1].content", original: ask + orig.join(" "), sent: blocked ? undefined : ask + sent.join(" ") }
+    ];
+    var model = { anthropic: "claude-sonnet-4-5", openai: "gpt-4o-mini", gemini: "gemini-2.5-flash", mistral: "mistral-large-latest" }[e.provider] || "gpt-4o-mini";
+    var proc = { "Claude Code": "claude", "Codex CLI": "codex", curl: "curl", Aider: "aider" }[e.client] || (/Node/.test(e.client) ? "node" : "python3");
+    return {
+      model: model, path: e.provider === "anthropic" ? "/v1/messages" : "/v1/chat/completions",
+      user_agent: e.client.replace(/\s+/g, "") + "/1.0", process: { pid: 4000 + (e.id % 900), name: proc },
+      peer: "127.0.0.1:" + (50000 + (e.id % 9000)),
+      conversation: e.client === "Claude Code" ? { "x-claude-code-session-id": "c4f1a9e2-" + e.id } : {},
+      parts: parts, changes: changes, truncated: false,
+      message: blocked ? (REASON_LABELS[e.block_reason] || "Blocked by policy") : undefined
+    };
+  }
+
   function demoData(w) {
     var now = Date.now(), events = demoEvents(now);
     var incidents = [];
-    for (var i = events.length - 1; i >= 0 && incidents.length < 60; i--) {
-      if (events[i].action !== "clean" && events[i].ts <= now) incidents.push(events[i]);
+    for (var i = events.length - 1; i >= 0 && incidents.length < 400; i--) {
+      if (events[i].action !== "clean" && events[i].ts <= now) {
+        events[i].has_detail = incidents.length < 40;
+        incidents.push(events[i]);
+      }
     }
     return { summary: aggregate(events, w, now), incidents: incidents };
   }
@@ -630,10 +953,21 @@
     Array.prototype.forEach.call(document.querySelectorAll("#windows button"), function (b) {
       b.addEventListener("click", function () { setWindow(b.getAttribute("data-w")); });
     });
-    $("sheet-close").addEventListener("click", closeSheet);
-    $("overlay").addEventListener("click", function (e) { if (e.target === $("overlay")) closeSheet(); });
+    setReveal(state.reveal);
+    window.addEventListener("hashchange", route);
+    $("inc-search").addEventListener("input", renderIncidentList);
+    Array.prototype.forEach.call(document.querySelectorAll("#inc-actions button"), function (b) {
+      b.addEventListener("click", function () {
+        state.actionFilter = b.getAttribute("data-a");
+        Array.prototype.forEach.call(document.querySelectorAll("#inc-actions button"), function (x) {
+          x.setAttribute("aria-pressed", x === b ? "true" : "false");
+        });
+        renderIncidentList();
+      });
+    });
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") closeSheet();
+      if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+      if (e.key === "Escape" && state.view === "detail") location.hash = "#/incidents";
       var idx = ["1", "2", "3", "4"].indexOf(e.key);
       if (idx >= 0 && !e.metaKey && !e.ctrlKey && !e.altKey) setWindow(WINDOWS[idx]);
     });
@@ -648,7 +982,8 @@
     };
     if (window.ResizeObserver) new ResizeObserver(redraw).observe($("timeline"));
     window.addEventListener("resize", redraw);
-    setWindow(state.window);
+    setWindowButtons(state.window);
+    route();
     schedule();
   }
 

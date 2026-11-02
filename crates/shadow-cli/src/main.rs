@@ -1,6 +1,7 @@
 //! `shadow` — endpoint privacy layer for AI clouds.
 
 mod activity;
+mod incidents;
 mod service;
 mod top;
 mod ui;
@@ -112,6 +113,21 @@ enum Cmd {
         /// Summarise synthetic demo data.
         #[arg(long)]
         demo: bool,
+    },
+    /// List incidents (masked or blocked requests), or show one with its prompt, the values
+    /// caught and the app that sent it.
+    Incidents {
+        /// Incident ID from the list.
+        id: Option<u64>,
+        /// How many incidents to list.
+        #[arg(long, short = 'n', default_value_t = 30)]
+        limit: usize,
+        /// Print caught values in full instead of shortened.
+        #[arg(long)]
+        reveal: bool,
+        /// Print the raw JSON from the proxy (values in full).
+        #[arg(long)]
+        json: bool,
     },
     /// Open the web dashboard in your browser.
     Dashboard {
@@ -260,6 +276,12 @@ fn real_main(cli: Cli) -> anyhow::Result<()> {
         Cmd::Activity { window, json, demo } => {
             activity::run(&load_config(&cli)?, window, *json, *demo)
         }
+        Cmd::Incidents {
+            id,
+            limit,
+            reveal,
+            json,
+        } => incidents::run(&load_config(&cli)?, *id, *limit, *reveal, *json),
         Cmd::Dashboard { demo, print } => dashboard(&cli, *demo, *print),
     }
 }
@@ -587,7 +609,7 @@ fn identity(shadow: &Shadow, json: bool) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn redact(v: &str) -> String {
+pub(crate) fn redact(v: &str) -> String {
     let n = v.chars().count();
     if n <= 4 {
         return "*".repeat(n);

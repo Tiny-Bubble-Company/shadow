@@ -39,7 +39,7 @@ pub use detect::{Detector, Finding, Kind};
 pub use intent::{Classification, Intent, RequestContext, ToolInfo};
 pub use local::LocalFacts;
 pub use persona::Persona;
-pub use translate::{Masked, StreamUnmasker};
+pub use translate::{Change, Masked, StreamUnmasker};
 pub use vault::{VaultEntry, VaultStats};
 
 use detect::dictionary::{is_org_name, strip_legal_suffix, DictionaryDetector};
@@ -540,14 +540,14 @@ impl Shadow {
         if findings.is_empty() {
             return Masked {
                 text: text.to_string(),
-                replacements: 0,
-                kinds: vec![],
+                ..Masked::default()
             };
         }
         let mut st = self.write();
         let before = st.vault.generation;
         let mut out = String::with_capacity(text.len() + 16);
         let mut kinds = BTreeSet::new();
+        let mut changes = Vec::with_capacity(findings.len());
         let mut last = 0;
         let mut replaced = 0;
         {
@@ -560,19 +560,26 @@ impl Shadow {
             for f in &findings {
                 let real = &text[f.start..f.end];
                 out.push_str(&text[last..f.start]);
-                match decide(f, real) {
-                    Some(r) if r == real => out.push_str(real),
+                let sent = match decide(f, real) {
+                    Some(r) if r == real => r,
                     Some(r) => {
-                        out.push_str(&r);
                         replaced += 1;
                         kinds.insert(f.kind.as_str().to_string());
+                        r
                     }
                     None => {
-                        out.push_str(&faker.fake_for(f.kind, real));
                         replaced += 1;
                         kinds.insert(f.kind.as_str().to_string());
+                        faker.fake_for(f.kind, real)
                     }
-                }
+                };
+                out.push_str(&sent);
+                changes.push(Change {
+                    kind: f.kind.as_str().to_string(),
+                    detector: f.detector.to_string(),
+                    original: real.to_string(),
+                    sent,
+                });
                 last = f.end;
             }
         }
@@ -586,6 +593,7 @@ impl Shadow {
             text: out,
             replacements: replaced,
             kinds: kinds.into_iter().collect(),
+            changes,
         }
     }
 
@@ -731,12 +739,18 @@ pub struct Session {
     tokens: Mutex<Tokens>,
 }
 
+/// Most distinct values a session remembers for the incident view.
+const MAX_CHANGES: usize = 500;
+
 #[derive(Default)]
 struct Tokens {
     by_real: std::collections::HashMap<String, String>,
     pairs: Vec<(String, String)>,
     counters: std::collections::HashMap<&'static str, usize>,
     summary: SessionSummary,
+    /// Distinct values found in this request and what replaced them (for the local
+    /// incident view; capped at [`MAX_CHANGES`]).
+    changes: Vec<Change>,
     /// Unmasker over vault + tokens, valid while neither changes: (vault generation, tokens).
     cached: Option<(u64, usize, Arc<Unmasker>)>,
 }
@@ -763,6 +777,12 @@ impl Session {
         self.lock().summary.clone()
     }
 
+    /// Distinct values found in this request and what the model received instead. Holds
+    /// real values: for the local incident view only, never for logs or files.
+    pub fn changes(&self) -> Vec<Change> {
+        self.lock().changes.clone()
+    }
+
     fn lock(&self) -> std::sync::MutexGuard<'_, Tokens> {
         self.tokens.lock().unwrap_or_else(|e| e.into_inner())
     }
@@ -773,7 +793,7 @@ impl Session {
         let instruction = self.instruction.as_str();
         let class = &self.class;
         let mut toks = self.lock();
-        self.shadow.mask_with(text, &mut |f, real| {
+        let m = self.shadow.mask_with(text, &mut |f, real| {
             let target = intent::is_action_target(
                 class,
                 !instruction.is_empty() && instruction.contains(real),
@@ -826,7 +846,16 @@ impl Session {
                     Some(token)
                 }
             }
-        })
+        });
+        for c in &m.changes {
+            if toks.changes.len() >= MAX_CHANGES {
+                break;
+            }
+            if !toks.changes.contains(c) {
+                toks.changes.push(c.clone());
+            }
+        }
+        m
     }
 
     /// Mask every eligible string leaf of a JSON request body in place.

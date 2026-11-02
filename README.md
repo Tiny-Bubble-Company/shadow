@@ -75,7 +75,7 @@ The same real value always gets the same fake, and no two real values share one,
 | **Local and encrypted** | ChaCha20-Poly1305 vault, `0600` key, atomic multi-process writes; the mapping never leaves the machine |
 | **Minimal interception** | Only known AI hosts are decrypted; all other traffic is tunnelled byte for byte |
 | **Identity scrubbing** | OpenAI `user`, Anthropic `metadata.user_id`, org and OS headers replaced or stripped |
-| **Activity dashboard** | Counts by data type, destination and app, never values: web UI on loopback, `shadow top`, and a menu-bar / tray app |
+| **Activity dashboard** | Counts by data type, destination and app on disk, plus each incident's prompt, caught values and sending process in memory: web UI on loopback, `shadow top`, `shadow incidents`, and a menu-bar / tray app |
 
 ## Quick start
 

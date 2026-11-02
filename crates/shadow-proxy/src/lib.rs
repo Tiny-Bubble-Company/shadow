@@ -16,6 +16,7 @@
 
 mod activity;
 pub mod ca;
+mod detail;
 mod forward;
 pub mod hosts;
 pub mod sse;
@@ -165,11 +166,12 @@ impl Proxy {
 
     async fn handle(
         self: Arc<Self>,
-        req: Request<Incoming>,
+        mut req: Request<Incoming>,
         peer: SocketAddr,
     ) -> Result<Response<Body>, Infallible> {
+        req.extensions_mut().insert(detail::ClientAddr(peer));
         if req.method() == Method::CONNECT {
-            return Ok(self.connect(req));
+            return Ok(self.connect(req, peer));
         }
         if req.uri().scheme().is_some() {
             // Plain-HTTP forward proxy request (absolute-form URI).
@@ -249,7 +251,7 @@ impl Proxy {
             .await
     }
 
-    fn connect(self: Arc<Self>, req: Request<Incoming>) -> Response<Body> {
+    fn connect(self: Arc<Self>, req: Request<Incoming>, peer: SocketAddr) -> Response<Body> {
         let Some(authority) = req.uri().authority().map(|a| a.to_string()) else {
             return error_response(StatusCode::BAD_REQUEST, "CONNECT needs host:port");
         };
@@ -267,7 +269,7 @@ impl Proxy {
             };
             let io = TokioIo::new(upgraded);
             if intercept {
-                if let Err(e) = self.mitm(io, host, authority).await {
+                if let Err(e) = self.mitm(io, host, authority, peer).await {
                     tracing::warn!("intercept failed: {e:#}");
                 }
             } else {
@@ -288,6 +290,7 @@ impl Proxy {
         io: TokioIo<hyper::upgrade::Upgraded>,
         host: String,
         authority: String,
+        peer: SocketAddr,
     ) -> anyhow::Result<()> {
         let acceptor = TlsAcceptor::from(self.ca.server_config(&host)?);
         let tls = acceptor.accept(io).await?;
@@ -306,7 +309,8 @@ impl Proxy {
         hyper::server::conn::http1::Builder::new()
             .serve_connection(
                 TokioIo::new(tls),
-                service_fn(move |req: Request<Incoming>| {
+                service_fn(move |mut req: Request<Incoming>| {
+                    req.extensions_mut().insert(detail::ClientAddr(peer));
                     let me = me.clone();
                     let base = base.clone();
                     let host = host.clone();

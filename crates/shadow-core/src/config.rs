@@ -59,6 +59,12 @@ pub struct ActivityConfig {
     /// Serve `/shadow/activity*` and `/shadow/ui` to non-loopback peers. Off by default;
     /// only turn it on behind your own access control (e.g. a Docker port bound to localhost).
     pub allow_remote: bool,
+    /// Keep the prompt text, the values found and the sending process of recent masked
+    /// or blocked requests, so the dashboard can show what caused each incident. Held in
+    /// memory only (never written to disk) and cleared when Shadow restarts.
+    pub details: bool,
+    /// How many incidents keep their details.
+    pub details_limit: usize,
 }
 
 impl Default for ActivityConfig {
@@ -69,6 +75,8 @@ impl Default for ActivityConfig {
             retention_days: 30,
             max_file_mb: 16,
             allow_remote: false,
+            details: true,
+            details_limit: 200,
         }
     }
 }

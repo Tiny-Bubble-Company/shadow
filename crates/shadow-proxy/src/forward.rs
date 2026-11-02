@@ -3,7 +3,7 @@
 use std::io::Read;
 use std::sync::Arc;
 
-use shadow_core::activity::Action;
+use shadow_core::activity::{Action, Detail, TextPart};
 
 use bytes::Bytes;
 use futures_util::StreamExt;
@@ -16,6 +16,7 @@ use shadow_core::files::{self, FileError};
 use shadow_core::{RequestContext, Session};
 
 use crate::activity::{Pending, Via};
+use crate::detail::{self, ClientAddr};
 use crate::sse::{EventStreamUnmasker, Framing, Translator};
 use crate::{Body, Proxy};
 
@@ -32,6 +33,9 @@ const HOP_BY_HOP: &[&str] = &[
     "host",
     "content-length",
 ];
+
+/// Request text for the incident view: parts, whether any were cut, and the model.
+type Draft = (Vec<TextPart>, bool, Option<String>);
 
 /// A complete body.
 pub fn full(b: impl Into<Bytes>) -> Body {
@@ -111,11 +115,13 @@ impl Proxy {
     /// Returns `Ok(None)` to forward the original bytes untouched, `Ok(Some(..))` with the
     /// new body, the replacement count and the session that masked it (the response must be
     /// translated with the same session), or `Err(reason)` when a file is blocked by policy.
+    #[allow(clippy::type_complexity)]
     fn mask_body(
         &self,
         headers: &mut HeaderMap,
         body: &Bytes,
-    ) -> Result<Option<(Bytes, usize, Arc<Session>)>, FileError> {
+        want_detail: bool,
+    ) -> Result<Option<(Bytes, usize, Arc<Session>, Option<Draft>)>, FileError> {
         if body.is_empty() {
             return Ok(None);
         }
@@ -143,9 +149,11 @@ impl Proxy {
             .to_string();
         let ct = ct_raw.to_ascii_lowercase();
         let files_cfg = &self.shadow.config().files;
+        let mut draft = None;
         let (out, n, session) = if is_json(&ct, &plain) {
             match serde_json::from_slice::<Value>(&plain) {
                 Ok(mut v) => {
+                    let orig = want_detail.then(|| v.clone());
                     let session = Arc::new(self.shadow.session_for(&v));
                     let mask = |t: &str| {
                         let m = session.mask(t);
@@ -160,6 +168,10 @@ impl Proxy {
                     let Ok(bytes) = serde_json::to_vec(&v) else {
                         return Ok(None);
                     };
+                    if let Some(orig) = orig.filter(|_| n > 0) {
+                        let (parts, cut) = detail::json_parts(&orig, Some(&v));
+                        draft = Some((parts, cut, detail::model(&orig)));
+                    }
                     (bytes, n, session)
                 }
                 Err(_) => {
@@ -168,6 +180,10 @@ impl Proxy {
                     };
                     let session = Arc::new(self.shadow.session(RequestContext::default()));
                     let m = session.mask(text);
+                    if want_detail && m.replacements > 0 {
+                        let (parts, cut) = detail::text_part(text, Some(&m.text));
+                        draft = Some((parts, cut, None));
+                    }
                     (m.text.into_bytes(), m.replacements, session)
                 }
             }
@@ -185,6 +201,10 @@ impl Proxy {
             };
             let session = Arc::new(self.shadow.session(RequestContext::default()));
             let m = session.mask(text);
+            if want_detail && m.replacements > 0 {
+                let (parts, cut) = detail::text_part(text, Some(&m.text));
+                draft = Some((parts, cut, None));
+            }
             (m.text.into_bytes(), m.replacements, session)
         } else {
             // audio, images, protobuf...: not scanned (documented limitation)
@@ -201,7 +221,41 @@ impl Proxy {
             "request masked"
         );
         headers.remove(header::CONTENT_ENCODING);
-        Ok(Some((Bytes::from(out), n, session)))
+        Ok(Some((Bytes::from(out), n, session, draft)))
+    }
+
+    /// Request text of a blocked body (nothing was sent, so there is no masked side).
+    fn blocked_draft(headers: &HeaderMap, body: &Bytes) -> Option<Draft> {
+        let enc = headers
+            .get(header::CONTENT_ENCODING)
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or("")
+            .trim()
+            .to_ascii_lowercase();
+        let plain = decode(&enc, body)?;
+        if let Ok(v) = serde_json::from_slice::<Value>(&plain) {
+            let (parts, cut) = detail::json_parts(&v, None);
+            return Some((parts, cut, detail::model(&v)));
+        }
+        let text = std::str::from_utf8(&plain).ok()?;
+        let (parts, cut) = detail::text_part(text, None);
+        Some((parts, cut, None))
+    }
+
+    /// The shell of an incident detail: where the request came from and went.
+    fn detail_for(url: &str, headers: &HeaderMap, peer: Option<std::net::SocketAddr>) -> Detail {
+        Detail {
+            path: reqwest::Url::parse(url)
+                .map(|u| u.path().to_string())
+                .unwrap_or_default(),
+            user_agent: headers
+                .get(header::USER_AGENT)
+                .and_then(|v| v.to_str().ok())
+                .map(|v| v.chars().take(300).collect()),
+            peer: peer.map(|p| p.to_string()),
+            conversation: detail::conversation(headers),
+            ..Detail::default()
+        }
     }
 
     /// Forward `req` to `url`, translating both directions when `translate` is set.
@@ -241,10 +295,12 @@ impl Proxy {
         } else {
             None
         };
+        let peer = parts.extensions.get::<ClientAddr>().map(|c| c.0);
+        let want_detail = pending.as_ref().is_some_and(Pending::wants_detail);
         if translate {
             headers = self.outbound_headers(headers);
-            match self.mask_body(&mut headers, &body) {
-                Ok(Some((b, n, session))) => {
+            match self.mask_body(&mut headers, &body, want_detail) {
+                Ok(Some((b, n, session, draft))) => {
                     tracing::info!(target: "shadow::proxy", "{} {} masked {n} value(s)", parts.method, url);
                     if let Some(p) = pending.as_mut() {
                         let s = session.summary();
@@ -265,6 +321,19 @@ impl Proxy {
                         p.ev.kinds = kinds;
                         p.ev.detectors = s.detectors.into_iter().collect();
                         p.ev.intent = Some(session.classification().intent.as_str().to_string());
+                        if want_detail && p.ev.action == Action::Masked {
+                            let mut d = Self::detail_for(&url, &parts.headers, peer);
+                            if let Some((text, cut, model)) = draft {
+                                d.parts = text;
+                                d.truncated = cut;
+                                d.model = model;
+                            }
+                            d.changes = session.changes();
+                            p.detail = Some(Box::new(d));
+                            if let Some(peer) = peer {
+                                p.find_process(peer);
+                            }
+                        }
                     }
                     out_body = b;
                     translator = session.into();
@@ -276,6 +345,21 @@ impl Proxy {
                         p.ev.action = Action::Blocked;
                         p.ev.block_reason = Some(reason.category().to_string());
                         p.ev.status = StatusCode::FORBIDDEN.as_u16();
+                        if want_detail {
+                            let mut d = Self::detail_for(&url, &parts.headers, peer);
+                            if let Some((text, cut, model)) =
+                                Self::blocked_draft(&parts.headers, &body)
+                            {
+                                d.parts = text;
+                                d.truncated = cut;
+                                d.model = model;
+                            }
+                            d.message = Some(reason.to_string());
+                            p.detail = Some(Box::new(d));
+                            if let Some(peer) = peer {
+                                p.find_process(peer);
+                            }
+                        }
                     }
                     return error_response(
                         StatusCode::FORBIDDEN,

@@ -149,13 +149,15 @@ struct Items {
     values: MenuItem,
     blocked: MenuItem,
     dashboard: MenuItem,
+    incidents: MenuItem,
     browser: MenuItem,
     docs: MenuItem,
     quit: MenuItem,
 }
 
 impl Items {
-    // The status lines stay enabled, so macOS doesn't grey them out, and open the dashboard.
+    // The status lines stay enabled, so macOS doesn't grey them out, and open the dashboard
+    // (the counts open the incident list).
     fn new() -> Self {
         Self {
             status: MenuItem::new("Checking Shadow…", true, None),
@@ -163,6 +165,7 @@ impl Items {
             values: MenuItem::new("No values protected yet", true, None),
             blocked: MenuItem::new("Nothing blocked", true, None),
             dashboard: MenuItem::new("Open dashboard", true, None),
+            incidents: MenuItem::new("Incidents and prompts", true, None),
             browser: MenuItem::new("Open in browser", true, None),
             docs: MenuItem::new("Docs", true, None),
             quit: MenuItem::new("Quit Shadow menu", true, None),
@@ -180,6 +183,7 @@ impl Items {
             &self.blocked,
             &sep(),
             &self.dashboard,
+            &self.incidents,
             &self.browser,
             &self.docs,
             &sep(),
@@ -374,24 +378,35 @@ fn main() {
         items.quit.id().clone(),
     ];
 
-    let status_ids: [MenuId; 4] = [
-        items.status.id().clone(),
-        items.requests.id().clone(),
+    let status_ids: [MenuId; 2] = [items.status.id().clone(), items.requests.id().clone()];
+    let incident_ids: [MenuId; 3] = [
+        items.incidents.id().clone(),
         items.values.id().clone(),
         items.blocked.id().clone(),
     ];
 
     event_loop.run(move |event, target, control_flow| {
         *control_flow = ControlFlow::Wait;
-        let show = |popover: &mut Option<Popover>, anchor: Option<Rect>, online: bool| {
+        // `page` is a dashboard route such as `#/incidents`; `None` keeps the current one.
+        let show = |popover: &mut Option<Popover>,
+                    anchor: Option<Rect>,
+                    online: bool,
+                    page: Option<&str>| {
             if popover.is_none() {
-                match build_popover(target, &dashboard, online) {
+                let url = format!("{dashboard}{}", page.unwrap_or(""));
+                match build_popover(target, &url, online) {
                     Ok(p) => *popover = Some(p),
                     Err(e) => {
                         eprintln!("could not open the dashboard window: {e}");
                         open_external(&browser_url);
                         return;
                     }
+                }
+            } else if let (Some(p), Some(page)) = (popover.as_ref(), page) {
+                if p.online {
+                    let _ = p
+                        .webview
+                        .evaluate_script(&format!("location.hash = {page:?};"));
                 }
             }
             if let Some(p) = popover {
@@ -415,7 +430,7 @@ fn main() {
                         tray = Some(t);
                         if open_now {
                             let online = poll(&authority(&base)).online;
-                            show(&mut popover, None, online);
+                            show(&mut popover, None, online, None);
                         }
                     }
                     Err(e) => {
@@ -472,7 +487,7 @@ fn main() {
                                 p.window.set_visible(false);
                             }
                         } else {
-                            show(&mut popover, anchor, status.online);
+                            show(&mut popover, anchor, status.online, None);
                         }
                     }
                 }
@@ -483,7 +498,9 @@ fn main() {
             },
             Event::UserEvent(UserEvent::Menu(e)) => {
                 if e.id == ids[0] || status_ids.contains(&e.id) {
-                    show(&mut popover, anchor, status.online);
+                    show(&mut popover, anchor, status.online, Some("#"));
+                } else if incident_ids.contains(&e.id) {
+                    show(&mut popover, anchor, status.online, Some("#/incidents"));
                 } else if e.id == ids[1] {
                     open_external(&browser_url);
                 } else if e.id == ids[2] {

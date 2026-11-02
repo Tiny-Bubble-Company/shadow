@@ -396,3 +396,117 @@ async fn activity_stream_pushes_new_events() {
     assert!(text.contains("\"action\":\"masked\""));
     assert!(!text.contains("jane@example.org"));
 }
+
+#[tokio::test]
+async fn incidents_keep_their_prompt_in_memory_but_never_on_disk() {
+    let env = setup(|_| {}).await;
+    let c = client();
+    let r = c
+        .post(format!("{}/gw/mock/v1/chat/completions", env.url))
+        .header("x-claude-code-session-id", "chat-42")
+        .json(&json!({"model":"gpt-4o-mini","messages":[
+            {"role":"system","content":"You are a helpful assistant."},
+            {"role":"user","content":PROMPT}
+        ]}))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(r.status(), 200);
+    let blocked = c
+        .post(format!("{}/gw/mock/v1/chat/completions", env.url))
+        .json(&json!({"model":"m","messages":[{"role":"user","content":[
+            {"type":"text","text":"What is in this picture?"},
+            {"type":"image_url","image_url":{"url":"data:image/png;base64,iVBORw0KGgo="}}
+        ]}]}))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(blocked.status(), 403);
+
+    let evs = events(&env, 2).await;
+    let masked = evs.iter().find(|e| e["action"] == "masked").unwrap();
+    assert_eq!(masked["has_detail"], true);
+    let v = get_json(&format!(
+        "{}/shadow/activity/events/{}",
+        env.url, masked["id"]
+    ))
+    .await;
+    assert_eq!(v["details_enabled"], true);
+    assert_eq!(v["event"]["id"], masked["id"]);
+    let d = &v["detail"];
+    assert_eq!(d["model"], "gpt-4o-mini");
+    assert_eq!(d["path"], "/v1/chat/completions");
+    assert_eq!(d["conversation"]["x-claude-code-session-id"], "chat-42");
+    assert!(d["peer"].as_str().unwrap().starts_with("127.0.0.1:"));
+    let parts = d["parts"].as_array().unwrap();
+    let user = parts.iter().find(|p| p["role"] == "user").unwrap();
+    assert_eq!(user["original"], PROMPT);
+    let sent = user["sent"].as_str().unwrap();
+    assert!(!sent.contains("john.smith@acme-industries.com"));
+    assert!(parts.iter().any(|p| p["role"] == "system"));
+    let email = d["changes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|c| c["original"] == "john.smith@acme-industries.com")
+        .expect("the email is listed");
+    assert_eq!(email["kind"], "email");
+    assert!(sent.contains(email["sent"].as_str().unwrap()));
+
+    let b = evs.iter().find(|e| e["action"] == "blocked").unwrap();
+    let v = get_json(&format!("{}/shadow/activity/events/{}", env.url, b["id"])).await;
+    let d = &v["detail"];
+    assert!(d["message"]
+        .as_str()
+        .unwrap()
+        .to_lowercase()
+        .contains("image"));
+    let p = &d["parts"][0];
+    assert_eq!(p["original"], "What is in this picture?");
+    assert!(p.get("sent").is_none());
+    assert!(!d.to_string().contains("iVBORw0KGgo"));
+
+    // The log file holds counts only.
+    let disk_path = env.dir.path().join("activity/activity.jsonl");
+    let mut disk = String::new();
+    for _ in 0..50 {
+        disk = std::fs::read_to_string(&disk_path).unwrap_or_default();
+        if disk.lines().count() >= 2 {
+            break;
+        }
+        tokio::time::sleep(Duration::from_millis(40)).await;
+    }
+    assert_eq!(disk.lines().count(), 2);
+    for r in REALS {
+        assert!(!disk.contains(r), "real value {r:?} written to disk");
+    }
+    assert!(!disk.contains("picture") && !disk.contains("chat-42"));
+
+    let missing = c
+        .get(format!("{}/shadow/activity/events/999", env.url))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(missing.status(), 404);
+}
+
+#[tokio::test]
+async fn incident_details_can_be_turned_off() {
+    let env = setup(|c| c.activity.details = false).await;
+    client()
+        .post(format!("{}/gw/mock/v1/chat/completions", env.url))
+        .json(&json!({"model":"m","messages":[{"role":"user","content":PROMPT}]}))
+        .send()
+        .await
+        .unwrap();
+    let evs = events(&env, 1).await;
+    assert!(evs[0].get("has_detail").is_none());
+    let v = get_json(&format!(
+        "{}/shadow/activity/events/{}",
+        env.url, evs[0]["id"]
+    ))
+    .await;
+    assert_eq!(v["details_enabled"], false);
+    assert!(v["detail"].is_null());
+    assert!(!v.to_string().contains("john.smith"));
+}

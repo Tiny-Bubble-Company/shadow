@@ -19,6 +19,10 @@
       <span class="tagline">Privacy activity</span>
     </div>
   </div>
+  <nav class="tabs" aria-label="Pages">
+    <a href="#" id="tab-overview">Overview</a>
+    <a href="#/incidents" id="tab-incidents">Incidents</a>
+  </nav>
   <div class="top-right">
     <span class="pill demo" id="demo-badge" hidden>Demo data</span>
     <span class="pill status" id="status" data-state="pending"><span class="dot"></span><span id="status-text">Connecting</span></span>
@@ -40,7 +44,7 @@
   <span>Set <code>[activity] enabled = true</code> in shadow.toml and restart Shadow.</span>
 </div>
 
-<main>
+<main id="view-overview">
   <section class="stats">
     <article class="stat" id="stat-requests">
       <div class="stat-label">Requests monitored</div>
@@ -98,27 +102,43 @@
   <section class="card">
     <div class="card-head">
       <h2>Recent incidents</h2>
-      <span class="hint">Requests where Shadow masked or blocked data</span>
+      <a class="hint-link" href="#/incidents">All incidents →</a>
     </div>
     <div id="incidents" class="incidents"></div>
   </section>
 </main>
 
+<main id="view-incidents" hidden>
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2>Incidents</h2>
+        <span class="hint">Requests where Shadow masked or blocked data. Open one to see the prompt and where it came from.</span>
+      </div>
+      <div class="filters">
+        <input type="search" id="inc-search" placeholder="Filter by app, AI or data type" aria-label="Filter incidents">
+        <nav class="seg" id="inc-actions" aria-label="Action">
+          <button type="button" data-a="" aria-pressed="true">All</button>
+          <button type="button" data-a="masked">Masked</button>
+          <button type="button" data-a="blocked">Blocked</button>
+        </nav>
+      </div>
+    </div>
+    <div id="inc-all" class="incidents"></div>
+  </section>
+</main>
+
+<main id="view-detail" hidden>
+  <div class="crumbs"><a href="#/incidents" id="back">← All incidents</a></div>
+  <div id="detail"></div>
+</main>
+
 <footer class="foot">
   <img src="/shadow/ui/logo.svg" alt="" width="16" height="16">
-  <span>Shadow records counts and categories only. Real values, fakes, prompts and file names are never stored.</span>
-  <a href="https://tiny-bubble-company.github.io/shadow/concepts/activity-dashboard/" target="_blank" rel="noopener noreferrer">How this works</a>
+  <span>Counts are saved on this machine. The prompt text of recent incidents is kept in memory only and is gone when Shadow restarts.</span>
+  <a href="https://getshadow.dev/concepts/activity-dashboard/" target="_blank" rel="noopener noreferrer">How this works</a>
 </footer>
 
-<div class="overlay" id="overlay" hidden>
-  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
-    <div class="sheet-head">
-      <h3 id="sheet-title">Incident</h3>
-      <button type="button" class="close" id="sheet-close" aria-label="Close">×</button>
-    </div>
-    <div id="sheet-body"></div>
-  </div>
-</div>
 <div class="tip" id="tip" hidden></div>
 <noscript><p class="noscript">The Shadow dashboard needs JavaScript. Try <code>shadow top</code> in a terminal.</p></noscript>
 </body>

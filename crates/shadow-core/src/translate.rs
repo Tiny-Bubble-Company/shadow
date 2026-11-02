@@ -16,6 +16,31 @@ pub struct Masked {
     pub replacements: usize,
     /// Distinct kinds replaced (sorted), e.g. `["email","person"]`.
     pub kinds: Vec<String>,
+    /// Every value found, with what was sent in its place. Holds real values, so it is
+    /// never serialized; only the local incident view reads it.
+    #[serde(skip)]
+    pub changes: Vec<Change>,
+}
+
+/// One value found while masking and what was sent in its place.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, serde::Deserialize)]
+pub struct Change {
+    /// Data kind, e.g. `email`.
+    pub kind: String,
+    /// Detector that found it.
+    pub detector: String,
+    /// The real value.
+    pub original: String,
+    /// What the model received; equal to `original` when the value was kept on purpose
+    /// (a message recipient, for example).
+    pub sent: String,
+}
+
+impl Change {
+    /// The value went out unchanged on purpose.
+    pub fn kept(&self) -> bool {
+        self.original == self.sent
+    }
 }
 
 /// Immutable fake->real replacer built from a vault snapshot.

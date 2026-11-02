@@ -2,7 +2,7 @@
 //! dashboard at `/shadow/ui`.
 
 use std::net::{IpAddr, SocketAddr};
-use std::sync::Arc;
+use std::sync::{mpsc, Arc};
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
@@ -11,8 +11,8 @@ use http::{header, HeaderMap, Response, StatusCode};
 use http_body_util::{BodyExt, StreamBody};
 use hyper::body::Frame;
 use shadow_core::activity::{
-    self, client_from_user_agent, endpoint_for_path, provider_for_host, Action, ActivityLog, Event,
-    Summary, Window,
+    self, client_from_user_agent, endpoint_for_path, provider_for_host, Action, ActivityLog,
+    Detail, Event, Process, Summary, Window,
 };
 
 use crate::forward::{error_response, full};
@@ -44,6 +44,9 @@ pub(crate) struct Pending {
     log: Arc<ActivityLog>,
     pub ev: Event,
     start: Instant,
+    /// Incident details, kept when the request turns out masked or blocked.
+    pub detail: Option<Box<Detail>>,
+    process: Option<mpsc::Receiver<Option<Process>>>,
 }
 
 impl Pending {
@@ -93,6 +96,27 @@ impl Pending {
                 ..Event::default()
             },
             start: Instant::now(),
+            detail: None,
+            process: None,
+        }
+    }
+
+    /// Whether incident details should be collected for this request.
+    pub fn wants_detail(&self) -> bool {
+        self.log.keeps_details()
+    }
+
+    /// Look up the local process behind `peer` on a helper thread; the answer is picked
+    /// up when the event is recorded.
+    pub fn find_process(&mut self, peer: SocketAddr) {
+        let (tx, rx) = mpsc::channel();
+        let spawned = std::thread::Builder::new()
+            .name("shadow-process".into())
+            .spawn(move || {
+                let _ = tx.send(crate::detail::process_for(peer));
+            });
+        if spawned.is_ok() {
+            self.process = Some(rx);
         }
     }
 }
@@ -100,6 +124,14 @@ impl Pending {
 impl Drop for Pending {
     fn drop(&mut self) {
         self.ev.latency_ms = self.start.elapsed().as_millis() as u64;
+        if self.ev.action != Action::Clean {
+            if let Some(mut d) = self.detail.take() {
+                if let Some(rx) = &self.process {
+                    d.process = rx.recv_timeout(Duration::from_millis(150)).ok().flatten();
+                }
+                self.ev.detail = Some(d);
+            }
+        }
         self.log.record(std::mem::take(&mut self.ev));
     }
 }
@@ -199,8 +231,30 @@ impl Proxy {
             "/shadow/activity" | "/shadow/activity/" => self.activity_events(q),
             "/shadow/activity/summary" => self.activity_summary(q),
             "/shadow/activity/stream" => self.activity_stream(q),
-            _ => error_response(StatusCode::NOT_FOUND, "unknown dashboard path"),
+            _ => match path
+                .strip_prefix("/shadow/activity/events/")
+                .and_then(|id| id.trim_end_matches('/').parse().ok())
+            {
+                Some(id) => self.activity_event(id),
+                None => error_response(StatusCode::NOT_FOUND, "unknown dashboard path"),
+            },
         }
+    }
+
+    /// One event with its incident details (when still in memory).
+    fn activity_event(&self, id: u64) -> Response<Body> {
+        let Some(log) = &self.activity else {
+            return error_response(StatusCode::NOT_FOUND, "activity recording is disabled");
+        };
+        let Some(event) = log.event(id) else {
+            return error_response(StatusCode::NOT_FOUND, "no such event");
+        };
+        let body = serde_json::json!({
+            "event": event,
+            "details_enabled": log.keeps_details(),
+            "detail": log.detail(id).as_deref(),
+        });
+        json_response(StatusCode::OK, body.to_string())
     }
 
     fn activity_events(&self, q: Option<&str>) -> Response<Body> {
@@ -225,10 +279,22 @@ impl Proxy {
                 _ => {}
             }
         }
-        let events = log.recent(since, limit, &actions);
+        let events: Vec<serde_json::Value> = log
+            .recent(since, limit, &actions)
+            .into_iter()
+            .map(|e| {
+                let has = log.has_detail(e.id);
+                let mut v = serde_json::to_value(e).unwrap_or_default();
+                if has {
+                    v["has_detail"] = true.into();
+                }
+                v
+            })
+            .collect();
         let body = serde_json::json!({
             "enabled": true,
             "last_id": log.last_id(),
+            "details_enabled": log.keeps_details(),
             "events": events,
         });
         json_response(StatusCode::OK, body.to_string())

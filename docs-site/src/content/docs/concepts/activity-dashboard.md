@@ -1,7 +1,7 @@
 ---
 title: Activity dashboard
 seoTitle: "AI activity dashboard: see what your tools send · Shadow"
-description: "Shadow's dashboard, menu-bar app and shadow top show AI traffic checked, data masked and requests blocked, by data type, provider and app. Counts only."
+description: "See every prompt Shadow masked or blocked: the app and process that sent it, the AI it went to, each value caught and what replaced it. Local only."
 keywords:
   - AI privacy dashboard
   - monitor ChatGPT data leaks
@@ -10,9 +10,12 @@ keywords:
   - AI data loss prevention
   - shadow top
   - menu bar app
+  - see which prompt leaked data
 faq:
-  - q: Does the dashboard store my prompts or the values Shadow masked?
-    a: No. Shadow records counts and categories only, such as "2 email addresses and 1 API key masked in a request from Claude Code to Anthropic". Real values, the fakes sent in their place, prompts, responses, file names and headers are never recorded.
+  - q: Can I see which prompt caused an incident?
+    a: Yes. Open an incident in the dashboard, the menu-bar app or shadow incidents <ID> to see the prompt as written and as the AI received it, each value caught and what replaced it, the model, and the app and process that sent it.
+  - q: Does Shadow store my prompts or the values it masked?
+    a: Not on disk. The activity log on disk holds counts and categories only. The prompt text and values of the most recent incidents (200 by default) are kept in the proxy's memory so you can review them, and are gone when Shadow restarts. Set activity.details = false to keep none.
   - q: Can someone else on my network see the dashboard?
     a: No. The dashboard and the activity API only answer connections from the same machine, and only when the Host header names a loopback address. You can opt in to remote access with activity.allow_remote.
   - q: How do I turn activity recording off?
@@ -21,13 +24,14 @@ faq:
     a: In activity/activity.jsonl inside the Shadow data directory, created with mode 0600 in a 0700 directory. It rotates at 16 MB and drops events older than 30 days by default.
 ---
 
-Shadow's activity dashboard shows how much AI traffic went through Shadow, what it masked and what it blocked, by data type, destination and app, in a web page, a menu-bar app or `shadow top`. It records counts and categories, never values.
+Shadow's activity dashboard shows how much AI traffic went through Shadow, what it masked and what it blocked, by data type, destination and app, in a web page, a menu-bar app or `shadow top`. Open any incident to see the prompt that caused it and where it came from. The log on disk holds counts only; prompt text stays in memory.
 
 Shadow works quietly in the background, so it can be hard to tell that it is doing anything. The activity feed answers three questions at a glance:
 
 - **How much AI traffic went through Shadow?** Requests monitored, by destination (OpenAI, Anthropic, Google Gemini, Azure OpenAI, ...) and by the app that sent them (Claude Code, Codex CLI, the OpenAI Python SDK, curl, ...). Only traffic to [intercepted AI API hosts](/shadow/reference/providers/) is counted; AI web apps used in a browser are not.
 - **What did it protect?** Values masked before they left the machine, by data type (email addresses, names, secrets and API keys, hostnames, card numbers, ...), and how many were restored in the answers.
 - **What did it stop?** Requests blocked by policy, such as an image upload when `files.images = "block"`, with the reason.
+- **Which prompt was it?** For each incident, the prompt as written and as the AI received it, every value caught, and the app, process and conversation it came from.
 
 You can look at the same feed in three places: a [web dashboard](#web-dashboard), a [terminal view](#terminal-shadow-top) and a [menu-bar app](#menu-bar-and-tray-app).
 
@@ -50,7 +54,22 @@ Every request that Shadow translates produces one small event:
 | Request intent | `code`, `report`, `act` or `converse` |
 | Size, status, latency, streamed | `5.1 KB`, `200`, `840 ms`, `true` |
 
-**Never recorded:** the real values, the fakes or tokens sent in their place, prompts, responses, request paths and query strings, headers, API keys, file names, and the text of block messages (which can contain a file name). Unknown apps are named by the first product token of their `User-Agent` only (`MyTool/1.2 (build-host; jane@acme.com)` becomes `MyTool`), so the comment part, where hostnames and user names tend to appear, is dropped.
+**Never written to disk:** the real values, the fakes or tokens sent in their place, prompts, responses, request paths and query strings, headers, API keys, file names, and the text of block messages (which can contain a file name). Unknown apps are named by the first product token of their `User-Agent` only (`MyTool/1.2 (build-host; jane@acme.com)` becomes `MyTool`), so the comment part, where hostnames and user names tend to appear, is dropped. Responses are never kept anywhere.
+
+### Incident details (memory only)
+
+So you can see what caused an incident, Shadow also keeps these for the most recent masked or blocked requests, in the proxy's memory only:
+
+| Detail | Example |
+|---|---|
+| Prompt text, as written and as sent | each chat message, with the changed values highlighted |
+| Values caught | `email`: `maria.lopez@example.com` → `mei.lin@kaiyuan-health.cn` |
+| Model and path | `gpt-4o-mini`, `POST /v1/chat/completions` |
+| App and process | `Claude Code`, process `claude` (pid 4211), full `User-Agent` |
+| Conversation | session, conversation or thread ids the app sent as headers |
+| Block message | `image blocked by policy` |
+
+Details are kept for the last 200 incidents (`details_limit`), are never written to the log file, and are gone when Shadow restarts. Clean requests keep nothing. The process is found from the connection's local port (`lsof` on macOS and Linux, `netstat` on Windows), so it is shown for apps on the same machine only. Tool and function definitions, images and file payloads are left out of the prompt view. Set `details = false` to keep counts only.
 
 Blind tunnels to hosts that Shadow does not intercept are not recorded at all: Shadow cannot see inside them.
 
@@ -63,7 +82,16 @@ shadow dashboard
 # or browse to http://127.0.0.1:8877/shadow/ui
 ```
 
-The page shows the headline numbers, a traffic timeline (masked, clean and blocked requests), breakdowns by data type, destination and app, and the most recent incidents. Click an incident to see everything recorded about it. Pick a window of 1 hour, 24 hours, 7 days or 30 days (keys `1` to `4`); the page refreshes every few seconds and follows your system's light or dark theme.
+The page shows the headline numbers, a traffic timeline (masked, clean and blocked requests), breakdowns by data type, destination and app, and the most recent incidents. The **Incidents** tab lists every incident, with a filter by app, AI or data type.
+
+Click an incident to open its page:
+
+- **Source:** the app, the process and its pid, the conversation or session id, and the full `User-Agent`.
+- **Destination:** the AI provider and host, the model, the request path, the HTTP status and timing.
+- **What was caught:** each value found, the detector that found it, and what the AI received instead. Values sent unchanged on purpose, such as the recipient of an email you asked the AI to send, are marked as such.
+- **Prompt:** every message, as you wrote it or as the AI received it, with the changed values highlighted.
+
+Values are blurred until you press **Show values**, so the page is safe to have on a shared screen. Incident pages have their own address (`/shadow/ui#/incidents/42`). Pick a window of 1 hour, 24 hours, 7 days or 30 days (keys `1` to `4`); the page refreshes every few seconds and follows your system's light or dark theme.
 
 The page is built into the `shadow` binary. It loads nothing from the internet, runs under a strict Content-Security-Policy (`default-src 'none'`, scripts and styles from the page's own origin only) and talks only to the activity API below.
 
@@ -87,17 +115,22 @@ A full-screen view with the totals, a timeline, bars by data type, destination a
 
 If the proxy is not running, `shadow top` says so, shows the history saved on disk, and keeps retrying.
 
-For servers and scripts, `shadow activity` prints the same summary as plain tables:
+For servers and scripts, `shadow activity` prints the same summary as plain tables, and `shadow incidents` lists incidents or shows one in full:
 
 ```sh
 shadow activity                 # last 24 hours
 shadow activity --window 7d
 shadow activity --json          # the summary object from the API below
+shadow incidents                # recent incidents with their IDs
+shadow incidents 42             # prompt, values caught, app and process of incident 42
+shadow incidents 42 --reveal    # print the caught values in full
 ```
+
+`shadow incidents` shortens caught values (`ma*******om`) unless you pass `--reveal`.
 
 ## Menu-bar and tray app
 
-`apps/shadow-tray` is a small companion app for macOS (menu bar) and Windows (system tray). Its icon shows whether Shadow is protecting the machine (a filled crescent) or not running (an outline). The menu lists today's requests, values protected and requests blocked, and has **Open dashboard** (a popover with the web dashboard), **Open in browser**, **Docs** and **Quit**. On macOS it has no Dock icon; on Windows, left-click opens the dashboard and right-click opens the menu.
+`apps/shadow-tray` is a small companion app for macOS (menu bar) and Windows (system tray). Its icon shows whether Shadow is protecting the machine (a filled crescent) or not running (an outline). The menu lists today's requests, values protected and requests blocked, and has **Open dashboard** (a popover with the web dashboard), **Incidents and prompts** (the incident list, where each incident opens its prompt and source), **Open in browser**, **Docs** and **Quit**. Clicking the values or blocked line also opens the incident list. On macOS it has no Dock icon; on Windows, left-click opens the dashboard and right-click opens the menu.
 
 The install script puts it in `~/.local/bin/shadow-tray` on macOS, and `shadow install --apply` starts it at login. To add it to an existing install:
 
@@ -116,6 +149,7 @@ All endpoints are on the proxy's listen address and return JSON.
 |---|---|
 | `GET /shadow/activity?since=<id>&limit=<n>&action=masked,blocked` | Recent events, newest first. `action=incidents` is short for masked and blocked. |
 | `GET /shadow/activity/summary?window=1h\|24h\|7d\|30d\|today` | Totals, a timeline, and breakdowns by data type (`kinds`), destination (`providers`), app (`clients`), endpoint and block reason. |
+| `GET /shadow/activity/events/<id>` | One event, plus its incident `detail` (prompt parts, values caught, model, process) while still in memory, or `null`. |
 | `GET /shadow/activity/stream` | Server-Sent Events: one `activity` event per new request. |
 | `GET /shadow/ui` | The dashboard. |
 
@@ -152,6 +186,8 @@ persist = true          # keep history in <data_dir>/activity/activity.jsonl
 retention_days = 30     # drop older events
 max_file_mb = 16        # rotate the log past this size (one previous file is kept)
 allow_remote = false    # serve the dashboard and API to non-loopback clients
+details = true          # keep prompt text and values of recent incidents, in memory only
+details_limit = 200     # how many incidents keep their details
 ```
 
 Recording adds one short in-memory update per request; the file is written from a background thread. With `persist = false` the dashboard still works but starts empty after each restart. See the [configuration reference](/shadow/reference/configuration/) for every other option.

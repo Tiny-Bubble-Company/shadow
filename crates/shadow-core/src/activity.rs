@@ -1,5 +1,10 @@
 //! Privacy-safe activity feed: what Shadow did, never what it saw.
 //!
+//! The one exception is [`Detail`]: with `activity.details` on, the most recent incidents
+//! (masked or blocked requests) also keep their prompt text, the values found and the
+//! process that sent them, so you can see what caused each one. Details live in memory
+//! only, are never written to the log file and are gone after a restart.
+//!
 //! Every request that goes through the proxy can produce one [`Event`]: when it happened,
 //! which provider it went to, which app sent it, what kind of endpoint it hit, whether it
 //! was masked, blocked or clean, and *how many* values of each kind were protected or
@@ -107,6 +112,65 @@ pub struct Event {
     /// Why it was blocked: a fixed category such as `image_blocked`, never a message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub block_reason: Option<String>,
+    /// Incident details, moved into the in-memory detail store by [`ActivityLog::record`].
+    #[serde(skip)]
+    pub detail: Option<Box<Detail>>,
+}
+
+/// What caused an incident: prompt text, values found and where the request came from.
+/// In memory only; see the module docs.
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Detail {
+    /// Model named in the request, e.g. `gpt-4o-mini`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub model: Option<String>,
+    /// Request path, e.g. `/v1/chat/completions`.
+    pub path: String,
+    /// Full `User-Agent` header.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub user_agent: Option<String>,
+    /// Local process that opened the connection, when it could be found.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub process: Option<Process>,
+    /// Address the request came from.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub peer: Option<String>,
+    /// Session, conversation or thread ids the client sent as headers.
+    pub conversation: BTreeMap<String, String>,
+    /// Text of the request, as written and as sent.
+    pub parts: Vec<TextPart>,
+    /// Values found and what was sent in their place.
+    pub changes: Vec<crate::Change>,
+    /// Why it was blocked, in words.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub message: Option<String>,
+    /// Some text was cut to keep memory bounded.
+    pub truncated: bool,
+}
+
+/// A local process.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Process {
+    pub pid: u32,
+    pub name: String,
+}
+
+/// One piece of request text, e.g. a chat message.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct TextPart {
+    /// Chat role (`system`, `user`, `assistant`, `tool`) when the text belongs to a message.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub role: Option<String>,
+    /// Where it sits in the body, e.g. `messages[2].content`.
+    pub field: String,
+    /// The text as the app wrote it.
+    pub original: String,
+    /// The text the model received (`None` when the request was blocked).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sent: Option<String>,
 }
 
 impl Event {
@@ -699,6 +763,7 @@ enum Msg {
 
 struct State {
     recent: VecDeque<Event>,
+    details: VecDeque<(u64, std::sync::Arc<Detail>)>,
     rollup: Rollup,
     next_id: u64,
 }
@@ -710,6 +775,7 @@ pub struct ActivityLog {
     writer: Option<mpsc::Sender<Msg>>,
     retention: i64,
     since: i64,
+    details_cap: usize,
 }
 
 /// Current unix time in milliseconds.
@@ -726,19 +792,36 @@ impl ActivityLog {
         Self {
             state: Mutex::new(State {
                 recent: VecDeque::new(),
+                details: VecDeque::new(),
                 rollup: Rollup::default(),
                 next_id: 1,
             }),
             writer: None,
             retention: retention_days.max(1) as i64 * 86400,
             since: now_ms(),
+            details_cap: ActivityConfig::default().details_limit,
         }
+    }
+
+    /// Keep details for at most `n` incidents (0 = keep none).
+    pub fn with_details(mut self, n: usize) -> Self {
+        self.details_cap = n;
+        self
+    }
+
+    /// Whether incident details are kept at all.
+    pub fn keeps_details(&self) -> bool {
+        self.details_cap > 0
     }
 
     /// Open per `cfg`: with `persist`, load `<dir>/activity.jsonl` (dropping expired
     /// events) and append new events to it from a background thread.
     pub fn open(cfg: &ActivityConfig, dir: &Path) -> anyhow::Result<Self> {
-        let mut log = Self::in_memory(cfg.retention_days);
+        let mut log = Self::in_memory(cfg.retention_days).with_details(if cfg.details {
+            cfg.details_limit
+        } else {
+            0
+        });
         if !cfg.persist {
             return Ok(log);
         }
@@ -812,10 +895,17 @@ impl ActivityLog {
             e.ts = now_ms();
         }
         let now_s = now_ms() / 1000;
+        let detail = e.detail.take();
         let id = {
             let mut st = self.lock();
             e.id = st.next_id;
             st.next_id += 1;
+            if let Some(d) = detail.filter(|_| self.details_cap > 0) {
+                while st.details.len() >= self.details_cap {
+                    st.details.pop_front();
+                }
+                st.details.push_back((e.id, std::sync::Arc::new(*d)));
+            }
             st.rollup.add(&e, now_s, self.retention);
             let line = self
                 .writer
@@ -853,6 +943,28 @@ impl ActivityLog {
             .take(limit)
             .cloned()
             .collect()
+    }
+
+    /// A recent event by id.
+    pub fn event(&self, id: u64) -> Option<Event> {
+        let st = self.lock();
+        let i = st.recent.binary_search_by_key(&id, |e| e.id).ok()?;
+        st.recent.get(i).cloned()
+    }
+
+    /// Details of incident `id`, if still held in memory.
+    pub fn detail(&self, id: u64) -> Option<std::sync::Arc<Detail>> {
+        let st = self.lock();
+        st.details
+            .iter()
+            .rev()
+            .find(|(i, _)| *i == id)
+            .map(|(_, d)| d.clone())
+    }
+
+    /// Whether incident `id` still has details in memory.
+    pub fn has_detail(&self, id: u64) -> bool {
+        self.lock().details.iter().any(|(i, _)| *i == id)
     }
 
     /// Id of the newest event (0 if none).
@@ -1220,6 +1332,45 @@ mod tests {
         assert_eq!(lines.lines().count(), 3);
         let ro = ActivityLog::read_only(&cfg, &adir);
         assert_eq!(ro.summary(Window::Day).totals.requests, 3);
+    }
+
+    #[test]
+    fn details_stay_in_memory_and_are_capped() {
+        let dir = tempfile::tempdir().unwrap();
+        let cfg = ActivityConfig {
+            details_limit: 2,
+            ..ActivityConfig::default()
+        };
+        let log = ActivityLog::open(&cfg, dir.path()).unwrap();
+        let mut ids = vec![];
+        for i in 0..3 {
+            let mut e = ev(0, "openai", "curl", Action::Masked, &[("email", 1)]);
+            e.detail = Some(Box::new(Detail {
+                parts: vec![TextPart {
+                    original: format!("mail jane{i}@example.org"),
+                    ..TextPart::default()
+                }],
+                ..Detail::default()
+            }));
+            ids.push(log.record(e));
+        }
+        assert!(log.detail(ids[0]).is_none(), "oldest detail evicted");
+        assert!(!log.has_detail(ids[0]));
+        let d = log.detail(ids[2]).unwrap();
+        assert_eq!(d.parts[0].original, "mail jane2@example.org");
+        assert_eq!(log.event(ids[1]).unwrap().id, ids[1]);
+        assert!(log.event(99).is_none());
+        assert!(log.recent(None, 10, &[]).iter().all(|e| e.detail.is_none()));
+        log.flush();
+        let disk = std::fs::read_to_string(dir.path().join(LOG_FILE)).unwrap();
+        assert_eq!(disk.lines().count(), 3);
+        assert!(!disk.contains("jane"));
+
+        let off = ActivityLog::in_memory(1).with_details(0);
+        let mut e = ev(0, "openai", "curl", Action::Masked, &[("email", 1)]);
+        e.detail = Some(Box::default());
+        let id = off.record(e);
+        assert!(!off.keeps_details() && off.detail(id).is_none());
     }
 
     #[test]

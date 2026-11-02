@@ -160,7 +160,7 @@ secret = "redact"   # never send secrets in any form; irreversible [REDACTED_SEC
 
 ## `[activity]`
 
-The [activity dashboard](/shadow/concepts/activity-dashboard/) feed. It records counts and categories only, never real values, fakes, prompts or file names.
+The [activity dashboard](/shadow/concepts/activity-dashboard/) feed. The log on disk records counts and categories only, never real values, fakes, prompts or file names. With `details` on, the prompt text and values of recent incidents are also kept in memory, so you can see what caused each one.
 
 | Key | Type | Default | Description |
 |---|---|---|---|
@@ -169,6 +169,8 @@ The [activity dashboard](/shadow/concepts/activity-dashboard/) feed. It records 
 | `retention_days` | integer | `30` | Drop events older than this |
 | `max_file_mb` | integer | `16` | Rotate the log past this size; one previous file is kept |
 | `allow_remote` | bool | `false` | Serve the dashboard and activity API to non-loopback clients |
+| `details` | bool | `true` | Keep the prompt text, values caught and sending process of recent incidents in memory (never on disk) |
+| `details_limit` | integer | `200` | How many incidents keep their details |
 
 ## `[proxy]`
 
