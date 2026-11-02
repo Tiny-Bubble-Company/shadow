@@ -9,7 +9,7 @@ export const hub = {
 	/** A booking link (for example Cal.com). PLACEHOLDER: empty until one exists; the demo form is used instead. */
 	demoBookingUrl: '',
 	/** The trial offered once Hub is live. PLACEHOLDER. */
-	trial: '14-day Business trial, no card required',
+	trial: '14-day free trial, no card required, then free for up to 3 users',
 };
 
 export const BUYER_CTA = hub.hubLive ? 'Start free Hub trial' : 'Join the Hub waitlist';
@@ -18,4 +18,4 @@ export const CORE_CTA = 'Install Core free';
 
 /** The one-line Core install command for macOS and Linux. */
 export const INSTALL_CMD =
-	'curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh';
+	'curl -fsSL https://hub.getshadow.dev/core/install.sh | sh';

@@ -40,19 +40,19 @@ export const TIERS: Tier[] = [
 	{
 		id: 'hub-free',
 		name: 'Hub Free',
-		size: '1–5 users',
-		seats: { min: 1, max: 5 },
+		size: '1–3 users',
+		seats: { min: 1, max: 3 },
 		price: { annual: 0, monthly: 0 },
 		priceLabel: '$0',
-		priceNote: 'up to 5 users',
+		priceNote: 'up to 3 users',
 		includes: ['Hosted dashboard', '7-day history', 'Email invites'],
 		cta: { label: 'Start free', action: 'hub' },
 	},
 	{
 		id: 'hub-starter',
 		name: 'Hub Starter',
-		size: '6–50 users',
-		seats: { min: 6, max: 50 },
+		size: '4–50 users',
+		seats: { min: 4, max: 50 },
 		price: { annual: 8, monthly: 10 },
 		priceNote: 'per user / month',
 		includes: ['Everything in Hub Free', '30-day history', 'Policy alerts', 'CSV export'],
@@ -87,7 +87,7 @@ export const TIERS: Tier[] = [
 
 export const PRICING_NOTES = [
 	'You pay only for users connected to Hub; admins are free.',
-	'14-day Business trial, no card required.',
+	'14-day free trial, no card required; then free for up to 3 users.',
 ];
 
 /** Hub tiers only (for the estimator and schema). */

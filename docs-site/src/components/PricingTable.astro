@@ -151,23 +151,26 @@ const estimatorTiers = JSON.stringify(HUB_TIERS.map((t) => ({ id: t.id, name: t.
 	.sh-pricing__toggle {
 		display: inline-flex;
 		padding: 3px;
-		border: 1px solid var(--sl-color-gray-5);
-		border-radius: 0.6rem;
+		border: 1px solid var(--sh-border);
+		border-radius: 8px;
+		background: var(--sh-panel);
 	}
 	.sh-pricing__toggle button {
 		border: 0;
 		background: transparent;
-		color: var(--sl-color-gray-2);
+		color: var(--sh-muted);
 		font: inherit;
-		font-weight: 600;
-		font-size: 0.88rem;
+		font-weight: 510;
+		font-size: 0.8125rem;
+		transition: color 140ms ease-out, background-color 140ms ease-out;
 		padding: 0.3rem 0.9rem;
-		border-radius: 0.45rem;
+		border-radius: 6px;
 		cursor: pointer;
 	}
 	.sh-pricing__toggle button[aria-pressed='true'] {
-		background: var(--sl-color-accent-low);
-		color: var(--sl-color-white);
+		background: var(--sh-raised);
+		color: var(--sh-text);
+		box-shadow: inset 0 0 0 1px var(--sh-border-strong);
 	}
 	.sh-pricing__hint,
 	.sh-estimator__fine {
@@ -185,38 +188,45 @@ const estimatorTiers = JSON.stringify(HUB_TIERS.map((t) => ({ id: t.id, name: t.
 		display: flex;
 		flex-direction: column;
 		gap: 0.4rem;
-		padding: 1.1rem 1.1rem 1.2rem;
-		border: 1px solid var(--sl-color-gray-5);
-		border-radius: 0.9rem;
-		background: var(--sl-color-bg);
+		padding: 1.25rem 1.25rem 1.35rem;
+		border: 1px solid var(--sh-border);
+		border-radius: 12px;
+		background: var(--sh-panel);
 	}
 	.sh-tier.is-featured {
-		border-color: var(--sl-color-accent);
-		box-shadow: 0 0 0 1px var(--sl-color-accent);
+		border-color: color-mix(in srgb, var(--sh-accent) 55%, transparent);
+		background:
+			radial-gradient(18rem 10rem at 50% 0%, rgba(124, 108, 255, 0.1), transparent 70%),
+			var(--sh-panel);
+		box-shadow: 0 24px 70px -36px rgba(124, 108, 255, 0.5);
 	}
 	.sh-tier h3 {
 		margin: 0;
-		font-size: 1.05rem;
+		font-size: 0.9375rem;
+		font-weight: 590;
+		letter-spacing: -0.012em;
 	}
 	.sh-tier__size,
 	.sh-tier__note {
 		margin: 0;
-		color: var(--sl-color-gray-3);
-		font-size: 0.85rem;
+		color: var(--sh-muted);
+		font-size: 0.8125rem;
 	}
 	.sh-tier__price {
 		margin: 0.2rem 0;
 		display: grid;
 	}
 	.sh-tier__amount {
-		font-size: 1.7rem;
-		font-weight: 700;
-		letter-spacing: -0.02em;
+		font-size: 2rem;
+		font-weight: 590;
+		letter-spacing: -0.022em;
+		color: var(--sh-text);
 	}
 	.sh-tier ul {
 		margin: 0.3rem 0 0.6rem;
 		padding-left: 1.1rem;
-		font-size: 0.88rem;
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-2);
 		flex: 1;
 	}
 	.sh-tier ul li {
@@ -228,20 +238,28 @@ const estimatorTiers = JSON.stringify(HUB_TIERS.map((t) => ({ id: t.id, name: t.
 		justify-content: center;
 		align-items: center;
 		min-height: 2.3rem;
-		border: 1px solid var(--sl-color-gray-5);
-		border-radius: 0.6rem;
+		border: 1px solid var(--sh-border-strong);
+		border-radius: 6px;
 		background: transparent;
-		color: var(--sl-color-white);
+		color: var(--sh-text);
 		font: inherit;
-		font-weight: 600;
-		font-size: 0.9rem;
+		font-weight: 510;
+		font-size: 0.8125rem;
 		text-decoration: none;
 		cursor: pointer;
+		transition: background-color 140ms ease-out, border-color 140ms ease-out;
+	}
+	.sh-tier__btn:hover {
+		background: var(--sh-hover);
 	}
 	.sh-tier__btn.is-primary {
-		background: var(--sl-color-accent);
-		border-color: var(--sl-color-accent);
+		background: var(--sh-accent);
+		border-color: var(--sh-accent);
 		color: #fff;
+	}
+	.sh-tier__btn.is-primary:hover {
+		background: var(--sh-accent-hover);
+		border-color: var(--sh-accent-hover);
 	}
 	.sh-pricing__notes {
 		margin: 1rem 0;
@@ -251,9 +269,10 @@ const estimatorTiers = JSON.stringify(HUB_TIERS.map((t) => ({ id: t.id, name: t.
 	}
 	.sh-estimator {
 		margin: 1rem 0;
-		padding: 1rem 1.1rem;
-		border: 1px solid var(--sl-color-gray-5);
-		border-radius: 0.9rem;
+		padding: 1.1rem 1.25rem;
+		border: 1px solid var(--sh-border);
+		border-radius: 12px;
+		background: var(--sh-panel);
 		display: grid;
 		gap: 0.5rem;
 	}
@@ -263,7 +282,7 @@ const estimatorTiers = JSON.stringify(HUB_TIERS.map((t) => ({ id: t.id, name: t.
 	}
 	.sh-estimator__result {
 		margin: 0;
-		font-weight: 600;
+		font-weight: 510;
 	}
 	.sh-anchor {
 		position: absolute;

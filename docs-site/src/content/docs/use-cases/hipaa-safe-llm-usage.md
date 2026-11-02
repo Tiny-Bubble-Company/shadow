@@ -67,7 +67,7 @@ Pick a provider API offered under a BAA (for example an enterprise or cloud-plat
 ### 2. Install Shadow where PHI originates
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 shadow init --org "St Mary's Health Partners"
 shadow install --apply        # workstation: background service, CA trust, proxy env
 ```

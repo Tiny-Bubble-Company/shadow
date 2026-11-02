@@ -47,7 +47,7 @@ The mapping stays in an [encrypted local vault](/shadow/concepts/vault/).
 ### 1. Install and initialise
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 shadow init --org "Acme Ltd"
 ```
 

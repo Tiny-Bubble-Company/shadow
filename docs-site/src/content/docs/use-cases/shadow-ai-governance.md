@@ -61,7 +61,7 @@ With the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-syste
 ### 2. Install Shadow on endpoints
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 shadow init --org "Acme GmbH"
 shadow install --apply    # background service, CA trust, proxy env file
 ```

@@ -34,7 +34,7 @@ export default defineConfig({
 			social: [{ icon: 'github', label: 'GitHub', href: REPO_URL }],
 			editLink: { baseUrl: `${REPO_URL}/edit/main/docs-site/` },
 			lastUpdated: false,
-			customCss: ['./src/styles/custom.css', './src/styles/home.css', './src/styles/site-chrome.css'],
+			customCss: ['@fontsource-variable/inter', './src/styles/custom.css', './src/styles/home.css', './src/styles/site-chrome.css'],
 			routeMiddleware: './src/seo/middleware.ts',
 			components: {
 				MarkdownContent: './src/components/MarkdownContent.astro',

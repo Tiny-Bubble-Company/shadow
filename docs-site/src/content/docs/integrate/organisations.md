@@ -23,12 +23,12 @@ An admin creates an invite in Shadow Hub and shares the join link. On the join p
 
 ```sh
 # macOS and Linux
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | SHADOW_ENROLL='https://hub.example.com/join/inv_...' sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | SHADOW_ENROLL='https://hub.example.com/join/inv_...' sh
 ```
 
 ```powershell
 # Windows
-$env:SHADOW_ENROLL='https://hub.example.com/join/inv_...'; irm https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.ps1 | iex
+$env:SHADOW_ENROLL='https://hub.example.com/join/inv_...'; irm https://hub.getshadow.dev/core/install.ps1 | iex
 ```
 
 With `SHADOW_ENROLL` set, the installer:

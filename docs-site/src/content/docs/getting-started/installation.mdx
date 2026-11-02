@@ -23,7 +23,7 @@ Shadow is a single static binary called `shadow`. It has no runtime dependencies
 <TabItem label="macOS / Linux">
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 ```
 
 The script:
@@ -40,7 +40,7 @@ It never changes system settings. That is what `shadow install --apply` is for.
 <TabItem label="Windows">
 
 ```powershell
-irm https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.ps1 | iex
+irm https://hub.getshadow.dev/core/install.ps1 | iex
 ```
 
 The script installs `shadow.exe` to `%LOCALAPPDATA%\Shadow`, adds that folder to your user `PATH`, and runs `shadow init`. It downloads a release zip when available and falls back to `cargo install`. Only 64-bit Windows is supported.

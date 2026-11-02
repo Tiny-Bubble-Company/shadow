@@ -71,7 +71,7 @@ The fourth treatment, `keep`, sends the real value. It is used for the recipient
 ### 1. Install and create the persona
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 shadow init --org "Acme GmbH"
 shadow identity          # the fake identity providers will see
 ```

@@ -43,7 +43,7 @@ One laptop, proxy mode for coding assistants and terminal tools, gateway URLs fo
 ### 1. Install and create your persona
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 shadow init --org "Rivera Code Studio"
 ```
 

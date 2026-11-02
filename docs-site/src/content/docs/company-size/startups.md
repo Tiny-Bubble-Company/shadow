@@ -48,7 +48,7 @@ For a startup, Shadow is a cheap way to keep the customer data it detects out of
 ### Laptops
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 shadow init --org "Acme Labs Inc."
 shadow install --apply
 ```

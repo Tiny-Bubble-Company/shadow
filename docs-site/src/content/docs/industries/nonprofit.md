@@ -74,7 +74,7 @@ images = "block"     # photos and scans are not masked
 
 ```sh
 # macOS / Linux
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 shadow init --org "Riverside Community Trust"
 shadow install            # shows what it will change
 shadow install --apply    # runs in the background and trusts the local certificate

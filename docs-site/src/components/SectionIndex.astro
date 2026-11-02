@@ -38,20 +38,21 @@ const group = (await sectionGroups())[dir];
 		gap: 0.35rem;
 		height: 100%;
 		padding: 1rem 1.1rem;
-		border: 1px solid var(--sl-color-gray-5);
-		border-radius: 0.75rem;
-		background: var(--sl-color-bg-nav);
-		color: var(--sl-color-white);
+		border: 1px solid var(--sh-border);
+		border-radius: 8px;
+		background: var(--sh-panel);
+		color: var(--sh-text);
 		text-decoration: none;
-		transition: border-color 0.15s, transform 0.15s;
+		transition: border-color 140ms ease-out, background-color 140ms ease-out;
 	}
 	.section-index a:hover,
 	.section-index a:focus-visible {
-		border-color: var(--sl-color-accent);
-		transform: translateY(-1px);
+		border-color: var(--sh-border-strong);
+		background: var(--sh-raised);
 	}
 	.section-index__title {
-		font-weight: 600;
+		font-weight: 590;
+		letter-spacing: -0.012em;
 	}
 	.section-index__desc {
 		color: var(--sl-color-gray-3);

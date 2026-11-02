@@ -65,7 +65,7 @@ A practical split: let your existing DLP or CASB govern phone apps and the AI si
 ### 1. Install on the machines that call AI APIs
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 shadow init --org "Acme GmbH"
 shadow install            # dry run: prints every change
 shadow install --apply    # background service, CA trust, env file

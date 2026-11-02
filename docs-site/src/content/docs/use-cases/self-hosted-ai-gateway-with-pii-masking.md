@@ -41,7 +41,7 @@ Built-in routes: `openai`, `anthropic`, `openrouter`, `gemini` (or `google`), `m
 ### 1. Install and initialise
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 shadow init --org "Acme GmbH"
 ```
 

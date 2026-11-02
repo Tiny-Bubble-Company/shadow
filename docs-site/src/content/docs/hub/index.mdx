@@ -25,21 +25,21 @@ faq:
   - q: "How is Hub different from AI DLP?"
     a: "AI DLP tools mostly block or redact in the browser or on the endpoint. Shadow masks sensitive values with reversible fakes, so people keep using AI tools while the data stays on the machine, and Hub shows the whole team's activity. See [AI DLP compared](/shadow/compare/ai-dlp/)."
   - q: "How much does Shadow Hub cost?"
-    a: "Hub is free for up to 5 users, then priced per monitored user per month: from $8 on Starter (6-50 users) and $15 on Business (51-500), with custom Enterprise pricing above 500. Admins are free. Hub is in early access; prices may change. See [Pricing](/shadow/pricing/)."
+    a: "Hub is free for up to 3 users, then priced per monitored user per month: from $8 on Starter (4-50 users) and $15 on Business (51-500), with custom Enterprise pricing above 500. Admins are free. Hub is in early access; prices may change. See [Pricing](/shadow/pricing/)."
 ---
 
 import HubCta from '../../../components/HubCta.astro';
 import PricingTable from '../../../components/PricingTable.astro';
-import PlaceholderShot from '../../../components/PlaceholderShot.astro';
+import HubShot from '../../../components/HubShot.astro';
 
-**Shadow Hub is the hosted dashboard that shows a security or IT team every AI request their people make, and what Shadow masked or blocked: per user, machine, app and AI service. It is for teams that run the free, open-source Shadow Core on laptops and servers. Hub is free for 5 users, then from $8 per user per month. Unlike AI DLP, Shadow masks data reversibly instead of blocking work.**
+**Shadow Hub is the hosted dashboard that shows a security or IT team every AI request their people make, and what Shadow masked or blocked: per user, machine, app and AI service. It is for teams that run the free, open-source Shadow Core on laptops and servers. Hub is free for up to 3 users, then from $8 per user per month. Unlike AI DLP, Shadow masks data reversibly instead of blocking work.**
 {/* PLACEHOLDER: price figures pending confirmation */}
 
 Hub is in early access. Join the waitlist and we'll open your workspace, or book a demo.
 
 <HubCta location="hub" show={['hub', 'demo']} />
 
-<PlaceholderShot label="Hub overview: requests, values protected, what leaks and where it goes" />
+<HubShot name="overview" variant="hero" alt="Shadow Hub organisation overview: total AI requests, values protected, requests by AI provider and by person, and a trend chart over time" />
 
 ## AI visibility for security teams
 
@@ -53,7 +53,7 @@ Most teams can't answer three questions: which AI tools are people using, what d
 
 Shadow AI is the AI tools people use without IT knowing. Hub lists **newly seen AI services** each week and who uses them, and flags services Shadow recognises but can't protect yet (for example tools with their own binary protocols) as *seen, not protected*, so nothing AI-bound goes by unnoticed.
 
-<PlaceholderShot label="Insights: newly seen AI services and who uses them" ratio="16 / 7" />
+<HubShot name="insights" alt="Shadow Hub insights: which data types leak most, the riskiest people ranked by what they sent, and findings such as newly seen AI services" caption="Insights: what leaks, who sends the most sensitive data, and new findings each week." />
 
 ## Per-user insights: masked, blocked, policy violations
 
@@ -66,13 +66,22 @@ Open any person or machine to see the same dashboard for just them, then any inc
 
 Hub ranks people by the sensitivity of what they sent, and shows which data types go to which AI services, so you can fix the process, not just the person.
 
+<HubShot name="incidents" alt="Shadow Hub incidents table filtered by AI service, person and data type, with one row per masked or blocked request" caption="Incidents: every masked or blocked request, filterable by person, app, AI service and data type." />
+
+<div class="hub-shot-grid not-content">
+<HubShot name="incident-detail" variant="tile" alt="One Shadow Hub incident: the prompt as sent, the values Shadow masked, and the person, machine and app that sent it" caption="One incident: the prompt, what was masked, and the person, machine and app." />
+<HubShot name="people" variant="tile" alt="Shadow Hub people list showing each person's enrolled devices and a risk level" caption="People: every person, their devices and their risk." />
+</div>
+
 ## Roll out with Jamf, Intune or Fleet
 
 Today each person runs one command from their invite link: it installs Core, connects the machine to Hub and turns on protection, including browsers and chat apps. MDM rollout profiles for Jamf, Intune and Fleet are on the way. {/* PLACEHOLDER: MDM profiles not built yet */}
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | SHADOW_ENROLL='<your invite link>' sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | SHADOW_ENROLL='<your invite link>' sh
 ```
+
+<HubShot name="invite" alt="Shadow Hub invite screen with a shareable invite link and the one command employees run to install Shadow and connect their machine" caption="Invite employees with a link and one command." />
 
 People see that their machine is managed, by which organisation, and what is shared, in the menu bar, the local dashboard and `shadow status`.
 
@@ -84,7 +93,7 @@ Read what Hub stores and never sees on the [Trust page](/shadow/trust/).
 
 ## Pricing
 
-Core is free forever. Hub is free for up to 5 users, then priced per monitored user; admins are free.
+Core is free forever. Hub is free for up to 3 users, then priced per monitored user; admins are free.
 
 <PricingTable summary location="hub" />
 

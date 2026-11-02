@@ -59,7 +59,7 @@ List the tools and flows: chat clients, coding assistants, support tools, intern
 
 ```sh
 # Laptops and workstations
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 shadow init --org "Acme GmbH"
 shadow install --apply
 ```

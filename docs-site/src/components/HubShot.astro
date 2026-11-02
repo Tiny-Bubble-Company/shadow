@@ -1,0 +1,73 @@
+---
+// A Shadow Hub dashboard screenshot from public/hub/shots/, in a Linear-style frame
+// (12px radius, hairline border, faint accent glow). Images are 2880x1800 (16:10).
+//
+//   <HubShot name="overview" alt="…" caption="…" />
+interface Props {
+	/** File name in public/hub/shots/ without the extension. */
+	name: 'overview' | 'incidents' | 'incident-detail' | 'people' | 'insights' | 'invite';
+	alt: string;
+	caption?: string;
+	/** hero: wider glow, more space around it. */
+	variant?: 'hero' | 'default' | 'tile';
+	loading?: 'lazy' | 'eager';
+}
+
+const { name, alt, caption, variant = 'default', loading = 'lazy' } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/+$/, '');
+const src = `${base}/hub/shots/${name}.png`;
+---
+
+<figure class:list={['hub-shot', `hub-shot--${variant}`, 'not-content']}>
+	<div class="hub-shot__frame">
+		<img src={src} alt={alt} width="2880" height="1800" loading={loading} decoding="async" />
+	</div>
+	{caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+	.hub-shot {
+		position: relative;
+		margin: 2rem 0;
+	}
+	.hub-shot--hero {
+		margin: 2.5rem 0 3.5rem;
+	}
+	.hub-shot--tile {
+		margin: 0;
+	}
+	.hub-shot__frame {
+		position: relative;
+		border: 1px solid var(--sh-border-strong, rgba(255, 255, 255, 0.12));
+		border-radius: 12px;
+		overflow: hidden;
+		background: var(--sh-panel, #0f1011);
+		box-shadow: 0 0 0 1px rgba(124, 108, 255, 0.06), 0 24px 80px -32px rgba(124, 108, 255, 0.35);
+	}
+	.hub-shot--hero .hub-shot__frame {
+		box-shadow: 0 0 0 1px rgba(124, 108, 255, 0.08), 0 40px 140px -40px rgba(124, 108, 255, 0.5);
+	}
+	.hub-shot--tile .hub-shot__frame {
+		border-radius: 8px;
+		box-shadow: none;
+	}
+	.hub-shot img {
+		display: block;
+		width: 100%;
+		height: auto;
+		aspect-ratio: 16 / 10;
+	}
+	.hub-shot figcaption {
+		margin-top: 0.75rem;
+		text-align: center;
+		font-size: 0.875rem;
+		color: var(--sh-muted, #8a8f98);
+	}
+	.hub-shot--tile figcaption {
+		text-align: start;
+		font-size: 0.8125rem;
+	}
+	:global(:root[data-theme='light']) .hub-shot__frame {
+		box-shadow: 0 0 0 1px rgba(124, 108, 255, 0.05), 0 24px 70px -36px rgba(90, 72, 232, 0.25);
+	}
+</style>

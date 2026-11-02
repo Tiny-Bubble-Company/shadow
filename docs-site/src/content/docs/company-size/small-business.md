@@ -53,7 +53,7 @@ The [shadow AI governance guide](/shadow/use-cases/shadow-ai-governance/) explai
 macOS or Linux:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 shadow init --org "Northwind Bakery Ltd"
 shadow install --apply
 ```
@@ -61,7 +61,7 @@ shadow install --apply
 Windows (PowerShell):
 
 ```powershell
-irm https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.ps1 | iex
+irm https://hub.getshadow.dev/core/install.ps1 | iex
 shadow init --org "Northwind Bakery Ltd"
 shadow install --apply
 ```

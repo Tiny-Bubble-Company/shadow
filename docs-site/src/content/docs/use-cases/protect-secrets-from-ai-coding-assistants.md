@@ -57,7 +57,7 @@ Shadow intercepts the [provider API hosts](/shadow/reference/providers/). Tools 
 ### 1. Install and initialise
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 shadow init --org "Acme Ltd"
 ```
 

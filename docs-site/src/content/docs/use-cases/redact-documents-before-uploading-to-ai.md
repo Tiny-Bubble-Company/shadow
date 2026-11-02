@@ -62,7 +62,7 @@ Files use the same detectors, persona, vault and [policy](/shadow/concepts/inten
 ### 1. Install Shadow and start it
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 shadow init --org "Acme GmbH"
 shadow run
 ```

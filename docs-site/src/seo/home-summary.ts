@@ -7,7 +7,7 @@ export const HOME_SUMMARY = `## What Shadow does
 Shadow is a free, open-source (Apache-2.0) privacy layer between your apps and AI providers. It replaces sensitive values in each outbound request with realistic, format-preserving fakes and restores the real values in the response. Install it with one command:
 
 \`\`\`sh
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 \`\`\`
 
 - Single binary for macOS, Linux and Windows; no cloud service, account or telemetry.

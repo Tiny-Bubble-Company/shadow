@@ -20,7 +20,7 @@ import { LINKS, href } from './links';
 		<article class="hp-ch__card is-hub">
 			<p class="hp-ch__eyebrow">For teams · {HUB_FROM}</p>
 			<h2>Shadow Hub</h2>
-			<p>See what was masked or blocked, by user, tool and AI service, across every laptop and server. One dashboard for your security team; free for up to 5 users.</p>
+			<p>See what was masked or blocked, by user, tool and AI service, across every laptop and server. One dashboard for your security team; free for up to 3 users.</p>
 			<a href={href('/hub/')}>See Shadow Hub →</a>
 		</article>
 	</div>
@@ -50,27 +50,29 @@ import { LINKS, href } from './links';
 		gap: 0.5rem;
 		align-content: start;
 		padding: 1.25rem 1.3rem;
-		border: 1px solid var(--sl-color-gray-5);
-		border-radius: 1rem;
-		background: var(--sl-color-bg);
+		border: 1px solid var(--sh-border);
+		border-radius: 12px;
+		background: var(--sh-panel);
 	}
 	.hp-ch__card.is-hub {
-		border-color: var(--sl-color-accent);
+		border-color: color-mix(in srgb, var(--sh-accent) 50%, transparent);
+		box-shadow: 0 24px 70px -40px rgba(124, 108, 255, 0.5);
 	}
 	.hp-ch__card h2,
 	.hp-ch__rollout h2 {
 		margin: 0;
-		font-size: 1.3rem;
+		font-size: 1.25rem;
+		font-weight: 590;
+		letter-spacing: -0.018em;
 	}
 	.hp-ch__card p {
 		margin: 0;
 		color: var(--sl-color-gray-2);
 	}
 	.hp-ch__eyebrow {
-		font-size: 0.8rem;
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.06em;
+		font-size: 0.8125rem;
+		font-weight: 510;
+		letter-spacing: -0.003em;
 		color: var(--sl-color-accent) !important;
 	}
 	.hp-ch__cmd {
@@ -78,14 +80,16 @@ import { LINKS, href } from './links';
 		overflow-x: auto;
 		white-space: nowrap;
 		padding: 0.5rem 0.65rem;
-		border-radius: 0.5rem;
-		background: var(--sl-color-gray-6);
+		border-radius: 6px;
+		border: 1px solid var(--sh-border);
+		background: var(--sh-raised);
 		font-size: 0.78rem;
 	}
 	.hp-ch__rollout {
 		padding: 1.25rem 1.3rem;
-		border: 1px solid var(--sl-color-gray-5);
-		border-radius: 1rem;
+		border: 1px solid var(--sh-border);
+		border-radius: 12px;
+		background: var(--sh-panel);
 	}
 	.hp-ch__rollout ol {
 		display: grid;
@@ -111,7 +115,7 @@ import { LINKS, href } from './links';
 		background: var(--sl-color-accent-low);
 		color: var(--sl-color-white);
 		font-size: 0.8rem;
-		font-weight: 700;
+		font-weight: 590;
 	}
 	.hp-ch__rollout span {
 		color: var(--sl-color-gray-3);

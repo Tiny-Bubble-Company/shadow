@@ -71,7 +71,7 @@ For a shared internal chat UI, run Shadow next to the server and point the UI at
 
 ```sh
 # macOS / Linux
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 
 shadow init --org "Acme Ltd"     # persona, vault key, local CA; protects "Acme Ltd" and "Acme"
 shadow install                   # dry run: prints every step

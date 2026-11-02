@@ -47,7 +47,7 @@ Placeholder redaction (`[NAME]`) undermines long-context work: Claude can't keep
 ### 1. Install and create a persona
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | sh
+curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 shadow init --org "Acme Ltd"
 shadow identity          # the fake identity Claude will see
 ```
