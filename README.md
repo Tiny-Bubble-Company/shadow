@@ -27,7 +27,7 @@
 
 ---
 
-Shadow is an endpoint privacy layer between your apps and AI clouds: OpenAI, Anthropic, Gemini, Azure OpenAI, OpenRouter, Mistral, Groq, 20+ inference clouds, and ChatGPT, Claude.ai and Gemini in your browser. It runs on your machine as a local proxy or gateway, or inside your Rust service as a library. It finds sensitive values in every outbound request, swaps them for format-preserving fakes from a persistent **persona**, keeps the mapping in an encrypted local vault, and translates responses back, including streamed responses and tool calls.
+Shadow is an endpoint privacy layer between your apps and AI clouds: OpenAI, Anthropic, Gemini, Azure OpenAI, OpenRouter, Mistral, Groq and a catalog of 280+ AI services (model APIs, inference clouds, routers, coding agents and chat apps), including ChatGPT, Claude.ai and Gemini in your browser. It runs on your machine as a local proxy or gateway, or inside your Rust service as a library. It finds sensitive values in every outbound request, swaps them for format-preserving fakes from a persistent **persona**, keeps the mapping in an encrypted local vault, and translates responses back, including streamed responses and tool calls.
 
 ```text
 you      ──"Summarise this thread: jane@acme.com asks when Project Falcon ships to Acme GmbH"──────────────────────▶ Shadow

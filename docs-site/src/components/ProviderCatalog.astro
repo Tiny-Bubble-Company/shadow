@@ -1,0 +1,106 @@
+---
+// The AI service catalog, rendered from crates/shadow-core/catalog.json: the same file the
+// proxy uses to decide what it masks and what it only observes.
+import catalog from '../../../crates/shadow-core/catalog.json';
+
+type Provider = {
+	id: string;
+	name: string;
+	category: string;
+	api: string;
+	hosts: string[];
+	mask?: boolean;
+	docs?: string;
+};
+
+const ORDER: [string, string, string][] = [
+	['model_api', 'Model APIs', "A model maker's own API."],
+	['inference', 'Inference clouds', 'Clouds that host many open and commercial models.'],
+	['router', 'Model routers and gateways', 'One API in front of many providers.'],
+	['coding_agent', 'Coding agents', "Coding tools' own backends."],
+	['chat_app', 'AI chat apps', 'Chat apps used in a browser or desktop app, reached through the system proxy.'],
+];
+const FORMATS: Record<string, string> = {
+	openai: 'OpenAI-compatible',
+	anthropic: 'Anthropic Messages',
+	gemini: 'Gemini',
+	cohere: 'Cohere',
+	custom: 'Own JSON format',
+	binary: 'Binary (protobuf, gRPC, event stream)',
+};
+const all = (catalog as Provider[]).slice().sort((a, b) => a.name.localeCompare(b.name));
+const groups = ORDER.map(([key, title, lead]) => ({
+	key,
+	title,
+	lead,
+	items: all.filter((p) => p.category === key),
+})).filter((g) => g.items.length);
+const masked = all.filter((p) => p.mask).length;
+const hosts = all.reduce((n, p) => n + p.hosts.length, 0);
+---
+
+<p class="cat-summary">
+	<strong>{all.length} AI services</strong> and {hosts} hosts in the catalog. Shadow masks <strong>{masked}</strong> of them; the
+	other {all.length - masked} are recognised and shown on the dashboard as <em>seen, not protected</em> when your traffic reaches them.
+</p>
+
+{
+	groups.map((g) => (
+		<section class="cat-group">
+			<h3 id={`catalog-${g.key}`}>
+				{g.title} ({g.items.length})
+			</h3>
+			<p>{g.lead}</p>
+			<div class="cat-table">
+				<table>
+					<thead>
+						<tr>
+							<th>Service</th>
+							<th>Hosts</th>
+							<th>Format</th>
+							<th>Shadow</th>
+						</tr>
+					</thead>
+					<tbody>
+						{g.items.map((p) => (
+							<tr>
+								<td>{p.docs ? <a href={p.docs} rel="nofollow noopener" target="_blank">{p.name}</a> : p.name}</td>
+								<td>
+									{p.hosts.map((h, i) => (
+										<>
+											{i > 0 && ', '}
+											<code>{h}</code>
+										</>
+									))}
+								</td>
+								<td>{FORMATS[p.api] ?? p.api}</td>
+								<td>{p.mask ? <span class="cat-yes">Masked</span> : <span class="cat-no">Seen, not protected</span>}</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+		</section>
+	))
+}
+
+<style>
+	.cat-summary {
+		font-size: 1.05rem;
+	}
+	.cat-table {
+		overflow-x: auto;
+	}
+	.cat-table td:nth-child(2) {
+		max-width: 26rem;
+	}
+	.cat-yes {
+		color: var(--sl-color-green-high, #1fae8a);
+		font-weight: 600;
+		white-space: nowrap;
+	}
+	.cat-no {
+		color: var(--sl-color-gray-3);
+		white-space: nowrap;
+	}
+</style>

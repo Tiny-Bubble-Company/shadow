@@ -171,7 +171,7 @@ To send only the intercepted AI hosts through Shadow and everything else direct,
 
 ## Which hosts are intercepted
 
-Run `shadow hosts` to list the patterns in effect. The built-in list covers model APIs (OpenAI, Anthropic, Google Gemini and Vertex AI, Mistral, DeepSeek, xAI, Cohere, Perplexity, AI21, Reka, Moonshot, Alibaba Qwen, Zhipu, MiniMax, Meta Llama API, Voyage AI), inference clouds (Azure OpenAI and Azure AI services, AWS Bedrock runtime, OpenRouter, Groq, Together, Fireworks, Cerebras, Replicate, Hugging Face, DeepInfra, Hyperbolic, SambaNova, Novita, Lambda, Baseten, NVIDIA NIM, Nebius, SiliconFlow, Cloudflare AI Gateway) and the six chat apps above. The full list is in [Supported providers](/shadow/reference/providers/).
+Run `shadow hosts` to list the patterns in effect. They come from Shadow's [catalog of 280+ AI services](/shadow/reference/providers/#the-catalog); services Shadow recognises but cannot mask (Cursor, Windsurf, Amazon Q and other binary protocols) are tunnelled untouched and shown on the dashboard as *seen, not protected*. The built-in list covers model APIs (OpenAI, Anthropic, Google Gemini and Vertex AI, Mistral, DeepSeek, xAI, Cohere, Perplexity, AI21, Reka, Moonshot, Alibaba Qwen, Zhipu, MiniMax, Meta Llama API, Voyage AI), inference clouds (Azure OpenAI and Azure AI services, AWS Bedrock runtime, OpenRouter, Groq, Together, Fireworks, Cerebras, Replicate, Hugging Face, DeepInfra, Hyperbolic, SambaNova, Novita, Lambda, Baseten, NVIDIA NIM, Nebius, SiliconFlow, Cloudflare AI Gateway) and the six chat apps above. The full list is in [Supported providers](/shadow/reference/providers/).
 
 Add hosts, such as a self-hosted LLM gateway, with `extra_hosts`. Exclude hosts with `bypass_hosts`. Both accept `*` globs:
 

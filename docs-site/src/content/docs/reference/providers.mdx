@@ -1,10 +1,12 @@
 ---
 title: Supported providers and hosts
 seoTitle: "Supported AI providers, hosts and API formats · Shadow"
-description: "AI services Shadow masks: OpenAI, Anthropic, Gemini, Bedrock, 20+ inference clouds, and ChatGPT, Claude.ai and Gemini in a browser. Hosts and formats."
+description: "Catalog of 280+ AI services Shadow recognises: model APIs, inference clouds, routers, coding agents and chat apps, with hosts and what it masks."
 faq:
   - q: "Which AI providers does Shadow intercept?"
-    a: "Model APIs (OpenAI, Anthropic, Google Gemini and Vertex AI, Mistral, DeepSeek, xAI, Cohere, Perplexity and more), inference clouds (Azure OpenAI, AWS Bedrock, OpenRouter, Groq, Together, Fireworks, Replicate, Hugging Face, NVIDIA NIM and more) and six chat apps in a browser: ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok. `shadow hosts` shows the effective list."
+    a: "Shadow carries a catalog of 280+ AI services: model APIs (OpenAI, Anthropic, Google, Mistral, DeepSeek, Qwen, ...), inference clouds (Azure, Bedrock, Vertex, Groq, Together, Fireworks, Hugging Face, ...), model routers (OpenRouter, Requesty, Portkey, ...), coding agents' backends (GitHub Copilot, Gemini Code Assist, Codex with a ChatGPT login) and AI chat apps. It masks the ones whose formats it can rewrite and restore, and shows the rest on the dashboard as seen, not protected. `shadow hosts` shows the effective list."
+  - q: "Which coding agents does Shadow cover?"
+    a: "Claude Code, Codex CLI (API key or ChatGPT login), Gemini CLI (API key or Google login), GitHub Copilot, Aider, Cline, OpenCode, Continue and any agent that calls a catalogued model API, as long as it goes through Shadow (`HTTPS_PROXY`, a base URL or the system proxy). Cursor, Windsurf, Amazon Q and Kiro use binary protocols Shadow cannot rewrite; their traffic is shown as seen, not protected."
   - q: "Does Shadow mask ChatGPT and Claude.ai in the browser?"
     a: "Yes, with the system proxy pointed at Shadow (`shadow install --system-proxy --apply`). It masks the prompt you send and restores your values in the answer and the conversation history. Microsoft Copilot, Le Chat, Meta AI and Poe are not supported yet."
   - q: "Can I add a self-hosted or internal LLM endpoint?"
@@ -15,51 +17,18 @@ faq:
     a: "No. WebSocket, Realtime and gRPC traffic is not parsed and passes through unmasked."
 ---
 
-## Intercepted hosts (proxy mode)
+import ProviderCatalog from '../../../components/ProviderCatalog.astro';
 
-In proxy mode, Shadow terminates TLS only for these hosts. Every other host is tunnelled without decryption. `*` matches any run of characters; matching is case-insensitive and exact otherwise (`openai.azure.com.evil.com` does **not** match `*.openai.azure.com`).
+## The catalog
 
-| Provider | Host pattern |
-|---|---|
-| OpenAI | `api.openai.com` |
-| Anthropic | `api.anthropic.com` |
-| OpenRouter | `openrouter.ai` |
-| Google Gemini API | `generativelanguage.googleapis.com` |
-| Google Vertex AI | `aiplatform.googleapis.com`, `*-aiplatform.googleapis.com` |
-| Mistral | `api.mistral.ai` |
-| Groq | `api.groq.com` |
-| Together AI | `api.together.xyz`, `api.together.ai` |
-| DeepSeek | `api.deepseek.com` |
-| xAI | `api.x.ai` |
-| Azure OpenAI | `*.openai.azure.com` |
-| Azure AI services | `*.services.ai.azure.com`, `*.cognitiveservices.azure.com` |
-| AWS Bedrock runtime | `bedrock-runtime.*.amazonaws.com` |
-| Cohere | `api.cohere.com`, `api.cohere.ai` |
-| Perplexity | `api.perplexity.ai` |
-| Fireworks AI | `api.fireworks.ai` |
-| Cerebras | `api.cerebras.ai` |
-| Voyage AI | `api.voyageai.com` |
-| Replicate | `api.replicate.com` |
-| Hugging Face | `api-inference.huggingface.co`, `router.huggingface.co`, `*.endpoints.huggingface.cloud` |
-| DeepInfra | `api.deepinfra.com` |
-| Hyperbolic | `api.hyperbolic.xyz` |
-| SambaNova | `api.sambanova.ai` |
-| Novita AI | `api.novita.ai` |
-| Lambda | `api.lambda.ai` |
-| Baseten | `inference.baseten.co`, `*.api.baseten.co` |
-| NVIDIA NIM | `integrate.api.nvidia.com` |
-| Nebius AI Studio | `api.studio.nebius.com` |
-| SiliconFlow | `api.siliconflow.cn` |
-| Cloudflare AI Gateway | `gateway.ai.cloudflare.com` |
-| AI21 | `api.ai21.com` |
-| Reka | `api.reka.ai` |
-| Moonshot AI | `api.moonshot.ai`, `api.moonshot.cn` |
-| Alibaba Qwen (DashScope) | `dashscope.aliyuncs.com`, `dashscope-intl.aliyuncs.com` |
-| Zhipu AI | `open.bigmodel.cn` |
-| MiniMax | `api.minimax.io` |
-| Meta Llama API | `api.llama.com` |
+Shadow carries a catalog of AI services: model APIs, inference clouds, model routers, coding agents' own backends and AI chat apps, with the API hosts each one uses. In proxy mode it decrypts and masks the services marked **Masked**: their request formats are ones Shadow can rewrite and restore. The others are recognised but never decrypted; when your traffic reaches them, the dashboard shows it under **Seen, not protected**, so nothing AI-bound goes by unnoticed. Everything not in the catalog is tunnelled untouched and not recorded.
 
-### AI chat apps
+`*` matches any run of characters; matching is case-insensitive and exact otherwise (`openai.azure.com.evil.com` does **not** match `*.openai.azure.com`). The catalog is [`crates/shadow-core/catalog.json`](https://github.com/Tiny-Bubble-Company/shadow/blob/main/crates/shadow-core/catalog.json); this page is generated from it. Missing a service? Open a pull request with its official API host.
+
+<ProviderCatalog />
+
+
+### What is masked in chat apps
 
 With `[proxy] chat_apps = true` (the default), these chat apps are intercepted too. Only their prompt requests are masked, and only the prompt text; their answers and reloaded history are restored. They are reached through the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy).
 
@@ -75,6 +44,7 @@ With `[proxy] chat_apps = true` (the default), these chat apps are intercepted t
 These are the vendors' private web formats and can change without notice; a request in a shape Shadow does not recognise is forwarded unchanged. The dashboard also names Microsoft Copilot, Le Chat, Meta AI and Poe, which are not masked yet.
 
 Add hosts with `[proxy] extra_hosts` and exclude hosts with `bypass_hosts`. `shadow hosts` shows the effective list. The [PAC file](/shadow/integrate/proxy-mode/#only-ai-hosts-with-a-pac-file) at `/proxy.pac` is generated from the same list; `/proxy.pac?scope=all` is the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) file that sends everything to Shadow.
+
 
 ## Gateway routes
 

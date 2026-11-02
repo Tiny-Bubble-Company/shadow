@@ -7,19 +7,10 @@
   "hosts": [
    "api.openai.com"
   ],
-  "mask": true
- },
- {
-  "id": "chatgpt",
-  "name": "ChatGPT",
-  "category": "chat_app",
-  "api": "custom",
-  "hosts": [
-   "chatgpt.com",
-   "*.chatgpt.com",
-   "chat.openai.com"
-  ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.openai.com/v1",
+  "docs": "https://platform.openai.com/docs/api-reference",
+  "region": "global"
  },
  {
   "id": "anthropic",
@@ -29,18 +20,10 @@
   "hosts": [
    "api.anthropic.com"
   ],
-  "mask": true
- },
- {
-  "id": "claude",
-  "name": "Claude.ai",
-  "category": "chat_app",
-  "api": "custom",
-  "hosts": [
-   "claude.ai",
-   "*.claude.ai"
-  ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.anthropic.com/v1",
+  "docs": "https://docs.anthropic.com/en/api/overview",
+  "region": "global"
  },
  {
   "id": "gemini",
@@ -50,7 +33,10 @@
   "hosts": [
    "generativelanguage.googleapis.com"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+  "docs": "https://ai.google.dev/gemini-api/docs/openai",
+  "region": "global"
  },
  {
   "id": "vertex",
@@ -61,69 +47,9 @@
    "aiplatform.googleapis.com",
    "*-aiplatform.googleapis.com"
   ],
-  "mask": true
- },
- {
-  "id": "openrouter",
-  "name": "OpenRouter",
-  "category": "router",
-  "api": "openai",
-  "hosts": [
-   "openrouter.ai"
-  ],
-  "mask": true
- },
- {
-  "id": "mistral",
-  "name": "Mistral",
-  "category": "model_api",
-  "api": "openai",
-  "hosts": [
-   "api.mistral.ai",
-   "codestral.mistral.ai"
-  ],
-  "mask": true
- },
- {
-  "id": "groq",
-  "name": "Groq",
-  "category": "inference",
-  "api": "openai",
-  "hosts": [
-   "api.groq.com"
-  ],
-  "mask": true
- },
- {
-  "id": "together",
-  "name": "Together AI",
-  "category": "inference",
-  "api": "openai",
-  "hosts": [
-   "api.together.xyz",
-   "api.together.ai"
-  ],
-  "mask": true
- },
- {
-  "id": "deepseek",
-  "name": "DeepSeek",
-  "category": "model_api",
-  "api": "openai",
-  "hosts": [
-   "api.deepseek.com"
-  ],
-  "mask": true
- },
- {
-  "id": "xai",
-  "name": "xAI",
-  "category": "model_api",
-  "api": "openai",
-  "hosts": [
-   "api.x.ai"
-  ],
-  "mask": true
+  "mask": true,
+  "docs": "https://cloud.google.com/vertex-ai/docs/reference/rest",
+  "region": "global"
  },
  {
   "id": "azure",
@@ -136,7 +62,9 @@
    "*.cognitiveservices.azure.com",
    "*.models.ai.azure.com"
   ],
-  "mask": true
+  "mask": true,
+  "docs": "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/reference",
+  "region": "global"
  },
  {
   "id": "bedrock",
@@ -144,9 +72,50 @@
   "category": "inference",
   "api": "custom",
   "hosts": [
-   "bedrock-runtime.*.amazonaws.com"
+   "bedrock-runtime.*.amazonaws.com",
+   "bedrock-runtime-fips.*.amazonaws.com"
   ],
-  "mask": true
+  "mask": true,
+  "docs": "https://docs.aws.amazon.com/general/latest/gr/bedrock.html",
+  "region": "global"
+ },
+ {
+  "id": "bedrock_mantle",
+  "name": "Amazon Bedrock (OpenAI-compatible Mantle)",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "bedrock-mantle.*.api.aws"
+  ],
+  "mask": true,
+  "docs": "https://docs.aws.amazon.com/bedrock/latest/userguide/endpoints.html",
+  "region": "global"
+ },
+ {
+  "id": "sagemaker",
+  "name": "Amazon SageMaker Runtime",
+  "category": "inference",
+  "api": "custom",
+  "hosts": [
+   "runtime.sagemaker.*.amazonaws.com"
+  ],
+  "mask": false,
+  "docs": "https://docs.aws.amazon.com/general/latest/gr/sagemaker.html",
+  "region": "global"
+ },
+ {
+  "id": "mistral",
+  "name": "Mistral",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.mistral.ai",
+   "codestral.mistral.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.mistral.ai/v1",
+  "docs": "https://docs.mistral.ai/api/",
+  "region": "eu"
  },
  {
   "id": "cohere",
@@ -157,7 +126,36 @@
    "api.cohere.com",
    "api.cohere.ai"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.cohere.ai/compatibility/v1",
+  "docs": "https://docs.cohere.com/docs/compatibility-api",
+  "region": "global"
+ },
+ {
+  "id": "xai",
+  "name": "xAI",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.x.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.x.ai/v1",
+  "docs": "https://docs.x.ai/docs/api-reference",
+  "region": "global"
+ },
+ {
+  "id": "deepseek",
+  "name": "DeepSeek",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.deepseek.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.deepseek.com/v1",
+  "docs": "https://api-docs.deepseek.com/",
+  "region": "cn"
  },
  {
   "id": "perplexity",
@@ -167,27 +165,376 @@
   "hosts": [
    "api.perplexity.ai"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.perplexity.ai",
+  "docs": "https://docs.perplexity.ai",
+  "region": "global"
  },
  {
-  "id": "fireworks",
-  "name": "Fireworks AI",
+  "id": "ai21",
+  "name": "AI21",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.ai21.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.ai21.com/studio/v1",
+  "docs": "https://docs.ai21.com/reference",
+  "region": "global"
+ },
+ {
+  "id": "reka",
+  "name": "Reka",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.reka.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.reka.ai/v1",
+  "docs": "https://docs.reka.ai",
+  "region": "global"
+ },
+ {
+  "id": "meta",
+  "name": "Meta Llama API",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.llama.com",
+   "api.meta.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.llama.com/compat/v1",
+  "docs": "https://llama.developer.meta.com/docs/",
+  "region": "global"
+ },
+ {
+  "id": "moonshot",
+  "name": "Moonshot AI",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.moonshot.ai",
+   "api.moonshot.cn",
+   "api.kimi.com",
+   "api.kimi.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.moonshot.ai/v1",
+  "docs": "https://platform.moonshot.ai/docs/api/chat",
+  "region": "cn"
+ },
+ {
+  "id": "qwen",
+  "name": "Alibaba Qwen",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "dashscope.aliyuncs.com",
+   "dashscope-intl.aliyuncs.com",
+   "coding.dashscope.aliyuncs.com",
+   "coding-intl.dashscope.aliyuncs.com",
+   "token-plan.ap-southeast-1.maas.aliyuncs.com",
+   "token-plan.cn-beijing.maas.aliyuncs.com"
+  ],
+  "mask": true,
+  "base_url": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+  "docs": "https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope",
+  "region": "cn"
+ },
+ {
+  "id": "zhipu",
+  "name": "Zhipu AI",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "open.bigmodel.cn",
+   "api.z.ai"
+  ],
+  "mask": true,
+  "base_url": "https://open.bigmodel.cn/api/paas/v4",
+  "docs": "https://docs.bigmodel.cn/cn/guide/start/pricing",
+  "region": "cn"
+ },
+ {
+  "id": "minimax",
+  "name": "MiniMax",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.minimax.io",
+   "api.minimax.cn"
+  ],
+  "mask": true,
+  "base_url": "https://api.minimax.io/v1",
+  "docs": "https://platform.minimax.io/docs/guides/quickstart",
+  "region": "cn"
+ },
+ {
+  "id": "doubao",
+  "name": "ByteDance Doubao",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "ark.cn-beijing.volces.com",
+   "ark.ap-southeast.bytepluses.com"
+  ],
+  "mask": true,
+  "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+  "docs": "https://www.volcengine.com/docs/82379/1330310",
+  "region": "cn"
+ },
+ {
+  "id": "qianfan",
+  "name": "Baidu Qianfan",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "qianfan.baidubce.com"
+  ],
+  "mask": true,
+  "base_url": "https://qianfan.baidubce.com/v2",
+  "docs": "https://cloud.baidu.com/doc/qianfan-api/s/3m7of64lb",
+  "region": "cn"
+ },
+ {
+  "id": "hunyuan",
+  "name": "Tencent Hunyuan",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.hunyuan.cloud.tencent.com",
+   "hunyuan.tencentcloudapi.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.hunyuan.cloud.tencent.com/v1",
+  "docs": "https://cloud.tencent.com/document/product/1729/111007",
+  "region": "cn"
+ },
+ {
+  "id": "stepfun",
+  "name": "StepFun",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.stepfun.com",
+   "api.stepfun.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.stepfun.com/v1",
+  "docs": "https://platform.stepfun.com/docs/zh/overview/concept",
+  "region": "cn"
+ },
+ {
+  "id": "yi",
+  "name": "01.AI Yi",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.lingyiwanwu.com",
+   "api.01.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.lingyiwanwu.com/v1",
+  "docs": "https://platform.lingyiwanwu.com/docs",
+  "region": "cn"
+ },
+ {
+  "id": "baichuan",
+  "name": "Baichuan",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.baichuan-ai.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.baichuan-ai.com/v1",
+  "docs": "https://platform.baichuan-ai.com/docs/api",
+  "region": "cn"
+ },
+ {
+  "id": "spark",
+  "name": "iFlytek Spark",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "spark-api-open.xf-yun.com",
+   "spark-api.xf-yun.com"
+  ],
+  "mask": true,
+  "base_url": "https://spark-api-open.xf-yun.com/v1",
+  "docs": "https://www.xfyun.cn/doc/spark/HTTP%E8%B0%83%E7%94%A8%E6%96%87%E6%A1%A3.html",
+  "region": "cn"
+ },
+ {
+  "id": "upstage",
+  "name": "Upstage",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.upstage.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.upstage.ai/v1",
+  "docs": "https://console.upstage.ai/docs/getting-started",
+  "region": "kr"
+ },
+ {
+  "id": "hyperclova",
+  "name": "Naver HyperCLOVA X (CLOVA Studio)",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "clovastudio.stream.ntruss.com"
+  ],
+  "mask": true,
+  "base_url": "https://clovastudio.stream.ntruss.com/v1/openai",
+  "docs": "https://api.ncloud-docs.com/docs/en/clovastudio-openaicompatibility",
+  "region": "kr"
+ },
+ {
+  "id": "krutrim",
+  "name": "Krutrim (Ola)",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "cloud.olakrutrim.com"
+  ],
+  "mask": false,
+  "base_url": "https://cloud.olakrutrim.com/v1",
+  "docs": "https://docs.cloud.olakrutrim.com",
+  "region": "in"
+ },
+ {
+  "id": "aleph_alpha",
+  "name": "Aleph Alpha",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "api.aleph-alpha.com"
+  ],
+  "mask": false,
+  "docs": "https://docs.aleph-alpha.com/api/",
+  "region": "eu"
+ },
+ {
+  "id": "writer",
+  "name": "Writer",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.writer.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.writer.com/v1",
+  "docs": "https://dev.writer.com/api-reference",
+  "region": "global"
+ },
+ {
+  "id": "nous",
+  "name": "Nous Research Portal",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "inference-api.nousresearch.com"
+  ],
+  "mask": true,
+  "base_url": "https://inference-api.nousresearch.com/v1",
+  "docs": "https://portal.nousresearch.com/api-docs",
+  "region": "global"
+ },
+ {
+  "id": "gigachat",
+  "name": "Sber GigaChat",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "gigachat.devices.sberbank.ru"
+  ],
+  "mask": false,
+  "docs": "https://developers.sber.ru/docs/ru/gigachat/api/overview",
+  "region": "ru"
+ },
+ {
+  "id": "yandex",
+  "name": "Yandex AI Studio (YandexGPT)",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "llm.api.cloud.yandex.net"
+  ],
+  "mask": true,
+  "base_url": "https://llm.api.cloud.yandex.net/v1",
+  "docs": "https://yandex.cloud/en/docs/foundation-models/concepts/openai-compatibility",
+  "region": "ru"
+ },
+ {
+  "id": "maritaca",
+  "name": "Maritaca AI (Sabiá)",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "chat.maritaca.ai"
+  ],
+  "mask": true,
+  "base_url": "https://chat.maritaca.ai/api",
+  "docs": "https://docs.maritaca.ai/",
+  "region": "br"
+ },
+ {
+  "id": "galadriel",
+  "name": "Galadriel",
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "api.fireworks.ai"
+   "api.galadriel.ai"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.galadriel.ai/v1",
+  "docs": "https://docs.galadriel.com/",
+  "region": "global"
  },
  {
-  "id": "cerebras",
-  "name": "Cerebras",
+  "id": "venice",
+  "name": "Venice AI",
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "api.cerebras.ai"
+   "api.venice.ai"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.venice.ai/api/v1",
+  "docs": "https://docs.venice.ai",
+  "region": "global"
+ },
+ {
+  "id": "v0",
+  "name": "Vercel v0 Model API",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.v0.dev"
+  ],
+  "mask": true,
+  "base_url": "https://api.v0.dev/v1",
+  "docs": "https://v0.dev/docs/api/model",
+  "region": "global"
+ },
+ {
+  "id": "cognition",
+  "name": "Cognition (Devin / SWE models)",
+  "category": "coding_agent",
+  "api": "custom",
+  "hosts": [
+   "api.cognition.ai",
+   "api.devin.ai"
+  ],
+  "mask": false,
+  "base_url": "https://api.cognition.ai/v1",
+  "docs": "https://docs.devin.ai/api-reference/overview",
+  "region": "global"
  },
  {
   "id": "voyage",
@@ -197,7 +544,957 @@
   "hosts": [
    "api.voyageai.com"
   ],
-  "mask": true
+  "mask": true,
+  "docs": "https://docs.voyageai.com/reference/embeddings-api",
+  "region": "global"
+ },
+ {
+  "id": "jina",
+  "name": "Jina AI",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.jina.ai",
+   "deepsearch.jina.ai"
+  ],
+  "mask": true,
+  "docs": "https://jina.ai/embeddings/",
+  "region": "eu"
+ },
+ {
+  "id": "mixedbread",
+  "name": "Mixedbread",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "api.mixedbread.com",
+   "api.mixedbread.ai"
+  ],
+  "mask": false,
+  "docs": "https://www.mixedbread.com/api-reference",
+  "region": "eu"
+ },
+ {
+  "id": "nomic",
+  "name": "Nomic Atlas Embeddings",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "api-atlas.nomic.ai"
+  ],
+  "mask": false,
+  "docs": "https://docs.nomic.ai/reference/endpoints/nomic-embed-text",
+  "region": "global"
+ },
+ {
+  "id": "assemblyai",
+  "name": "AssemblyAI",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "api.assemblyai.com",
+   "api.eu.assemblyai.com",
+   "streaming.assemblyai.com",
+   "llm-gateway.assemblyai.com"
+  ],
+  "mask": false,
+  "base_url": "https://llm-gateway.assemblyai.com/v1",
+  "docs": "https://www.assemblyai.com/docs",
+  "region": "global"
+ },
+ {
+  "id": "deepgram",
+  "name": "Deepgram",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "api.deepgram.com"
+  ],
+  "mask": false,
+  "docs": "https://developers.deepgram.com/reference",
+  "region": "global"
+ },
+ {
+  "id": "elevenlabs",
+  "name": "ElevenLabs",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "api.elevenlabs.io"
+  ],
+  "mask": false,
+  "docs": "https://elevenlabs.io/docs/api-reference",
+  "region": "global"
+ },
+ {
+  "id": "speechmatics",
+  "name": "Speechmatics",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "asr.api.speechmatics.com",
+   "eu2.rt.speechmatics.com"
+  ],
+  "mask": false,
+  "docs": "https://docs.speechmatics.com/introduction/authentication",
+  "region": "eu"
+ },
+ {
+  "id": "soniox",
+  "name": "Soniox",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "api.soniox.com"
+  ],
+  "mask": false,
+  "docs": "https://soniox.com/docs",
+  "region": "global"
+ },
+ {
+  "id": "cartesia",
+  "name": "Cartesia",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "api.cartesia.ai"
+  ],
+  "mask": false,
+  "docs": "https://docs.cartesia.ai/api-reference",
+  "region": "global"
+ },
+ {
+  "id": "gladia",
+  "name": "Gladia",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "api.gladia.io"
+  ],
+  "mask": false,
+  "docs": "https://docs.gladia.io/api-reference",
+  "region": "eu"
+ },
+ {
+  "id": "revai",
+  "name": "Rev AI",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "api.rev.ai"
+  ],
+  "mask": false,
+  "docs": "https://docs.rev.ai/api/",
+  "region": "global"
+ },
+ {
+  "id": "stability",
+  "name": "Stability AI",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "api.stability.ai"
+  ],
+  "mask": false,
+  "docs": "https://platform.stability.ai/docs/api-reference",
+  "region": "global"
+ },
+ {
+  "id": "bfl",
+  "name": "Black Forest Labs (FLUX)",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "api.bfl.ai",
+   "api.bfl.ml"
+  ],
+  "mask": false,
+  "docs": "https://docs.bfl.ai/",
+  "region": "eu"
+ },
+ {
+  "id": "recraft",
+  "name": "Recraft",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "external.api.recraft.ai"
+  ],
+  "mask": false,
+  "base_url": "https://external.api.recraft.ai/v1",
+  "docs": "https://www.recraft.ai/docs",
+  "region": "global"
+ },
+ {
+  "id": "runway",
+  "name": "Runway",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "api.dev.runwayml.com"
+  ],
+  "mask": false,
+  "docs": "https://docs.dev.runwayml.com/",
+  "region": "global"
+ },
+ {
+  "id": "luma",
+  "name": "Luma AI",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "api.lumalabs.ai"
+  ],
+  "mask": false,
+  "docs": "https://docs.lumalabs.ai/docs/api",
+  "region": "global"
+ },
+ {
+  "id": "ideogram",
+  "name": "Ideogram",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "api.ideogram.ai"
+  ],
+  "mask": false,
+  "docs": "https://developer.ideogram.ai/api-reference",
+  "region": "global"
+ },
+ {
+  "id": "fal",
+  "name": "fal.ai",
+  "category": "inference",
+  "api": "custom",
+  "hosts": [
+   "fal.run",
+   "queue.fal.run"
+  ],
+  "mask": false,
+  "docs": "https://docs.fal.ai/model-apis/model-endpoints",
+  "region": "global"
+ },
+ {
+  "id": "nlpcloud",
+  "name": "NLP Cloud",
+  "category": "inference",
+  "api": "custom",
+  "hosts": [
+   "api.nlpcloud.io"
+  ],
+  "mask": false,
+  "docs": "https://docs.nlpcloud.com/",
+  "region": "eu"
+ },
+ {
+  "id": "together",
+  "name": "Together AI",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.together.xyz",
+   "api.together.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.together.xyz/v1",
+  "docs": "https://docs.together.ai/reference/chat-completions-1",
+  "region": "global"
+ },
+ {
+  "id": "fireworks",
+  "name": "Fireworks AI",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.fireworks.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.fireworks.ai/inference/v1",
+  "docs": "https://fireworks.ai/docs/",
+  "region": "global"
+ },
+ {
+  "id": "groq",
+  "name": "Groq",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.groq.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.groq.com/openai/v1",
+  "docs": "https://console.groq.com/docs/openai",
+  "region": "global"
+ },
+ {
+  "id": "cerebras",
+  "name": "Cerebras",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.cerebras.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.cerebras.ai/v1",
+  "docs": "https://inference-docs.cerebras.ai/api-reference/chat-completions",
+  "region": "global"
+ },
+ {
+  "id": "sambanova",
+  "name": "SambaNova",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.sambanova.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.sambanova.ai/v1",
+  "docs": "https://docs.sambanova.ai/cloud/docs/get-started/overview",
+  "region": "global"
+ },
+ {
+  "id": "deepinfra",
+  "name": "DeepInfra",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.deepinfra.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.deepinfra.com/v1/openai",
+  "docs": "https://deepinfra.com/docs/openai_api",
+  "region": "global"
+ },
+ {
+  "id": "replicate",
+  "name": "Replicate",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.replicate.com"
+  ],
+  "mask": true,
+  "docs": "https://replicate.com/docs/reference/http",
+  "region": "global"
+ },
+ {
+  "id": "huggingface",
+  "name": "Hugging Face",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api-inference.huggingface.co",
+   "router.huggingface.co",
+   "*.endpoints.huggingface.cloud"
+  ],
+  "mask": true,
+  "base_url": "https://router.huggingface.co/v1",
+  "docs": "https://huggingface.co/docs/inference-providers",
+  "region": "global"
+ },
+ {
+  "id": "baseten",
+  "name": "Baseten",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "inference.baseten.co",
+   "*.api.baseten.co"
+  ],
+  "mask": true,
+  "base_url": "https://inference.baseten.co/v1",
+  "docs": "https://docs.baseten.co/inference/model-apis/overview",
+  "region": "global"
+ },
+ {
+  "id": "modal",
+  "name": "Modal (hosted inference)",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "inference.us-west.modal.direct"
+  ],
+  "mask": true,
+  "base_url": "https://inference.us-west.modal.direct/v1",
+  "docs": "https://modal.com/docs/guide/endpoints",
+  "region": "global"
+ },
+ {
+  "id": "lambda",
+  "name": "Lambda",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.lambda.ai",
+   "api.lambdalabs.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.lambda.ai/v1",
+  "docs": "https://docs.lambda.ai/public-cloud/lambda-inference-api/",
+  "region": "global"
+ },
+ {
+  "id": "nebius",
+  "name": "Nebius AI Studio",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.studio.nebius.com",
+   "api.tokenfactory.nebius.com",
+   "api.studio.nebius.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.tokenfactory.nebius.com/v1",
+  "docs": "https://docs.tokenfactory.nebius.com/",
+  "region": "eu"
+ },
+ {
+  "id": "hyperbolic",
+  "name": "Hyperbolic",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.hyperbolic.xyz"
+  ],
+  "mask": true,
+  "base_url": "https://api.hyperbolic.xyz/v1",
+  "docs": "https://docs.hyperbolic.xyz/docs/rest-api",
+  "region": "global"
+ },
+ {
+  "id": "novita",
+  "name": "Novita AI",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.novita.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.novita.ai/openai",
+  "docs": "https://novita.ai/docs/guides/llm-api",
+  "region": "global"
+ },
+ {
+  "id": "featherless",
+  "name": "Featherless",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.featherless.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.featherless.ai/v1",
+  "docs": "https://featherless.ai/docs/overview",
+  "region": "global"
+ },
+ {
+  "id": "chutes",
+  "name": "Chutes",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "llm.chutes.ai"
+  ],
+  "mask": true,
+  "base_url": "https://llm.chutes.ai/v1",
+  "docs": "https://chutes.ai/docs",
+  "region": "global"
+ },
+ {
+  "id": "parasail",
+  "name": "Parasail",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.parasail.io"
+  ],
+  "mask": true,
+  "base_url": "https://api.parasail.io/v1",
+  "docs": "https://docs.parasail.io/",
+  "region": "global"
+ },
+ {
+  "id": "crusoe",
+  "name": "Crusoe Managed Inference",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.inference.crusoecloud.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.inference.crusoecloud.com/v1",
+  "docs": "https://docs.crusoecloud.com/managed-inference/overview",
+  "region": "global"
+ },
+ {
+  "id": "coreweave",
+  "name": "CoreWeave / W&B Inference",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.inference.wandb.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.inference.wandb.ai/v1",
+  "docs": "https://docs.wandb.ai/inference",
+  "region": "global"
+ },
+ {
+  "id": "scaleway",
+  "name": "Scaleway Generative APIs",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.scaleway.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.scaleway.ai/v1",
+  "docs": "https://www.scaleway.com/en/docs/generative-apis/",
+  "region": "eu"
+ },
+ {
+  "id": "ovhcloud",
+  "name": "OVHcloud AI Endpoints",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "oai.endpoints.kepler.ai.cloud.ovh.net"
+  ],
+  "mask": true,
+  "base_url": "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1",
+  "docs": "https://www.ovhcloud.com/en/public-cloud/ai-endpoints/",
+  "region": "eu"
+ },
+ {
+  "id": "ionos",
+  "name": "IONOS AI Model Hub",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "openai.inference.de-txl.ionos.com"
+  ],
+  "mask": true,
+  "base_url": "https://openai.inference.de-txl.ionos.com/v1",
+  "docs": "https://docs.ionos.com/cloud/ai/ai-model-hub/how-tos/tool-integration",
+  "region": "eu"
+ },
+ {
+  "id": "nscale",
+  "name": "Nscale",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "inference.api.nscale.com"
+  ],
+  "mask": true,
+  "base_url": "https://inference.api.nscale.com/v1",
+  "docs": "https://docs.nscale.com/docs/inference/serverless-models",
+  "region": "eu"
+ },
+ {
+  "id": "friendli",
+  "name": "FriendliAI",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.friendli.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.friendli.ai/serverless/v1",
+  "docs": "https://friendli.ai/docs/guides/serverless_endpoints/introduction",
+  "region": "kr"
+ },
+ {
+  "id": "inference_net",
+  "name": "Inference.net",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.inference.net"
+  ],
+  "mask": true,
+  "base_url": "https://api.inference.net/v1",
+  "docs": "https://docs.inference.net/",
+  "region": "global"
+ },
+ {
+  "id": "cloudflare",
+  "name": "Cloudflare AI Gateway",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "gateway.ai.cloudflare.com"
+  ],
+  "mask": true,
+  "docs": "https://developers.cloudflare.com/workers-ai/configuration/open-ai-compatibility/",
+  "region": "global"
+ },
+ {
+  "id": "nvidia",
+  "name": "NVIDIA NIM",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "integrate.api.nvidia.com",
+   "ai.api.nvidia.com"
+  ],
+  "mask": true,
+  "base_url": "https://integrate.api.nvidia.com/v1",
+  "docs": "https://docs.api.nvidia.com/nim/reference/llm-apis",
+  "region": "global"
+ },
+ {
+  "id": "watsonx",
+  "name": "IBM watsonx",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "*.ml.cloud.ibm.com"
+  ],
+  "mask": true,
+  "docs": "https://cloud.ibm.com/apidocs/watsonx-ai",
+  "region": "global"
+ },
+ {
+  "id": "oci",
+  "name": "Oracle OCI Generative AI",
+  "category": "inference",
+  "api": "custom",
+  "hosts": [
+   "inference.generativeai.*.oci.oraclecloud.com"
+  ],
+  "mask": false,
+  "docs": "https://docs.oracle.com/en-us/iaas/Content/generative-ai/home.htm",
+  "region": "global"
+ },
+ {
+  "id": "github_models",
+  "name": "GitHub Models",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "models.github.ai",
+   "models.inference.ai.azure.com"
+  ],
+  "mask": true,
+  "base_url": "https://models.github.ai/inference",
+  "docs": "https://docs.github.com/en/rest/models/inference",
+  "region": "global"
+ },
+ {
+  "id": "digitalocean",
+  "name": "DigitalOcean Gradient Serverless Inference",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "inference.do-ai.run"
+  ],
+  "mask": true,
+  "base_url": "https://inference.do-ai.run/v1",
+  "docs": "https://docs.digitalocean.com/products/gradient-ai-platform/how-to/use-serverless-inference/",
+  "region": "global"
+ },
+ {
+  "id": "vultr",
+  "name": "Vultr Serverless Inference",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.vultrinference.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.vultrinference.com/v1",
+  "docs": "https://api.vultrinference.com/",
+  "region": "global"
+ },
+ {
+  "id": "akash",
+  "name": "AkashChat API",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "chatapi.akash.network"
+  ],
+  "mask": true,
+  "base_url": "https://chatapi.akash.network/api/v1",
+  "docs": "https://chatapi.akash.network/documentation",
+  "region": "global"
+ },
+ {
+  "id": "kluster",
+  "name": "kluster.ai",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.kluster.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.kluster.ai/v1",
+  "docs": "https://docs.kluster.ai/",
+  "region": "global"
+ },
+ {
+  "id": "infermatic",
+  "name": "Infermatic",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.totalgpt.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.totalgpt.ai/v1",
+  "docs": "https://infermatic.ai/using-infermatic-ai-api-with-python/",
+  "region": "global"
+ },
+ {
+  "id": "phala",
+  "name": "Phala RedPill",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.redpill.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.redpill.ai/v1",
+  "docs": "https://docs.redpill.ai/",
+  "region": "global"
+ },
+ {
+  "id": "predibase",
+  "name": "Predibase",
+  "category": "inference",
+  "api": "custom",
+  "hosts": [
+   "serving.app.predibase.com"
+  ],
+  "mask": false,
+  "docs": "https://docs.predibase.com/",
+  "region": "global"
+ },
+ {
+  "id": "heroku",
+  "name": "Heroku Managed Inference",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "us.inference.heroku.com"
+  ],
+  "mask": true,
+  "base_url": "https://us.inference.heroku.com/v1",
+  "docs": "https://devcenter.heroku.com/articles/heroku-inference-api-v1-chat-completions",
+  "region": "global"
+ },
+ {
+  "id": "ollama_cloud",
+  "name": "Ollama Cloud",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "ollama.com"
+  ],
+  "mask": false,
+  "base_url": "https://ollama.com/v1",
+  "docs": "https://docs.ollama.com/cloud",
+  "region": "global"
+ },
+ {
+  "id": "openrouter",
+  "name": "OpenRouter",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "openrouter.ai"
+  ],
+  "mask": true,
+  "base_url": "https://openrouter.ai/api/v1",
+  "docs": "https://openrouter.ai/docs/api-reference/overview",
+  "region": "global"
+ },
+ {
+  "id": "requesty",
+  "name": "Requesty",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "router.requesty.ai",
+   "router.eu.requesty.ai"
+  ],
+  "mask": true,
+  "base_url": "https://router.requesty.ai/v1",
+  "docs": "https://docs.requesty.ai/",
+  "region": "global"
+ },
+ {
+  "id": "portkey",
+  "name": "Portkey",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.portkey.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.portkey.ai/v1",
+  "docs": "https://portkey.ai/docs/api-reference/inference-api/introduction",
+  "region": "global"
+ },
+ {
+  "id": "helicone",
+  "name": "Helicone",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "oai.helicone.ai",
+   "anthropic.helicone.ai",
+   "gateway.helicone.ai",
+   "ai-gateway.helicone.ai"
+  ],
+  "mask": true,
+  "base_url": "https://ai-gateway.helicone.ai/v1",
+  "docs": "https://docs.helicone.ai/",
+  "region": "global"
+ },
+ {
+  "id": "vercel",
+  "name": "Vercel AI Gateway",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "ai-gateway.vercel.sh"
+  ],
+  "mask": true,
+  "base_url": "https://ai-gateway.vercel.sh/v1",
+  "docs": "https://vercel.com/docs/ai-gateway",
+  "region": "global"
+ },
+ {
+  "id": "unify",
+  "name": "Unify",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.unify.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.unify.ai/v0",
+  "docs": "https://docs.unify.ai/",
+  "region": "global"
+ },
+ {
+  "id": "martian",
+  "name": "Martian",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.withmartian.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.withmartian.com/v1",
+  "docs": "https://docs.withmartian.com/",
+  "region": "global"
+ },
+ {
+  "id": "notdiamond",
+  "name": "Not Diamond",
+  "category": "router",
+  "api": "custom",
+  "hosts": [
+   "api.notdiamond.ai"
+  ],
+  "mask": false,
+  "docs": "https://docs.notdiamond.ai/reference",
+  "region": "global"
+ },
+ {
+  "id": "aimlapi",
+  "name": "AI/ML API",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.aimlapi.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.aimlapi.com/v1",
+  "docs": "https://docs.aimlapi.com",
+  "region": "global"
+ },
+ {
+  "id": "cometapi",
+  "name": "CometAPI",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.cometapi.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.cometapi.com/v1",
+  "docs": "https://api.cometapi.com/doc",
+  "region": "global"
+ },
+ {
+  "id": "keywordsai",
+  "name": "Keywords AI (Respan)",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.keywordsai.co"
+  ],
+  "mask": true,
+  "base_url": "https://api.keywordsai.co/api",
+  "docs": "https://docs.keywordsai.co/",
+  "region": "global"
+ },
+ {
+  "id": "kilocode",
+  "name": "Kilo Code",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.kilocode.ai",
+   "api.kilo.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.kilo.ai/api/gateway",
+  "docs": "https://kilo.ai/docs",
+  "region": "global"
+ },
+ {
+  "id": "cline",
+  "name": "Cline",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.cline.bot"
+  ],
+  "mask": true,
+  "base_url": "https://api.cline.bot/api/v1",
+  "docs": "https://docs.cline.bot/getting-started/clinepass",
+  "region": "global"
+ },
+ {
+  "id": "opencode",
+  "name": "OpenCode Zen / Go",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "opencode.ai"
+  ],
+  "mask": false,
+  "base_url": "https://opencode.ai/zen/v1",
+  "docs": "https://opencode.ai/docs/zen/",
+  "region": "global"
+ },
+ {
+  "id": "poe_api",
+  "name": "Poe API",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.poe.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.poe.com/v1",
+  "docs": "https://creator.poe.com/docs/external-applications/openai-compatible-api",
+  "region": "global"
  },
  {
   "id": "copilot",
@@ -210,7 +1507,186 @@
    "copilot-proxy.githubusercontent.com"
   ],
   "mask": true,
-  "docs": "https://docs.github.com/en/copilot/reference/copilot-allowlist-reference"
+  "base_url": "https://api.githubcopilot.com",
+  "docs": "https://docs.github.com/en/copilot/reference/copilot-allowlist-reference",
+  "region": "global"
+ },
+ {
+  "id": "cursor",
+  "name": "Cursor",
+  "category": "coding_agent",
+  "api": "binary",
+  "hosts": [
+   "api2.cursor.sh",
+   "api3.cursor.sh",
+   "api4.cursor.sh",
+   "api5.cursor.sh",
+   "agent.api5.cursor.sh",
+   "agentn.api5.cursor.sh",
+   "agent.us.api5.cursor.sh",
+   "agentn.us.api5.cursor.sh",
+   "agent.global.api5.cursor.sh",
+   "agentn.global.api5.cursor.sh",
+   "repo42.cursor.sh",
+   "us-asia.gcpp.cursor.sh",
+   "us-eu.gcpp.cursor.sh",
+   "us-only.gcpp.cursor.sh"
+  ],
+  "mask": false,
+  "docs": "https://cursor.com/docs/enterprise/network-configuration",
+  "region": "global"
+ },
+ {
+  "id": "windsurf",
+  "name": "Windsurf / Codeium (now Devin Desktop)",
+  "category": "coding_agent",
+  "api": "binary",
+  "hosts": [
+   "server.codeium.com"
+  ],
+  "mask": false,
+  "docs": "https://github.com/Exafunction/windsurf.vim/blob/main/autoload/codeium/server.vim",
+  "region": "global"
+ },
+ {
+  "id": "amazon_q",
+  "name": "Amazon Q Developer",
+  "category": "coding_agent",
+  "api": "binary",
+  "hosts": [
+   "q.*.amazonaws.com",
+   "codewhisperer.us-east-1.amazonaws.com"
+  ],
+  "mask": false,
+  "docs": "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/firewall.html",
+  "region": "global"
+ },
+ {
+  "id": "kiro",
+  "name": "Kiro",
+  "category": "coding_agent",
+  "api": "binary",
+  "hosts": [
+   "runtime.us-east-1.kiro.dev",
+   "runtime.eu-central-1.kiro.dev",
+   "runtime-fips.us-gov-east-1.kiro.dev",
+   "runtime-fips.us-gov-west-1.kiro.dev"
+  ],
+  "mask": false,
+  "docs": "https://kiro.dev/docs/privacy-and-security/firewalls/",
+  "region": "global"
+ },
+ {
+  "id": "jetbrains_ai",
+  "name": "JetBrains AI Assistant / Junie",
+  "category": "coding_agent",
+  "api": "custom",
+  "hosts": [
+   "api.jetbrains.ai",
+   "api.app.prod.grazie.aws.intellij.net"
+  ],
+  "mask": false,
+  "docs": "https://www.jetbrains.com/help/ai-assistant/disable-ai-assistant.html",
+  "region": "eu"
+ },
+ {
+  "id": "zed",
+  "name": "Zed AI (hosted models)",
+  "category": "coding_agent",
+  "api": "custom",
+  "hosts": [
+   "cloud.zed.dev"
+  ],
+  "mask": false,
+  "docs": "https://github.com/zed-industries/zed/blob/main/crates/http_client/src/http_client.rs",
+  "region": "global"
+ },
+ {
+  "id": "augment",
+  "name": "Augment Code",
+  "category": "coding_agent",
+  "api": "custom",
+  "hosts": [
+   "*.api.augmentcode.com"
+  ],
+  "mask": false,
+  "docs": "https://docs.augmentcode.com/setup-augment/network-configuration",
+  "region": "global"
+ },
+ {
+  "id": "gemini_code",
+  "name": "Gemini Code Assist",
+  "category": "coding_agent",
+  "api": "gemini",
+  "hosts": [
+   "cloudcode-pa.googleapis.com"
+  ],
+  "mask": true,
+  "docs": "https://cloud.google.com/gemini/docs/discover/set-up-gemini",
+  "region": "global"
+ },
+ {
+  "id": "factory",
+  "name": "Factory (Droid)",
+  "category": "coding_agent",
+  "api": "custom",
+  "hosts": [
+   "api.factory.ai"
+  ],
+  "mask": false,
+  "docs": "https://docs.factory.ai/api-reference",
+  "region": "global"
+ },
+ {
+  "id": "amp",
+  "name": "Amp (Sourcegraph)",
+  "category": "coding_agent",
+  "api": "custom",
+  "hosts": [
+   "ampcode.com"
+  ],
+  "mask": false,
+  "docs": "https://ampcode.com/manual",
+  "region": "global"
+ },
+ {
+  "id": "gitlab_duo",
+  "name": "GitLab Duo (AI Gateway)",
+  "category": "coding_agent",
+  "api": "custom",
+  "hosts": [
+   "cloud.gitlab.com"
+  ],
+  "mask": false,
+  "docs": "https://docs.gitlab.com/user/gitlab_duo/",
+  "region": "global"
+ },
+ {
+  "id": "chatgpt",
+  "name": "ChatGPT",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "chatgpt.com",
+   "*.chatgpt.com",
+   "chat.openai.com"
+  ],
+  "mask": true,
+  "docs": "https://help.openai.com/en/articles/9247338",
+  "region": "global"
+ },
+ {
+  "id": "claude",
+  "name": "Claude.ai",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "claude.ai",
+   "*.claude.ai"
+  ],
+  "mask": true,
+  "docs": "https://support.anthropic.com/",
+  "region": "global"
  },
  {
   "id": "gemini_app",
@@ -220,7 +1696,9 @@
   "hosts": [
    "gemini.google.com"
   ],
-  "mask": true
+  "mask": true,
+  "docs": "https://support.google.com/gemini",
+  "region": "global"
  },
  {
   "id": "perplexity_app",
@@ -231,7 +1709,9 @@
    "perplexity.ai",
    "www.perplexity.ai"
   ],
-  "mask": true
+  "mask": true,
+  "docs": "https://www.perplexity.ai/help-center",
+  "region": "global"
  },
  {
   "id": "deepseek_app",
@@ -241,7 +1721,9 @@
   "hosts": [
    "chat.deepseek.com"
   ],
-  "mask": true
+  "mask": true,
+  "docs": "https://chat.deepseek.com",
+  "region": "cn"
  },
  {
   "id": "grok",
@@ -251,7 +1733,9 @@
   "hosts": [
    "grok.com"
   ],
-  "mask": true
+  "mask": true,
+  "docs": "https://grok.com",
+  "region": "global"
  },
  {
   "id": "copilot_app",
@@ -261,7 +1745,9 @@
   "hosts": [
    "copilot.microsoft.com"
   ],
-  "mask": false
+  "mask": false,
+  "docs": "https://copilot.microsoft.com",
+  "region": "global"
  },
  {
   "id": "lechat",
@@ -271,7 +1757,9 @@
   "hosts": [
    "chat.mistral.ai"
   ],
-  "mask": false
+  "mask": false,
+  "docs": "https://help.mistral.ai/",
+  "region": "eu"
  },
  {
   "id": "meta_ai",
@@ -279,9 +1767,12 @@
   "category": "chat_app",
   "api": "custom",
   "hosts": [
-   "www.meta.ai"
+   "www.meta.ai",
+   "meta.ai"
   ],
-  "mask": false
+  "mask": false,
+  "docs": "https://www.meta.ai",
+  "region": "global"
  },
  {
   "id": "poe",
@@ -291,110 +1782,1416 @@
   "hosts": [
    "poe.com"
   ],
-  "mask": false
+  "mask": false,
+  "docs": "https://poe.com",
+  "region": "global"
  },
  {
-  "id": "replicate",
-  "name": "Replicate",
+  "id": "character_ai",
+  "name": "Character.AI",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "character.ai",
+   "neo.character.ai"
+  ],
+  "mask": false,
+  "docs": "https://character.ai",
+  "region": "global"
+ },
+ {
+  "id": "pi",
+  "name": "Pi (Inflection)",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "pi.ai"
+  ],
+  "mask": false,
+  "docs": "https://pi.ai",
+  "region": "global"
+ },
+ {
+  "id": "you",
+  "name": "You.com",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "you.com"
+  ],
+  "mask": false,
+  "docs": "https://you.com",
+  "region": "global"
+ },
+ {
+  "id": "qwen_chat",
+  "name": "Qwen Chat",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "chat.qwen.ai"
+  ],
+  "mask": false,
+  "docs": "https://chat.qwen.ai",
+  "region": "cn"
+ },
+ {
+  "id": "tongyi",
+  "name": "Tongyi Qianwen (China)",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "tongyi.aliyun.com"
+  ],
+  "mask": false,
+  "docs": "https://tongyi.aliyun.com",
+  "region": "cn"
+ },
+ {
+  "id": "kimi_app",
+  "name": "Kimi",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "www.kimi.com",
+   "kimi.com",
+   "kimi.moonshot.cn"
+  ],
+  "mask": false,
+  "docs": "https://www.kimi.com",
+  "region": "cn"
+ },
+ {
+  "id": "zai_chat",
+  "name": "Z.ai Chat",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "chat.z.ai"
+  ],
+  "mask": false,
+  "docs": "https://chat.z.ai",
+  "region": "cn"
+ },
+ {
+  "id": "chatglm",
+  "name": "ChatGLM (Zhipu Qingyan)",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "chatglm.cn"
+  ],
+  "mask": false,
+  "docs": "https://chatglm.cn",
+  "region": "cn"
+ },
+ {
+  "id": "yiyan",
+  "name": "ERNIE Bot (Wenxin Yiyan)",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "yiyan.baidu.com"
+  ],
+  "mask": false,
+  "docs": "https://yiyan.baidu.com",
+  "region": "cn"
+ },
+ {
+  "id": "doubao_app",
+  "name": "Doubao",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "www.doubao.com",
+   "doubao.com"
+  ],
+  "mask": false,
+  "docs": "https://www.doubao.com",
+  "region": "cn"
+ },
+ {
+  "id": "yuanbao",
+  "name": "Tencent Yuanbao",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "yuanbao.tencent.com"
+  ],
+  "mask": false,
+  "docs": "https://yuanbao.tencent.com",
+  "region": "cn"
+ },
+ {
+  "id": "duck_ai",
+  "name": "Duck.ai (DuckDuckGo)",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "duck.ai"
+  ],
+  "mask": false,
+  "docs": "https://duckduckgo.com/duckduckgo-help-pages/duckai",
+  "region": "global"
+ },
+ {
+  "id": "lmarena",
+  "name": "LMArena",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "lmarena.ai"
+  ],
+  "mask": false,
+  "docs": "https://lmarena.ai",
+  "region": "global"
+ },
+ {
+  "id": "t3chat",
+  "name": "T3 Chat",
+  "category": "chat_app",
+  "api": "custom",
+  "hosts": [
+   "t3.chat"
+  ],
+  "mask": false,
+  "docs": "https://t3.chat",
+  "region": "global"
+ },
+ {
+  "id": "302ai",
+  "name": "302.AI",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.302.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.302.ai/v1",
+  "docs": "https://doc.302.ai",
+  "region": "global"
+ },
+ {
+  "id": "abacus",
+  "name": "Abacus",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "routellm.abacus.ai"
+  ],
+  "mask": true,
+  "base_url": "https://routellm.abacus.ai/v1",
+  "docs": "https://abacus.ai/help/api",
+  "region": "global"
+ },
+ {
+  "id": "abliteration_ai",
+  "name": "abliteration.ai",
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "api.replicate.com"
+   "api.abliteration.ai"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.abliteration.ai/v1",
+  "docs": "https://docs.abliteration.ai/models",
+  "region": "global"
  },
  {
-  "id": "huggingface",
-  "name": "Hugging Face",
+  "id": "above",
+  "name": "above.dev",
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "api-inference.huggingface.co",
-   "router.huggingface.co",
-   "*.endpoints.huggingface.cloud"
+   "api.above.dev"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.above.dev/v1",
+  "docs": "https://above.dev/docs",
+  "region": "global"
  },
  {
-  "id": "deepinfra",
-  "name": "DeepInfra",
+  "id": "agnes",
+  "name": "Agnes AI",
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "api.deepinfra.com"
+   "apihub.agnes-ai.com"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://apihub.agnes-ai.com/v1",
+  "docs": "https://agnes-ai.com/doc",
+  "region": "global"
  },
  {
-  "id": "hyperbolic",
-  "name": "Hyperbolic",
+  "id": "ai_router",
+  "name": "AI-ROUTER",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.ai-router.dev"
+  ],
+  "mask": true,
+  "base_url": "https://api.ai-router.dev/v1",
+  "docs": "https://ai-router.dev/openai-compatible-api-gateway/",
+  "region": "global"
+ },
+ {
+  "id": "aiand",
+  "name": "ai&",
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "api.hyperbolic.xyz"
+   "api.aiand.com"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.aiand.com/v1",
+  "docs": "https://docs.aiand.com/",
+  "region": "global"
  },
  {
-  "id": "sambanova",
-  "name": "SambaNova",
+  "id": "aixy",
+  "name": "Aixy",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.aixy-gateway.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.aixy-gateway.com/v1",
+  "docs": "https://docs.aixy-gateway.com/integrations/overview",
+  "region": "global"
+ },
+ {
+  "id": "ambient",
+  "name": "Ambient",
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "api.sambanova.ai"
+   "api.ambient.xyz"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.ambient.xyz/v1",
+  "docs": "https://ambient.xyz",
+  "region": "global"
  },
  {
-  "id": "novita",
-  "name": "Novita AI",
+  "id": "anyapi",
+  "name": "AnyAPI",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.anyapi.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.anyapi.ai/v1",
+  "docs": "https://docs.anyapi.ai",
+  "region": "global"
+ },
+ {
+  "id": "arcee",
+  "name": "Arcee",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.arcee.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.arcee.ai/api/v1",
+  "docs": "https://docs.arcee.ai",
+  "region": "global"
+ },
+ {
+  "id": "auriko",
+  "name": "Auriko",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.auriko.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.auriko.ai/v1",
+  "docs": "https://docs.auriko.ai",
+  "region": "global"
+ },
+ {
+  "id": "bailing",
+  "name": "Bailing",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.tbox.cn"
+  ],
+  "mask": true,
+  "base_url": "https://api.tbox.cn/api/llm/v1",
+  "docs": "https://alipaytbox.yuque.com/sxs0ba/ling/intro",
+  "region": "cn"
+ },
+ {
+  "id": "bee",
+  "name": "Bee by HEOSSI",
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "api.novita.ai"
+   "api.bee.heossi.com"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.bee.heossi.com/bee",
+  "docs": "https://bee.heossi.com/docs/sdks",
+  "region": "global"
  },
  {
-  "id": "lambda",
-  "name": "Lambda",
+  "id": "berget",
+  "name": "Berget.AI",
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "api.lambda.ai"
+   "api.berget.ai"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.berget.ai/v1",
+  "docs": "https://api.berget.ai",
+  "region": "eu"
  },
  {
-  "id": "baseten",
-  "name": "Baseten",
+  "id": "blueclaw",
+  "name": "Blue Claw",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "openai.blueclaw.network"
+  ],
+  "mask": true,
+  "base_url": "https://openai.blueclaw.network/v1",
+  "docs": "https://blueclaw.network",
+  "region": "global"
+ },
+ {
+  "id": "bothub",
+  "name": "Bothub",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "openai.bothub.ru"
+  ],
+  "mask": true,
+  "base_url": "https://openai.bothub.ru/v1",
+  "docs": "https://bothub.ru/models",
+  "region": "ru"
+ },
+ {
+  "id": "boundless",
+  "name": "Boundless",
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "inference.baseten.co",
-   "*.api.baseten.co"
+   "api.inference.boundless.network"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.inference.boundless.network/v1",
+  "docs": "https://inference.boundless.network/models",
+  "region": "global"
  },
  {
-  "id": "nvidia",
-  "name": "NVIDIA NIM",
+  "id": "clarifai",
+  "name": "Clarifai",
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "integrate.api.nvidia.com"
+   "api.clarifai.com"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.clarifai.com/v2/ext/openai/v1",
+  "docs": "https://docs.clarifai.com/compute/inference/",
+  "region": "global"
  },
  {
-  "id": "nebius",
-  "name": "Nebius AI Studio",
+  "id": "claudinio",
+  "name": "Claudinio",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.claudin.io"
+  ],
+  "mask": true,
+  "base_url": "https://api.claudin.io/v1",
+  "docs": "https://claudin.io",
+  "region": "global"
+ },
+ {
+  "id": "cloudferro_sherlock",
+  "name": "CloudFerro Sherlock",
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "api.studio.nebius.com"
+   "api-sherlock.cloudferro.com"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api-sherlock.cloudferro.com/openai/v1",
+  "docs": "https://docs.sherlock.cloudferro.com/",
+  "region": "eu"
+ },
+ {
+  "id": "commandcode",
+  "name": "CommandCode",
+  "category": "coding_agent",
+  "api": "openai",
+  "hosts": [
+   "api.commandcode.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.commandcode.ai/provider/v1",
+  "docs": "https://commandcode.ai/docs/provider",
+  "region": "global"
+ },
+ {
+  "id": "coralbricks",
+  "name": "CoralBricks",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "inference.coralbricks.ai"
+  ],
+  "mask": true,
+  "base_url": "https://inference.coralbricks.ai/v1",
+  "docs": "https://www.coralbricks.ai/docs",
+  "region": "global"
+ },
+ {
+  "id": "cortecs",
+  "name": "Cortecs",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.cortecs.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.cortecs.ai/v1",
+  "docs": "https://api.cortecs.ai/v1/models",
+  "region": "eu"
+ },
+ {
+  "id": "crossmodel",
+  "name": "CrossModel",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.crossmodel.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.crossmodel.ai/v1",
+  "docs": "https://www.crossmodel.ai/docs",
+  "region": "global"
+ },
+ {
+  "id": "dinference",
+  "name": "DInference",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.dinference.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.dinference.com/v1",
+  "docs": "https://dinference.com",
+  "region": "global"
+ },
+ {
+  "id": "ebcloud",
+  "name": "EBCloud",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "maas-api.ebcloud.com"
+  ],
+  "mask": true,
+  "base_url": "https://maas-api.ebcloud.com/v1",
+  "docs": "https://docs.ebtech.com/ai/model-api.html",
+  "region": "cn"
+ },
+ {
+  "id": "echo",
+  "name": "Echo",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "echo.tracerml.ai"
+  ],
+  "mask": false,
+  "base_url": "https://echo.tracerml.ai/v1",
+  "docs": "https://echo.tracerml.ai/docs/api",
+  "region": "global"
+ },
+ {
+  "id": "edenai",
+  "name": "Eden AI",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.edenai.run"
+  ],
+  "mask": true,
+  "base_url": "https://api.edenai.run/v3",
+  "docs": "https://docs.edenai.co",
+  "region": "global"
+ },
+ {
+  "id": "empiriolabs",
+  "name": "EmpirioLabs AI",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.empiriolabs.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.empiriolabs.ai/v1",
+  "docs": "https://docs.empiriolabs.ai",
+  "region": "global"
+ },
+ {
+  "id": "engy",
+  "name": "engy",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.engy.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.engy.ai/v1",
+  "docs": "https://engy.ai/pricing",
+  "region": "global"
+ },
+ {
+  "id": "evroc",
+  "name": "evroc",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "models.think.evroc.com"
+  ],
+  "mask": true,
+  "base_url": "https://models.think.evroc.com/v1",
+  "docs": "https://docs.evroc.com/products/think/overview.html",
+  "region": "eu"
+ },
+ {
+  "id": "fastrouter",
+  "name": "FastRouter",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "go.fastrouter.ai"
+  ],
+  "mask": true,
+  "base_url": "https://go.fastrouter.ai/api/v1",
+  "docs": "https://fastrouter.ai/models",
+  "region": "global"
+ },
+ {
+  "id": "freemodel",
+  "name": "FreeModel",
+  "category": "router",
+  "api": "anthropic",
+  "hosts": [
+   "cc.freemodel.dev"
+  ],
+  "mask": true,
+  "docs": "https://freemodel.dev",
+  "region": "global"
+ },
+ {
+  "id": "gmicloud",
+  "name": "GMI Cloud",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.gmi-serving.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.gmi-serving.com/v1",
+  "docs": "https://docs.gmicloud.ai/inference-engine/api-reference/llm-api-reference",
+  "region": "global"
+ },
+ {
+  "id": "greenpt",
+  "name": "GreenPT",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.greenpt.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.greenpt.ai/v1",
+  "docs": "https://docs.greenpt.ai",
+  "region": "eu"
+ },
+ {
+  "id": "hetzner",
+  "name": "Hetzner",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "inference.hetzner.com"
+  ],
+  "mask": true,
+  "base_url": "https://inference.hetzner.com/api/v1",
+  "docs": "https://experiments.hetzner.com/docs/inference",
+  "region": "eu"
+ },
+ {
+  "id": "hopper",
+  "name": "Hopper",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.withhopper.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.withhopper.com/v1",
+  "docs": "https://withhopper.com/agents/deepseek-v4.1-flash-1017",
+  "region": "global"
+ },
+ {
+  "id": "hpc_ai",
+  "name": "HPC-AI",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.hpc-ai.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.hpc-ai.com/inference/v1",
+  "docs": "https://www.hpc-ai.com/doc/docs/quickstart/",
+  "region": "global"
+ },
+ {
+  "id": "hyper",
+  "name": "Charm Hyper",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "hyper.charm.land"
+  ],
+  "mask": false,
+  "base_url": "https://hyper.charm.land/v1",
+  "docs": "https://hyper.charm.land",
+  "region": "global"
+ },
+ {
+  "id": "impossibl",
+  "name": "Impossibl",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.impossibl.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.impossibl.com/v1",
+  "docs": "https://impossibl.com/docs/models",
+  "region": "global"
+ },
+ {
+  "id": "inception",
+  "name": "Inception",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.inceptionlabs.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.inceptionlabs.ai/v1",
+  "docs": "https://docs.inceptionlabs.ai/get-started/models",
+  "region": "global"
+ },
+ {
+  "id": "inceptron",
+  "name": "Inceptron",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.inceptron.io"
+  ],
+  "mask": true,
+  "base_url": "https://api.inceptron.io/v1",
+  "docs": "https://docs.inceptron.io",
+  "region": "global"
+ },
+ {
+  "id": "inco",
+  "name": "Inco",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.inco.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.inco.ai/v1",
+  "docs": "https://platform.inco.ai/docs",
+  "region": "global"
+ },
+ {
+  "id": "infer",
+  "name": "Infer by Flow7",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "infer.flow7.org"
+  ],
+  "mask": true,
+  "base_url": "https://infer.flow7.org/v1",
+  "docs": "https://infer.flow7.org/opencode",
+  "region": "global"
+ },
+ {
+  "id": "inferx",
+  "name": "InferX",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "model.inferx.net"
+  ],
+  "mask": true,
+  "base_url": "https://model.inferx.net/endpoints/v1",
+  "docs": "https://model.inferx.net/endpoints",
+  "region": "global"
+ },
+ {
+  "id": "ionet",
+  "name": "IO.NET Intelligence",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.intelligence.io.solutions"
+  ],
+  "mask": true,
+  "base_url": "https://api.intelligence.io.solutions/api/v1",
+  "docs": "https://io.net/docs/guides/intelligence/io-intelligence",
+  "region": "global"
+ },
+ {
+  "id": "iteracompute",
+  "name": "IteraCompute",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.iteracompute.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.iteracompute.com/v1",
+  "docs": "https://iteracompute.com/docs.html",
+  "region": "global"
+ },
+ {
+  "id": "jalapeno",
+  "name": "Jalapeno Cloud",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.jalapeno-cloud.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.jalapeno-cloud.ai/v1",
+  "docs": "https://www.jalapeno-cloud.ai/docs/",
+  "region": "global"
+ },
+ {
+  "id": "jiekou",
+  "name": "Jiekou.AI",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.jiekou.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.jiekou.ai/openai",
+  "docs": "https://docs.jiekou.ai/docs/support/quickstart?utm_source=github_models.dev",
+  "region": "cn"
+ },
+ {
+  "id": "klokintegration",
+  "name": "klokintegration.se",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api-gw.klok.ipaas.se"
+  ],
+  "mask": true,
+  "base_url": "https://api-gw.klok.ipaas.se/proxy/kloker-key/v1",
+  "docs": "https://klokintegration.se/docs/ai-api",
+  "region": "eu"
+ },
+ {
+  "id": "kosmik",
+  "name": "Kosmik Compute",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.koscompute.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.koscompute.com/v1",
+  "docs": "https://api.koscompute.com/docs/",
+  "region": "global"
+ },
+ {
+  "id": "kuae_cloud_coding_plan",
+  "name": "KUAE Cloud Coding Plan",
+  "category": "coding_agent",
+  "api": "openai",
+  "hosts": [
+   "coding-plan-endpoint.kuaecloud.net"
+  ],
+  "mask": true,
+  "base_url": "https://coding-plan-endpoint.kuaecloud.net/v1",
+  "docs": "https://docs.mthreads.com/kuaecloud/kuaecloud-doc-online/coding_plan/",
+  "region": "cn"
+ },
+ {
+  "id": "lilac",
+  "name": "Lilac",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.getlilac.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.getlilac.com/v1",
+  "docs": "https://docs.getlilac.com/inference/models",
+  "region": "global"
+ },
+ {
+  "id": "liquid",
+  "name": "Liquid Inference",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "router.inference.ai.exchange"
+  ],
+  "mask": true,
+  "base_url": "https://router.inference.ai.exchange/v1",
+  "docs": "https://inference.ai.exchange/docs",
+  "region": "global"
+ },
+ {
+  "id": "llmgateway",
+  "name": "LLM Gateway",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.llmgateway.io"
+  ],
+  "mask": true,
+  "base_url": "https://api.llmgateway.io/v1",
+  "docs": "https://llmgateway.io/docs",
+  "region": "global"
+ },
+ {
+  "id": "llmtech",
+  "name": "LLM Tech",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.llmtech.eu"
+  ],
+  "mask": true,
+  "base_url": "https://api.llmtech.eu/v1",
+  "docs": "https://llmtech.eu/models/qwen3.8-27b",
+  "region": "eu"
+ },
+ {
+  "id": "longcat",
+  "name": "LongCat",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.longcat.chat"
+  ],
+  "mask": true,
+  "base_url": "https://api.longcat.chat/openai",
+  "docs": "https://longcat.chat/platform/docs/",
+  "region": "cn"
+ },
+ {
+  "id": "lowrouter",
+  "name": "LowRouter",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.lowrouter.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.lowrouter.ai/v1",
+  "docs": "https://lowrouter.ai/docs/models/available",
+  "region": "global"
+ },
+ {
+  "id": "lucidquery",
+  "name": "LucidQuery",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.lucidquery.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.lucidquery.com/v1",
+  "docs": "https://lucidquery.com/docs",
+  "region": "global"
+ },
+ {
+  "id": "meganova",
+  "name": "Meganova",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.meganova.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.meganova.ai/v1",
+  "docs": "https://docs.meganova.ai",
+  "region": "global"
+ },
+ {
+  "id": "melious",
+  "name": "Melious",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.melious.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.melious.ai/v1",
+  "docs": "https://melious.ai/docs/reference/models",
+  "region": "eu"
+ },
+ {
+  "id": "merge_gateway",
+  "name": "Merge Gateway",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api-gateway.merge.dev"
+  ],
+  "mask": true,
+  "base_url": "https://api-gateway.merge.dev/v1/ai-sdk",
+  "docs": "https://docs.merge.dev/merge-gateway",
+  "region": "global"
+ },
+ {
+  "id": "mixlayer",
+  "name": "Mixlayer",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "models.mixlayer.ai"
+  ],
+  "mask": true,
+  "base_url": "https://models.mixlayer.ai/v1",
+  "docs": "https://docs.mixlayer.com",
+  "region": "global"
+ },
+ {
+  "id": "model_oracle_ai",
+  "name": "Model Oracle AI",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.modeloracle.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.modeloracle.com/api/v1",
+  "docs": "https://modeloracle.com/setup/",
+  "region": "global"
+ },
+ {
+  "id": "modelscope",
+  "name": "ModelScope",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api-inference.modelscope.cn"
+  ],
+  "mask": true,
+  "base_url": "https://api-inference.modelscope.cn/v1",
+  "docs": "https://modelscope.cn/docs/model-service/API-Inference/intro",
+  "region": "cn"
+ },
+ {
+  "id": "modular",
+  "name": "Modular",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.modular.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.modular.com/v1",
+  "docs": "https://docs.modular.com/models",
+  "region": "global"
+ },
+ {
+  "id": "morph",
+  "name": "Morph",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.morphllm.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.morphllm.com/v1",
+  "docs": "https://docs.morphllm.com/api-reference/introduction",
+  "region": "global"
+ },
+ {
+  "id": "munito",
+  "name": "Munito AI",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.munito.ai",
+   "api.eu.munito.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.munito.ai/inference/v1",
+  "docs": "https://docs.munito.ai/models",
+  "region": "global"
+ },
+ {
+  "id": "nan",
+  "name": "NaN",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.nan.builders"
+  ],
+  "mask": true,
+  "base_url": "https://api.nan.builders/v1",
+  "docs": "https://nan.builders/docs/models",
+  "region": "global"
+ },
+ {
+  "id": "nano_gpt",
+  "name": "NanoGPT",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "nano-gpt.com"
+  ],
+  "mask": false,
+  "base_url": "https://nano-gpt.com/api/v1",
+  "docs": "https://docs.nano-gpt.com",
+  "region": "global"
+ },
+ {
+  "id": "nearai",
+  "name": "NEAR AI Cloud",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "cloud-api.near.ai"
+  ],
+  "mask": true,
+  "base_url": "https://cloud-api.near.ai/v1",
+  "docs": "https://docs.near.ai/",
+  "region": "global"
+ },
+ {
+  "id": "neosmith",
+  "name": "NeoSmith",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "router.neosmith.ai"
+  ],
+  "mask": true,
+  "base_url": "https://router.neosmith.ai/v1",
+  "docs": "https://neosmith.ai/docs",
+  "region": "global"
+ },
+ {
+  "id": "neuralwatt",
+  "name": "Neuralwatt",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.neuralwatt.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.neuralwatt.com/v1",
+  "docs": "https://portal.neuralwatt.com/docs",
+  "region": "global"
+ },
+ {
+  "id": "nova",
+  "name": "Nova",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.nova.amazon.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.nova.amazon.com/v1",
+  "docs": "https://nova.amazon.com/dev/documentation",
+  "region": "global"
+ },
+ {
+  "id": "ofox",
+  "name": "Ofox",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.ofox.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.ofox.ai/v1",
+  "docs": "https://ofox.ai/docs",
+  "region": "global"
+ },
+ {
+  "id": "openreason",
+  "name": "OpenReason",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.openreason.app"
+  ],
+  "mask": true,
+  "base_url": "https://api.openreason.app/v1",
+  "docs": "https://openreason.app/docs",
+  "region": "global"
+ },
+ {
+  "id": "opper",
+  "name": "Opper",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.opper.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.opper.ai/v3/compat",
+  "docs": "https://opper.ai/models",
+  "region": "global"
+ },
+ {
+  "id": "orcarouter",
+  "name": "OrcaRouter",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.orcarouter.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.orcarouter.ai/v1",
+  "docs": "https://docs.orcarouter.ai",
+  "region": "global"
+ },
+ {
+  "id": "pareto",
+  "name": "Pareto Inference",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.paretoinference.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.paretoinference.com/v1",
+  "docs": "https://docs.paretoinference.com/",
+  "region": "global"
+ },
+ {
+  "id": "pendra",
+  "name": "Pendra",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.pendra.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.pendra.ai/api/v1",
+  "docs": "https://pendra.ai/docs/integrations/opencode",
+  "region": "global"
+ },
+ {
+  "id": "pioneer",
+  "name": "Pioneer",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.fastino.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.fastino.ai/v1",
+  "docs": "https://agent.pioneer.ai/llms.txt",
+  "region": "global"
+ },
+ {
+  "id": "poolside",
+  "name": "Poolside",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "inference.poolside.ai"
+  ],
+  "mask": true,
+  "base_url": "https://inference.poolside.ai/v1",
+  "docs": "https://platform.poolside.ai",
+  "region": "global"
+ },
+ {
+  "id": "prime",
+  "name": "Prime Inference",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.pinference.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.pinference.ai/api/v1",
+  "docs": "https://docs.primeintellect.ai/inference/overview",
+  "region": "global"
+ },
+ {
+  "id": "qihang_ai",
+  "name": "QiHang",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.qhaigc.net"
+  ],
+  "mask": true,
+  "base_url": "https://api.qhaigc.net/v1",
+  "docs": "https://www.qhaigc.net/docs",
+  "region": "cn"
+ },
+ {
+  "id": "qiniu_ai",
+  "name": "Qiniu",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.qnaigc.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.qnaigc.com/v1",
+  "docs": "https://developer.qiniu.com/aitokenapi",
+  "region": "cn"
+ },
+ {
+  "id": "reflection",
+  "name": "Reflection",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.reflection.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.reflection.ai/openai/v1",
+  "docs": "https://developers.reflection.ai/models",
+  "region": "global"
+ },
+ {
+  "id": "regolo_ai",
+  "name": "Regolo AI",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.regolo.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.regolo.ai/v1",
+  "docs": "https://docs.regolo.ai/",
+  "region": "eu"
+ },
+ {
+  "id": "routing_run",
+  "name": "routing.run",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.routing.run"
+  ],
+  "mask": true,
+  "base_url": "https://api.routing.run/v1",
+  "docs": "https://docs.routing.run/api-reference/models",
+  "region": "global"
+ },
+ {
+  "id": "runinfra",
+  "name": "RunInfra",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.runinfra.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.runinfra.ai/v1",
+  "docs": "https://runinfra.ai/docs",
+  "region": "global"
+ },
+ {
+  "id": "sakana",
+  "name": "Sakana AI",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.sakana.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.sakana.ai/v1",
+  "docs": "https://console.sakana.ai/models",
+  "region": "jp"
+ },
+ {
+  "id": "sarvam",
+  "name": "Sarvam AI",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.sarvam.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.sarvam.ai/v1",
+  "docs": "https://docs.sarvam.ai/api-reference-docs/getting-started/models",
+  "region": "in"
+ },
+ {
+  "id": "scnet_token_plan",
+  "name": "SCNet Token Plan",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.scnet.cn"
+  ],
+  "mask": true,
+  "base_url": "https://api.scnet.cn/api/llm/v1",
+  "docs": "https://www.scnet.cn/ac/openapi/doc/2.0/moduleapi/plans/token-plan.html",
+  "region": "cn"
+ },
+ {
+  "id": "scx_ai",
+  "name": "SCX.ai",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.scx.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.scx.ai/v1",
+  "docs": "https://platform.scx.ai/docs",
+  "region": "global"
+ },
+ {
+  "id": "sensenova",
+  "name": "SenseNova",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "token.sensenova.cn"
+  ],
+  "mask": true,
+  "base_url": "https://token.sensenova.cn/v1",
+  "docs": "https://platform.sensenova.cn/docs",
+  "region": "cn"
  },
  {
   "id": "siliconflow",
@@ -402,315 +3199,557 @@
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "api.siliconflow.cn"
+   "api.siliconflow.cn",
+   "api.siliconflow.com"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.siliconflow.com/v1",
+  "docs": "https://cloud.siliconflow.com/models",
+  "region": "global"
  },
  {
-  "id": "cloudflare",
-  "name": "Cloudflare AI Gateway",
+  "id": "stackit",
+  "name": "STACKIT",
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "gateway.ai.cloudflare.com"
+   "api.openai-compat.model-serving.eu01.onstackit.cloud"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.openai-compat.model-serving.eu01.onstackit.cloud/v1",
+  "docs": "https://docs.stackit.cloud/products/data-and-ai/ai-model-serving/basics/available-shared-models",
+  "region": "eu"
  },
  {
-  "id": "ai21",
-  "name": "AI21",
-  "category": "model_api",
+  "id": "standardcompute",
+  "name": "Standard Compute",
+  "category": "inference",
   "api": "openai",
   "hosts": [
-   "api.ai21.com"
+   "api.stdcmpt.com"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.stdcmpt.com/v1",
+  "docs": "https://docs.standardcompute.com/models",
+  "region": "global"
  },
  {
-  "id": "reka",
-  "name": "Reka",
+  "id": "subconscious",
+  "name": "Subconscious",
   "category": "model_api",
+  "api": "anthropic",
+  "hosts": [
+   "api.subconscious.dev"
+  ],
+  "mask": true,
+  "docs": "https://docs.subconscious.dev",
+  "region": "global"
+ },
+ {
+  "id": "submodel",
+  "name": "submodel",
+  "category": "inference",
   "api": "openai",
   "hosts": [
-   "api.reka.ai"
+   "llm.submodel.ai"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://llm.submodel.ai/v1",
+  "docs": "https://submodel.gitbook.io",
+  "region": "global"
  },
  {
-  "id": "moonshot",
-  "name": "Moonshot AI",
-  "category": "model_api",
+  "id": "synthetic",
+  "name": "Synthetic",
+  "category": "inference",
   "api": "openai",
   "hosts": [
-   "api.moonshot.ai",
-   "api.moonshot.cn"
+   "api.synthetic.new"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.synthetic.new/openai/v1",
+  "docs": "https://synthetic.new/pricing",
+  "region": "global"
  },
  {
-  "id": "qwen",
-  "name": "Alibaba Qwen",
-  "category": "model_api",
+  "id": "tempr",
+  "name": "Tempr Gateway",
+  "category": "router",
   "api": "openai",
   "hosts": [
-   "dashscope.aliyuncs.com",
-   "dashscope-intl.aliyuncs.com"
+   "api.temprhq.io"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.temprhq.io/v1",
+  "docs": "https://temprhq.io/docs/gateway-reference.html",
+  "region": "global"
  },
  {
-  "id": "zhipu",
-  "name": "Zhipu AI",
-  "category": "model_api",
+  "id": "tencent_lkeap",
+  "name": "Tencent Cloud LKEAP (Coding / Token Plan)",
+  "category": "inference",
   "api": "openai",
   "hosts": [
-   "open.bigmodel.cn",
-   "api.z.ai"
+   "api.lkeap.cloud.tencent.com"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.lkeap.cloud.tencent.com/coding/v3",
+  "docs": "https://cloud.tencent.com/document/product/1772/128947",
+  "region": "cn"
  },
  {
-  "id": "minimax",
-  "name": "MiniMax",
-  "category": "model_api",
+  "id": "tencent_tokenhub",
+  "name": "Tencent TokenHub",
+  "category": "inference",
   "api": "openai",
   "hosts": [
-   "api.minimax.io"
+   "tokenhub.tencentmaas.com"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://tokenhub.tencentmaas.com/v1",
+  "docs": "https://cloud.tencent.com/document/product/1823/130050",
+  "region": "cn"
  },
  {
-  "id": "meta",
-  "name": "Meta Llama API",
-  "category": "model_api",
+  "id": "tensorx",
+  "name": "TensorX",
+  "category": "inference",
   "api": "openai",
   "hosts": [
-   "api.llama.com"
+   "api.tensorx.ai"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.tensorx.ai/v1",
+  "docs": "https://docs.tensorx.ai/",
+  "region": "global"
  },
  {
-  "id": "gemini_code",
-  "name": "Gemini Code Assist",
+  "id": "the_grid_ai",
+  "name": "The Grid AI",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.thegrid.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.thegrid.ai/v1",
+  "docs": "https://thegrid.ai/docs",
+  "region": "global"
+ },
+ {
+  "id": "thinkingmachines",
+  "name": "Thinking Machines",
+  "category": "model_api",
+  "api": "anthropic",
+  "hosts": [
+   "tinker.thinkingmachines.dev"
+  ],
+  "mask": false,
+  "docs": "https://tinker-docs.thinkingmachines.ai/tinker/compatible-apis/anthropic/",
+  "region": "global"
+ },
+ {
+  "id": "tinfoil",
+  "name": "Tinfoil",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "inference.tinfoil.sh"
+  ],
+  "mask": true,
+  "base_url": "https://inference.tinfoil.sh/v1",
+  "docs": "https://docs.tinfoil.sh",
+  "region": "global"
+ },
+ {
+  "id": "tokengo",
+  "name": "TokenGo",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.tokengo.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.tokengo.com/v1",
+  "docs": "https://www.tokengo.com/docs",
+  "region": "global"
+ },
+ {
+  "id": "tokenrouter",
+  "name": "TokenRouter",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.tokenrouter.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.tokenrouter.com/v1",
+  "docs": "https://www.tokenrouter.com/docs/tokenrouter-feature-guide/",
+  "region": "global"
+ },
+ {
+  "id": "trustedrouter",
+  "name": "TrustedRouter",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.trustedrouter.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.trustedrouter.com/v1",
+  "docs": "https://trustedrouter.com/docs",
+  "region": "global"
+ },
+ {
+  "id": "umans",
+  "name": "Umans AI",
   "category": "coding_agent",
-  "api": "gemini",
+  "api": "openai",
   "hosts": [
-   "cloudcode-pa.googleapis.com"
+   "api.code.umans.ai"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.code.umans.ai/v1",
+  "docs": "https://app.umans.ai/offers/code/docs/orgs",
+  "region": "global"
  },
  {
-  "id": "github_models",
-  "name": "GitHub Models",
+  "id": "unorouter",
+  "name": "UnoRouter",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.unorouter.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.unorouter.com/v1",
+  "docs": "https://unorouter.com/models",
+  "region": "global"
+ },
+ {
+  "id": "vispark",
+  "name": "Vispark",
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "models.github.ai",
-   "models.inference.ai.azure.com"
+   "api.lab.vispark.in"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.lab.vispark.in/v1",
+  "docs": "https://lab.vispark.in/#vision",
+  "region": "in"
  },
  {
-  "id": "cline",
-  "name": "Cline",
+  "id": "vivgrid",
+  "name": "Vivgrid",
   "category": "router",
   "api": "openai",
   "hosts": [
-   "api.cline.bot"
+   "api.vivgrid.com"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.vivgrid.com/v1",
+  "docs": "https://docs.vivgrid.com/models",
+  "region": "global"
  },
  {
-  "id": "kilocode",
-  "name": "Kilo Code",
-  "category": "router",
-  "api": "openai",
-  "hosts": [
-   "api.kilocode.ai"
-  ],
-  "mask": true
- },
- {
-  "id": "requesty",
-  "name": "Requesty",
-  "category": "router",
-  "api": "openai",
-  "hosts": [
-   "router.requesty.ai"
-  ],
-  "mask": true
- },
- {
-  "id": "portkey",
-  "name": "Portkey",
-  "category": "router",
-  "api": "openai",
-  "hosts": [
-   "api.portkey.ai"
-  ],
-  "mask": true
- },
- {
-  "id": "vercel",
-  "name": "Vercel AI Gateway",
-  "category": "router",
-  "api": "openai",
-  "hosts": [
-   "ai-gateway.vercel.sh"
-  ],
-  "mask": true
- },
- {
-  "id": "helicone",
-  "name": "Helicone",
-  "category": "router",
-  "api": "openai",
-  "hosts": [
-   "oai.helicone.ai",
-   "anthropic.helicone.ai",
-   "gateway.helicone.ai"
-  ],
-  "mask": true
- },
- {
-  "id": "doubao",
-  "name": "ByteDance Doubao",
-  "category": "model_api",
-  "api": "openai",
-  "hosts": [
-   "ark.cn-beijing.volces.com",
-   "ark.ap-southeast.bytepluses.com"
-  ],
-  "mask": true
- },
- {
-  "id": "qianfan",
-  "name": "Baidu Qianfan",
-  "category": "model_api",
-  "api": "openai",
-  "hosts": [
-   "qianfan.baidubce.com"
-  ],
-  "mask": true
- },
- {
-  "id": "hunyuan",
-  "name": "Tencent Hunyuan",
-  "category": "model_api",
-  "api": "openai",
-  "hosts": [
-   "api.hunyuan.cloud.tencent.com"
-  ],
-  "mask": true
- },
- {
-  "id": "stepfun",
-  "name": "StepFun",
-  "category": "model_api",
-  "api": "openai",
-  "hosts": [
-   "api.stepfun.com"
-  ],
-  "mask": true
- },
- {
-  "id": "yi",
-  "name": "01.AI Yi",
-  "category": "model_api",
-  "api": "openai",
-  "hosts": [
-   "api.lingyiwanwu.com"
-  ],
-  "mask": true
- },
- {
-  "id": "baichuan",
-  "name": "Baichuan",
-  "category": "model_api",
-  "api": "openai",
-  "hosts": [
-   "api.baichuan-ai.com"
-  ],
-  "mask": true
- },
- {
-  "id": "spark",
-  "name": "iFlytek Spark",
-  "category": "model_api",
-  "api": "openai",
-  "hosts": [
-   "spark-api-open.xf-yun.com"
-  ],
-  "mask": true
- },
- {
-  "id": "upstage",
-  "name": "Upstage",
-  "category": "model_api",
-  "api": "openai",
-  "hosts": [
-   "api.upstage.ai"
-  ],
-  "mask": true
- },
- {
-  "id": "writer",
-  "name": "Writer",
-  "category": "model_api",
-  "api": "openai",
-  "hosts": [
-   "api.writer.com"
-  ],
-  "mask": true
- },
- {
-  "id": "jina",
-  "name": "Jina AI",
-  "category": "model_api",
-  "api": "openai",
-  "hosts": [
-   "api.jina.ai"
-  ],
-  "mask": true
- },
- {
-  "id": "featherless",
-  "name": "Featherless",
+  "id": "wafer_ai",
+  "name": "Wafer",
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "api.featherless.ai"
+   "pass.wafer.ai"
   ],
-  "mask": true
+  "mask": false,
+  "base_url": "https://pass.wafer.ai/v1",
+  "docs": "https://docs.wafer.ai/wafer-pass",
+  "region": "global"
  },
  {
-  "id": "chutes",
-  "name": "Chutes",
+  "id": "wallaby",
+  "name": "Wallaby",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.wallabytoken.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.wallabytoken.com/v1",
+  "docs": "https://wallabytoken.com/docs",
+  "region": "global"
+ },
+ {
+  "id": "wally",
+  "name": "Wally",
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "llm.chutes.ai"
+   "inference.runanywhere.ai"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://inference.runanywhere.ai/v1",
+  "docs": "https://docs.runanywhere.ai/wally-cloud/api",
+  "region": "global"
  },
  {
-  "id": "inference_net",
-  "name": "Inference.net",
+  "id": "xiaomi",
+  "name": "Xiaomi MiMo",
+  "category": "model_api",
+  "api": "openai",
+  "hosts": [
+   "api.xiaomimimo.com",
+   "token-plan-ams.xiaomimimo.com",
+   "token-plan-cn.xiaomimimo.com",
+   "token-plan-sgp.xiaomimimo.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.xiaomimimo.com/v1",
+  "docs": "https://platform.xiaomimimo.com/#/docs",
+  "region": "cn"
+ },
+ {
+  "id": "zeldoc",
+  "name": "Zeldoc",
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "api.inference.net"
+   "api.zeldoc.ai"
   ],
-  "mask": true
+  "mask": true,
+  "base_url": "https://api.zeldoc.ai/v1",
+  "docs": "https://docs.zeldoc.ai",
+  "region": "global"
  },
  {
-  "id": "watsonx",
-  "name": "IBM watsonx",
+  "id": "zenifra",
+  "name": "Zenifra",
   "category": "inference",
   "api": "openai",
   "hosts": [
-   "*.ml.cloud.ibm.com"
+   "ai.zenifra.com"
   ],
-  "mask": true
+  "mask": false,
+  "base_url": "https://ai.zenifra.com/v1",
+  "docs": "https://docs.zenifra.com",
+  "region": "global"
+ },
+ {
+  "id": "zenmux",
+  "name": "ZenMux",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "zenmux.ai"
+  ],
+  "mask": false,
+  "base_url": "https://zenmux.ai/api/v1",
+  "docs": "https://docs.zenmux.ai",
+  "region": "global"
+ },
+ {
+  "id": "publicai",
+  "name": "PublicAI",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.publicai.co"
+  ],
+  "mask": true,
+  "base_url": "https://api.publicai.co/v1",
+  "docs": "https://github.com/BerriAI/litellm/blob/main/litellm/llms/openai_like/providers.json",
+  "region": "global"
+ },
+ {
+  "id": "apertis",
+  "name": "Apertis (Stima)",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "api.stima.tech"
+  ],
+  "mask": true,
+  "base_url": "https://api.stima.tech/v1",
+  "docs": "https://github.com/BerriAI/litellm/blob/main/litellm/llms/openai_like/providers.json",
+  "region": "global"
+ },
+ {
+  "id": "zerogpu",
+  "name": "ZeroGPU",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.zerogpu.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.zerogpu.ai/v1",
+  "docs": "https://github.com/BerriAI/litellm/blob/main/litellm/llms/openai_like/providers.json",
+  "region": "global"
+ },
+ {
+  "id": "llamagate",
+  "name": "LlamaGate",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.llamagate.dev"
+  ],
+  "mask": true,
+  "base_url": "https://api.llamagate.dev/v1",
+  "docs": "https://github.com/BerriAI/litellm/blob/main/litellm/llms/openai_like/providers.json",
+  "region": "global"
+ },
+ {
+  "id": "darkbloom",
+  "name": "Darkbloom",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.darkbloom.dev"
+  ],
+  "mask": true,
+  "base_url": "https://api.darkbloom.dev/v1",
+  "docs": "https://github.com/BerriAI/litellm/blob/main/litellm/llms/openai_like/providers.json",
+  "region": "global"
+ },
+ {
+  "id": "neosantara",
+  "name": "Neosantara",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.neosantara.xyz"
+  ],
+  "mask": true,
+  "base_url": "https://api.neosantara.xyz/v1",
+  "docs": "https://github.com/BerriAI/litellm/blob/main/litellm/llms/openai_like/providers.json",
+  "region": "id"
+ },
+ {
+  "id": "tensormesh",
+  "name": "TensorMesh",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "serverless.tensormesh.ai"
+  ],
+  "mask": true,
+  "base_url": "https://serverless.tensormesh.ai/v1",
+  "docs": "https://github.com/BerriAI/litellm/blob/main/litellm/llms/openai_like/providers.json",
+  "region": "global"
+ },
+ {
+  "id": "libertai",
+  "name": "LibertAI",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.libertai.io"
+  ],
+  "mask": true,
+  "base_url": "https://api.libertai.io/v1",
+  "docs": "https://github.com/BerriAI/litellm/blob/main/litellm/llms/openai_like/providers.json",
+  "region": "global"
+ },
+ {
+  "id": "prism",
+  "name": "Prism Inference",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.prisminference.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.prisminference.com/v1",
+  "docs": "https://github.com/BerriAI/litellm/blob/main/litellm/llms/openai_like/providers.json",
+  "region": "global"
+ },
+ {
+  "id": "hostinger_router",
+  "name": "Hostinger AI Router",
+  "category": "router",
+  "api": "openai",
+  "hosts": [
+   "router.hostinger.com"
+  ],
+  "mask": true,
+  "base_url": "https://router.hostinger.com/v1",
+  "docs": "https://github.com/BerriAI/litellm/blob/main/litellm/llms/openai_like/providers.json",
+  "region": "global"
+ },
+ {
+  "id": "sail",
+  "name": "Sail Research",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.sailresearch.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.sailresearch.com/v1",
+  "docs": "https://github.com/BerriAI/litellm/blob/main/litellm/llms/openai_like/providers.json",
+  "region": "global"
+ },
+ {
+  "id": "openinfer",
+  "name": "OpenInfer",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.openinfer.ai"
+  ],
+  "mask": true,
+  "base_url": "https://api.openinfer.ai/v1",
+  "docs": "https://github.com/BerriAI/litellm/blob/main/litellm/llms/openai_like/providers.json",
+  "region": "global"
+ },
+ {
+  "id": "inferenceapis",
+  "name": "InferenceAPIs",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.inferenceapis.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.inferenceapis.com/v1",
+  "docs": "https://github.com/BerriAI/litellm/blob/main/litellm/llms/openai_like/providers.json",
+  "region": "global"
+ },
+ {
+  "id": "refuseless",
+  "name": "Refuseless",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "api.refuseless.com"
+  ],
+  "mask": true,
+  "base_url": "https://api.refuseless.com/v1",
+  "docs": "https://github.com/BerriAI/litellm/blob/main/litellm/llms/openai_like/providers.json",
+  "region": "global"
+ },
+ {
+  "id": "streamlake",
+  "name": "StreamLake (Kuaishou KAT)",
+  "category": "inference",
+  "api": "openai",
+  "hosts": [
+   "vanchin.streamlake.ai"
+  ],
+  "mask": true,
+  "base_url": "https://vanchin.streamlake.ai/api/gateway/v1/endpoints",
+  "docs": "https://github.com/BerriAI/litellm/blob/main/litellm/llms/openai_like/providers.json",
+  "region": "cn"
+ },
+ {
+  "id": "baidu_ai",
+  "name": "Baidu AI Cloud (legacy Qianfan)",
+  "category": "model_api",
+  "api": "custom",
+  "hosts": [
+   "aip.baidubce.com"
+  ],
+  "mask": false,
+  "region": "cn"
  }
 ]

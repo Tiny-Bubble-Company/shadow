@@ -30,6 +30,7 @@ Shadow works quietly in the background, so it can be hard to tell that it is doi
 
 - **How much AI traffic went through Shadow?** Requests monitored, by destination (OpenAI, Anthropic, ChatGPT, Google Gemini, Azure OpenAI, ...) and by the app that sent them (Claude Code, Codex CLI, the OpenAI Python SDK, Google Chrome, Safari, curl, ...). Each destination is labelled as a model API, an inference cloud or an AI chat app. Only traffic to [intercepted AI hosts](/shadow/reference/providers/) is counted, including chat apps in a browser when the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) is on; nothing else you browse is recorded.
 - **What did it protect?** Values masked before they left the machine, by data type (email addresses, names, secrets and API keys, hostnames, card numbers, ...), and how many were restored in the answers.
+- **What went by unprotected?** Connections to AI services Shadow recognises but cannot mask (for example Cursor or Windsurf, which use binary protocols), listed under *Seen, not protected* so nothing AI-bound goes unnoticed. Counts only; their traffic is never decrypted.
 - **What did it stop?** Requests blocked by policy, such as an image upload when `files.images = "block"`, with the reason.
 - **Which prompt was it?** For each incident, the prompt as written and as the AI received it, every value caught, and the app, process and conversation it came from.
 

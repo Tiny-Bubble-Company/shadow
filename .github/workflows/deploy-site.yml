@@ -12,7 +12,7 @@ name: Deploy site
 on:
   push:
     branches: [main]
-    paths: ["docs-site/**", ".github/workflows/deploy-site.yml"]
+    paths: ["docs-site/**", "crates/shadow-core/catalog.json", ".github/workflows/deploy-site.yml"]
   workflow_dispatch:
 
 permissions:
