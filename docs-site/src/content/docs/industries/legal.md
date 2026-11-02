@@ -128,7 +128,7 @@ A paralegal pastes 40 emails and asks for a dated chronology. Names and addresse
 | **Gateway** | Firm-built drafting and review tools: set the SDK base URL to `/gw/anthropic`, `/gw/openai/v1` or an Azure route |
 | **Sidecar** | Client-facing portals and document automation in containers |
 
-Consumer web apps such as chatgpt.com and hosted legal AI platforms are not covered by Shadow's built-in host list. Pair Shadow with a policy that directs staff to an approved API-backed client. A firm-wide terms list can be distributed with `shadow.toml`; there is no central console yet (see [roadmap](/shadow/project/roadmap/)).
+ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser are covered once you turn on the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy); hosted legal AI platforms, phone apps and certificate-pinning apps are not. Pair Shadow with a policy that directs staff to covered tools. A firm-wide terms list can be distributed with `shadow.toml`; there is no central console yet (see [roadmap](/shadow/project/roadmap/)).
 
 ## Related
 

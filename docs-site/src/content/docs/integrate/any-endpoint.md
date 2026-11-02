@@ -10,7 +10,7 @@ faq:
   - q: "Can I protect a self-hosted or internal model API?"
     a: "Yes. Add its host to `[proxy] extra_hosts` for proxy mode, or a route under `[proxy.routes]` for gateway mode. Shadow masks every string value in a JSON body, so unknown request shapes work too."
   - q: "Are the ChatGPT and Claude desktop apps covered?"
-    a: "No. They talk to their consumer backends, chatgpt.com and claude.ai, which are not intercepted."
+    a: "Yes, if they use the system proxy and do not pin certificates. Turn on the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) with `shadow install --system-proxy --apply` and Shadow masks the prompt text sent to chatgpt.com and claude.ai and restores the real values in the answers. Phone apps are not covered."
 ---
 
 Shadow is not tied to a list of applications. If something sends HTTP requests to a model API, Shadow can sit in front of it. This page shows how to decide where to plug it in.
@@ -56,7 +56,7 @@ Coding assistants send file contents, paths, hostnames and pasted configuration,
 
 - **VS Code and JetBrains extensions.** Most use the IDE's proxy setting or `HTTPS_PROXY`. Set the IDE's HTTP proxy to `http://127.0.0.1:8877` and make sure the CA is trusted by the OS (VS Code uses the OS store; JetBrains IDEs can be pointed at it in *Settings → Tools → Server Certificates*).
 - **Terminal assistants and CLIs.** Start them from a shell where `env.sh` is sourced, or set their base URL variable.
-- **Desktop chat apps.** Use the [PAC file](/shadow/integrate/proxy-mode/#system-wide-with-a-pac-file) or system proxy for apps that call a provider API with your key. The ChatGPT and Claude desktop apps talk to their consumer backends (chatgpt.com, claude.ai), which are not intercepted. Apps that pin certificates will refuse the local CA; there is no workaround for those besides using a different client.
+- **Desktop chat apps.** Use the [PAC file](/shadow/integrate/proxy-mode/#system-wide-with-a-pac-file) or system proxy for apps that call a provider API with your key. The ChatGPT and Claude desktop apps talk to chatgpt.com and claude.ai, which Shadow masks once the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) is on (`shadow install --system-proxy --apply`). Apps that pin certificates will refuse the local CA; there is no workaround for those besides using a different client. Apps that ignore the system proxy need `HTTPS_PROXY` or a base URL.
 
 ## Backend services in any language
 

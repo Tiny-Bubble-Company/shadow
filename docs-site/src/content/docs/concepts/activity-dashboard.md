@@ -28,7 +28,7 @@ Shadow's activity dashboard shows how much AI traffic went through Shadow, what 
 
 Shadow works quietly in the background, so it can be hard to tell that it is doing anything. The activity feed answers three questions at a glance:
 
-- **How much AI traffic went through Shadow?** Requests monitored, by destination (OpenAI, Anthropic, Google Gemini, Azure OpenAI, ...) and by the app that sent them (Claude Code, Codex CLI, the OpenAI Python SDK, curl, ...). Only traffic to [intercepted AI API hosts](/shadow/reference/providers/) is counted; AI web apps used in a browser are not.
+- **How much AI traffic went through Shadow?** Requests monitored, by destination (OpenAI, Anthropic, ChatGPT, Google Gemini, Azure OpenAI, ...) and by the app that sent them (Claude Code, Codex CLI, the OpenAI Python SDK, Google Chrome, Safari, curl, ...). Each destination is labelled as a model API, an inference cloud or an AI chat app. Only traffic to [intercepted AI hosts](/shadow/reference/providers/) is counted, including chat apps in a browser when the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) is on; nothing else you browse is recorded.
 - **What did it protect?** Values masked before they left the machine, by data type (email addresses, names, secrets and API keys, hostnames, card numbers, ...), and how many were restored in the answers.
 - **What did it stop?** Requests blocked by policy, such as an image upload when `files.images = "block"`, with the reason.
 - **Which prompt was it?** For each incident, the prompt as written and as the AI received it, every value caught, and the app, process and conversation it came from.
@@ -87,7 +87,7 @@ The page shows the headline numbers, a traffic timeline (masked, clean and block
 Click an incident to open its page:
 
 - **Source:** the app, the process and its pid, the conversation or session id, and the full `User-Agent`.
-- **Destination:** the AI provider and host, the model, the request path, the HTTP status and timing.
+- **Destination:** the AI provider and host, what kind of destination it is (model API, inference cloud or AI chat app), the model, the request path, the HTTP status and timing.
 - **What was caught:** each value found, the detector that found it, and what the AI received instead. Values sent unchanged on purpose, such as the recipient of an email you asked the AI to send, are marked as such.
 - **Prompt:** every message, as you wrote it or as the AI received it, with the changed values highlighted.
 

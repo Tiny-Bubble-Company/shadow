@@ -30,7 +30,7 @@ Enterprises already have DLP, a secure web gateway or SSE platform, and often an
 
 | Layer | Typical products | Covers | Shadow's role |
 |---|---|---|---|
-| Browser and SaaS DLP / SSE | Netskope, Zscaler, Palo Alto, Purview | Web chat apps, uploads, SaaS | Not a replacement. Shadow does not cover chatgpt.com or claude.ai |
+| Browser and SaaS DLP / SSE | Netskope, Zscaler, Palo Alto, Purview | Web chat apps, uploads, SaaS | Not a replacement. Shadow masks chatgpt.com, claude.ai and a few other chat apps with the system proxy on, but has no console, coaching or SaaS coverage |
 | AI gateway | LiteLLM, Kong, Portkey, cloud gateways | Routing, keys, budgets, rate limits | Complementary. Chain them: app → Shadow → gateway |
 | Endpoint API traffic | Few options | SDKs, CLIs, coding assistants, agents | **Primary use.** Proxy mode on laptops and build agents |
 | Workload API traffic | Gateway guardrails (usually block or redact) | Internal apps, RAG, agents | **Primary use.** Sidecar or service in gateway mode |
@@ -103,7 +103,7 @@ The app calls `http://127.0.0.1:8877/gw/llmgw/v1/...`. Shadow masks, the gateway
 - **No SIEM integration or audit log yet.** Today: per-request log lines with intent and counts, and a log entry for every `keep`. An optional local, append-only audit log is a [roadmap](/shadow/project/roadmap/) "Next" item; shipping it to your SIEM would be your own log pipeline.
 - **No shared team identity yet.** Each instance has its own persona unless you distribute the files. Team identities are a "Later" item.
 - **Per-host and per-tool policy** (different treatments per provider) is a "Later" item.
-- **Not covered:** consumer web chat, mobile, WebSocket and Realtime APIs, gRPC, SigV4-signed Bedrock requests, certificate-pinning apps, text in images.
+- **Not covered:** mobile apps, chat apps not supported yet (Microsoft Copilot, Le Chat, Meta AI, Poe), WebSocket and Realtime APIs, gRPC, SigV4-signed Bedrock requests, certificate-pinning apps, text in images. ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser need the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) turned on.
 - **Detection quality** is best effort and should be measured on your data. See the [benchmarks](/shadow/benchmarks/).
 :::
 

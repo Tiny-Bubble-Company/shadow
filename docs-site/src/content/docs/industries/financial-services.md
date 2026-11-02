@@ -11,7 +11,7 @@ keywords:
   - financial services llm data protection
 faq:
   - q: "Can bank staff use ChatGPT or Claude without exposing customer data?"
-    a: "They can reduce exposure substantially by routing API-based AI tools through Shadow, which replaces customer names, emails, IBANs, card numbers and national IDs with fakes before the request leaves. Consumer web apps such as chatgpt.com are not covered, so give staff an approved API-backed client."
+    a: "They can reduce exposure substantially by routing API-based AI tools through Shadow, which replaces customer names, emails, IBANs, card numbers and national IDs with fakes before the request leaves. ChatGPT and Claude.ai in a browser are covered once the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) is on; phone apps are not, so give mobile staff an approved API-backed client."
   - q: "Does Shadow take an LLM workflow out of PCI DSS scope?"
     a: "It can help keep primary account numbers out of the data sent to an AI provider, because card numbers are detected with a Luhn check and replaced. Scope is decided by your QSA and depends on every system that handles PAN, including the machine running Shadow."
   - q: "Will the model still work with fake IBANs and card numbers?"

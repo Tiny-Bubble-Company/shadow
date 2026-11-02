@@ -181,6 +181,7 @@ The [activity dashboard](/shadow/concepts/activity-dashboard/) feed. The log on 
 | `bypass_hosts` | list of globs | `[]` | Hosts never intercepted (blind tunnel), even if built in |
 | `upstream_proxy` | string | none | Egress relay for intercepted traffic: `http://`, `socks5://` or `socks5h://` |
 | `strip_headers` | list of strings | see below | Request headers removed before forwarding (case-insensitive) |
+| `chat_apps` | bool | `true` | Intercept AI chat apps (ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek, Grok): mask their prompts, restore their answers and history. See [Proxy mode](/shadow/integrate/proxy-mode/#ai-chat-apps) |
 
 Default `strip_headers`:
 

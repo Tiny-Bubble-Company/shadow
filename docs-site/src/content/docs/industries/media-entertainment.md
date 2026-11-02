@@ -130,7 +130,7 @@ An analyst attaches a CSV of subscribers and viewing data and asks "Analyse thes
 | **Gateway** for internal tools: `http://127.0.0.1:8877/gw/anthropic` and similar | Coverage, localisation and marketing assistants you build |
 | **Sidecar** in Kubernetes | Product features such as recommendations or support bots. See [Docker and Kubernetes](/shadow/integrate/docker-kubernetes/) |
 
-Consumer web chat apps such as chatgpt.com are not built-in intercepted hosts, so give teams an approved API-backed client. There is no central admin console yet; distribute `shadow.toml` and term lists through your existing tooling. Shared vaults for teams working on one production are on the [roadmap](/shadow/project/roadmap/); today you copy `persona.json`, `vault.bin` and `vault.key`.
+ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser are covered once you turn on the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy); phone apps and certificate-pinning apps are not, so give phone users an approved API-backed client. There is no central admin console yet; distribute `shadow.toml` and term lists through your existing tooling. Shared vaults for teams working on one production are on the [roadmap](/shadow/project/roadmap/); today you copy `persona.json`, `vault.bin` and `vault.key`.
 
 ## Related
 

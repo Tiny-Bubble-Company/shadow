@@ -22,7 +22,7 @@ faq:
   - q: "How much does Strac cost?"
     a: "Strac is priced by quote; public pages we reviewed do not list prices. Shadow is free and open source under Apache-2.0."
   - q: "Does Shadow cover ChatGPT in the browser?"
-    a: "No. Shadow intercepts AI API hosts such as api.openai.com in proxy mode. ChatGPT in the browser talks to chatgpt.com, which is not on that list, so what people type there is not masked. Shadow is designed for API traffic, not the consumer web chat UIs that browser-extension DLP tools target."
+    a: "Yes, once you turn on the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy). Shadow then masks the prompt text people type into chatgpt.com and a few other chat apps and restores real values in the answer. It has no browser extension, console or alerting, and it does not cover phone apps or AI features inside SaaS apps."
   - q: "Can Strac scan SaaS apps like Slack or Google Drive?"
     a: "Yes, Strac connects to SaaS data stores for discovery and remediation. Shadow does not scan data at rest; it only masks AI requests in flight."
 ---
@@ -49,7 +49,7 @@ Strac is broad DLP: SaaS data stores plus a browser extension for AI apps, with 
 
 ## What Strac does well
 
-- **Coverage of web AI apps.** A browser extension sees what employees type and paste into ChatGPT and similar web apps, which a network-level API proxy does not target.
+- **Coverage of web AI apps.** A browser extension sees what employees type and paste into ChatGPT and similar web apps, including ones Shadow does not support, such as Microsoft Copilot.
 - **More than AI.** Strac connects to SaaS data stores for discovery and remediation, so one product can cover both data at rest and data flowing into AI tools.
 - **Range of actions.** Alert, block, redact or pseudonymise, chosen by policy.
 - **Central management.** Policies, alerts and reporting are managed from one console, which suits security teams overseeing many employees.

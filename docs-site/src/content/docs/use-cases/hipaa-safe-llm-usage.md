@@ -62,7 +62,7 @@ There is no custom regex setting in `shadow.toml`. Be explicit about these gaps 
 
 ### 1. Choose the AI service and sign the BAA
 
-Pick a provider API offered under a BAA (for example an enterprise or cloud-platform offering). Shadow then sits in front of that API. It covers provider APIs such as `api.openai.com`, `*.openai.azure.com`, `api.anthropic.com`, Gemini and Vertex AI, not consumer web apps such as `chatgpt.com`.
+Pick a provider API offered under a BAA (for example an enterprise or cloud-platform offering). Shadow then sits in front of that API. It covers provider APIs such as `api.openai.com`, `*.openai.azure.com`, `api.anthropic.com`, Gemini and Vertex AI. It can also mask consumer chat apps such as `chatgpt.com` through the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy), but those are not the BAA-covered API.
 
 ### 2. Install Shadow where PHI originates
 

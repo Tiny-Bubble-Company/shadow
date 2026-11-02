@@ -58,7 +58,7 @@ Fakes come from one machine's [persona](/shadow/concepts/personas/); yours will 
 | Management | Central console, policies, reporting | Local `shadow.toml` per machine; no console yet |
 | Cost | Commercial | Free, Apache-2.0 |
 
-A practical split: let your existing DLP or CASB govern consumer web apps such as chatgpt.com, which Shadow does not intercept, and use Shadow for the API-based tools and applications your teams are encouraged to use.
+A practical split: let your existing DLP or CASB govern phone apps and the AI sites Shadow does not support, and use Shadow for the API-based tools your teams are encouraged to use, plus ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser once the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) is on.
 
 ## How to roll out Shadow as LLM DLP
 
@@ -115,7 +115,7 @@ With `shadow run` in the foreground or the service logs, each request shows its 
 ## What Shadow does not do
 
 - **No discovery or inventory** of which AI tools people use.
-- **No web chat coverage.** chatgpt.com, claude.ai and similar consumer apps are not intercepted; vendor backends such as GitHub Copilot and Cursor's hosted service are not built in either.
+- **Limited web chat coverage.** ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser are masked only with the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) on; Microsoft Copilot, Le Chat, Meta AI, Poe and phone apps are not covered, and vendor backends such as GitHub Copilot and Cursor's hosted service are not built in either.
 - **No OCR**, WebSocket/Realtime or gRPC processing.
 - **No central reporting.** A local, append-only audit log of per-request decisions is on the [roadmap](/shadow/project/roadmap/). Blocking-only DLP features are explicitly not planned.
 - **Not perfect detection.** Values that are not detected are sent as is. See [benchmarks](/shadow/benchmarks/).

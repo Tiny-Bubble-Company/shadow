@@ -17,7 +17,7 @@ faq:
   - q: "Does it work with Claude on Amazon Bedrock or Google Vertex AI?"
     a: "Vertex AI hosts are intercepted in proxy mode. Bedrock works with API-key (bearer) auth; requests signed with AWS SigV4 are forwarded unmasked with a warning, because changing the body would break the signature."
   - q: "Can I use Shadow with the claude.ai website or desktop app?"
-    a: "Not as a supported integration. Shadow intercepts api.anthropic.com, not claude.ai. Use an API-backed client or Claude Code through Shadow instead."
+    a: "Yes, once you turn on the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) with `shadow install --system-proxy --apply`. Shadow masks the prompt text sent to claude.ai and restores real values in streamed answers and reloaded history. The mobile apps are not covered."
   - q: "Is anonymised text still personal data?"
     a: "For you, yes. Shadow pseudonymises reversibly and you hold the mapping, so under GDPR the data remains personal data in your hands. It reduces what Anthropic receives; it does not take the data out of scope for you."
 sidebar:
@@ -155,7 +155,7 @@ When Claude answers with a `tool_use` block, its `input` contains the fakes it s
 
 ## Limits
 
-- `claude.ai` and the Claude desktop and mobile apps are not intercepted.
+- `claude.ai` and the Claude desktop app are masked only with the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) on, and only the prompt text. The Claude mobile apps are not covered.
 - Images in prompts are not OCR'd; set `[files] images = "block"` if screenshots may contain personal data. PDFs in `document` blocks are sent as masked text by default.
 - Dates are not masked, and detection is best effort. Unique context can still identify a person or company.
 

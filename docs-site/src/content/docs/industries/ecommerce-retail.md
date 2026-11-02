@@ -11,7 +11,7 @@ keywords:
   - shopify openai pii
 faq:
   - q: "Can we use ChatGPT for customer service without exposing customer data?"
-    a: "If your support tool or bot calls a model API, route it through Shadow. Customer names, emails, phones, delivery addresses and card numbers are replaced with fakes before the request leaves, and restored in the reply. The consumer chatgpt.com app is not covered."
+    a: "If your support tool or bot calls a model API, route it through Shadow. Customer names, emails, phones, delivery addresses and card numbers are replaced with fakes before the request leaves, and restored in the reply. Staff using chatgpt.com in a browser are covered once the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) is on; phone apps are not."
   - q: "Does Shadow keep card numbers out of AI prompts for PCI DSS?"
     a: "Card numbers are detected with a Luhn check and replaced with a fake, or a typed token if you configure it, so the PAN does not reach the provider. The machine running Shadow still handles the real PAN and stays in your PCI scope."
   - q: "Do order numbers get masked?"

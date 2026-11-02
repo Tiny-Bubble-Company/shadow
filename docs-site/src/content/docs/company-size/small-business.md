@@ -13,7 +13,7 @@ faq:
   - q: "Can a small business use ChatGPT safely with customer data?"
     a: "Safer use comes from three things: a short written policy, an approved tool, and a technical control that keeps identifiers out of prompts. Shadow is that control for API-based tools; it replaces customer names, emails, phone numbers, card numbers and IBANs with fakes and restores them in the answer."
   - q: "Does Shadow work with the ChatGPT website?"
-    a: "No. Shadow protects traffic to AI provider APIs such as api.openai.com. The chatgpt.com web app is not a built-in host. Give staff an approved chat client that uses an API key and runs through Shadow."
+    a: "Yes, once you turn on the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) with `shadow install --system-proxy --apply`. Shadow then masks what staff type into chatgpt.com in a browser and restores the real details in the answer. AI apps on phones are not covered."
   - q: "Do we need an IT person to set it up?"
     a: "Someone comfortable with a terminal, for about fifteen minutes per computer. If you use a managed service provider, they can script the install. There is no graphical installer or admin console yet."
   - q: "Is it really free for business use?"
@@ -24,7 +24,7 @@ sidebar:
   order: 3
 ---
 
-Small businesses use AI for the same things larger ones do: answering customer emails, summarising orders, drafting quotes, cleaning up spreadsheets. Shadow keeps the customer data in those requests on your computers by swapping it for realistic fakes before it reaches the AI provider, then putting the real details back in the answer. It is free, but it is a technical tool: it needs someone to install it, and it protects API-based AI tools, not the chatgpt.com website.
+Small businesses use AI for the same things larger ones do: answering customer emails, summarising orders, drafting quotes, cleaning up spreadsheets. Shadow keeps the customer data in those requests on your computers by swapping it for realistic fakes before it reaches the AI provider, then putting the real details back in the answer. It is free, but it is a technical tool: it needs someone to install it, and it protects API-based AI tools and, once you turn on the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy), ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser.
 
 ## What matters for a small business
 
@@ -40,7 +40,7 @@ Small businesses use AI for the same things larger ones do: answering customer e
 
 Banning AI rarely works; people use it on their phones instead. The pattern that does work is to make the safe option the easy one:
 
-1. **Pick one approved AI tool** that uses an API key: a desktop or web chat client you host or install, or an internal assistant, connected to OpenAI, Anthropic or Azure OpenAI.
+1. **Pick one approved AI tool**: a desktop or web chat client that uses an API key, an internal assistant connected to OpenAI, Anthropic or Azure OpenAI, or ChatGPT, Claude.ai or Gemini in a browser with the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) turned on.
 2. **Run it through Shadow** on each computer, so customer details are masked automatically.
 3. **Write a one-page policy**: use the approved tool for work, never paste customer data into personal AI accounts, ask before uploading files.
 
@@ -128,7 +128,7 @@ Jane is the person the reply is for, so her name, email and phone are sent as wr
 ## Honest limits
 
 :::caution[Know these before you rely on Shadow]
-- **The chatgpt.com and claude.ai websites are not covered.** Nor are AI apps on phones.
+- **AI apps on phones are not covered.** The chatgpt.com and claude.ai websites are covered only once you turn on the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) (`shadow install --system-proxy --apply`).
 - **Photos and scanned documents are not masked.** Text inside images is not read.
 - **Unusual details are missed.** Order numbers, loyalty IDs and nicknames are not detected unless you add them as terms.
 - **No admin console.** Each computer is set up individually; there is no central dashboard.

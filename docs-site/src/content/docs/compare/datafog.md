@@ -66,7 +66,7 @@ Shadow replaces values with format-preserving fakes from a persistent [persona](
 
 ### Covering many tools on a machine
 
-DataFog integrates through LiteLLM or a Claude Code hook. Shadow intercepts at the network layer, so any tool that honours `HTTPS_PROXY` or accepts a base URL is covered when it calls a [supported AI API host](/shadow/reference/providers/), including desktop apps and SDKs you didn't configure individually. Web chat in a browser (chatgpt.com, claude.ai) is not covered. See [proxy mode](/shadow/integrate/proxy-mode/) and [gateway mode](/shadow/integrate/gateway-mode/).
+DataFog integrates through LiteLLM or a Claude Code hook. Shadow intercepts at the network layer, so any tool that honours `HTTPS_PROXY` or accepts a base URL is covered when it calls a [supported AI API host](/shadow/reference/providers/), including desktop apps and SDKs you didn't configure individually. Web chat in a browser (chatgpt.com, claude.ai and a few others) is covered once you turn on the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy). See [proxy mode](/shadow/integrate/proxy-mode/) and [gateway mode](/shadow/integrate/gateway-mode/).
 
 ### Intent policy and files
 

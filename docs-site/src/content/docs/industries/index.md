@@ -19,7 +19,7 @@ faq:
   - q: "Does the AI provider still receive our data?"
     a: "It receives a masked version: realistic, format-preserving fakes instead of names, emails, IDs, card numbers, hostnames and secrets. The only real values sent on purpose are the recipient when you ask the model to write to or act on someone, and those a provider-hosted action (such as a hosted MCP tool sending an email) needs to reach the right person; each one is logged and both can be turned off. Detection is best effort and context is not masked, so keep the provider under your normal vendor and contract controls."
   - q: "Which AI tools does Shadow cover?"
-    a: "Anything that calls a model API through Shadow's proxy or gateway: SDKs, internal apps, agents, and coding assistants that use your own API key, for OpenAI, Anthropic, Azure OpenAI, Gemini, Bedrock, OpenRouter, Mistral and more. Consumer web apps such as chatgpt.com are not built-in hosts."
+    a: "Anything that calls a model API through Shadow's proxy or gateway: SDKs, internal apps, agents, and coding assistants that use your own API key, for OpenAI, Anthropic, Azure OpenAI, Gemini, Bedrock, OpenRouter, Mistral and more. With the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) on, it also covers ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser."
 sidebar:
   label: Overview
   order: 0
@@ -94,7 +94,7 @@ Uploaded files go through the same pipeline: DOCX, XLSX and PPTX are masked in p
 - **Dates are not masked.** This matters for HIPAA Safe Harbor and for any re-identification analysis.
 - **No OCR.** Text in images and scanned PDFs is not masked. Block images where they may contain personal data.
 - **Context is not masked.** A unique situation can identify a person or company even with every name replaced.
-- **Consumer web apps are not covered.** Shadow protects API traffic. chatgpt.com and claude.ai are not built-in hosts.
+- **Browser chat needs the system proxy, and phones are not covered.** ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser are masked once you turn on the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy). Phone apps and certificate-pinning apps are not.
 - **No central console yet.** Fleet rollout uses your existing device management. See [Shadow by company size](/shadow/company-size/).
 :::
 

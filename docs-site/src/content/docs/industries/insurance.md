@@ -10,7 +10,7 @@ keywords:
   - insurance ai governance
 faq:
   - q: "Can claims adjusters use ChatGPT on claim files safely?"
-    a: "Adjusters can reduce what leaves by using an API-backed assistant routed through Shadow, which replaces claimant names, contact details, IDs and addresses with fakes and restores them in the answer. Consumer web apps such as chatgpt.com are not covered, and claim and policy numbers need extra configuration to be detected."
+    a: "Adjusters can reduce what leaves by using an API-backed assistant routed through Shadow, which replaces claimant names, contact details, IDs and addresses with fakes and restores them in the answer. Use of chatgpt.com in a browser is covered once the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) is on; phone apps are not. Claim and policy numbers need extra configuration to be detected."
   - q: "Does Shadow detect policy and claim numbers?"
     a: "Not with its built-in detectors, and shadow.toml has no custom regex setting. Add known numbers as terms, enable the open-weight NER sidecar, which recognises account-style numbers, or implement a custom detector when embedding Shadow in Rust."
   - q: "What does the NAIC Model Bulletin on AI expect from insurers?"

@@ -142,7 +142,7 @@ An analyst uploads an XLSX of 2,000 rows by cost centre and supplier. Supplier a
 | **Gateway** for firm knowledge tools: `http://127.0.0.1:8877/gw/<provider>/...` | Proposal, research and document assistants you build |
 | **Sidecar** in Kubernetes | Firm-wide AI services. See [Docker and Kubernetes](/shadow/integrate/docker-kubernetes/) |
 
-There is no central admin console or shared team vault yet; both team identities and an optional audit log are on the [roadmap](/shadow/project/roadmap/). Consumer web chat apps such as chatgpt.com are not built-in hosts, so provide an approved API-backed client.
+There is no central admin console or shared team vault yet; both team identities and an optional audit log are on the [roadmap](/shadow/project/roadmap/). ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser are covered once you turn on the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy); for phones and certificate-pinning apps, provide an approved API-backed client.
 
 ## Related
 

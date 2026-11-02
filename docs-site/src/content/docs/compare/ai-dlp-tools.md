@@ -62,7 +62,7 @@ None of these is always right. Blocking is correct for data that must never be p
 - **User coaching.** A pop-up that explains why a paste is risky changes behaviour over time.
 - **Existing investment.** If you already run Netskope, Zscaler, Palo Alto or Microsoft 365 E5, adding GenAI controls may cost little extra.
 
-Shadow does none of these. It has no console and no browser extension, and it does not see what people type into AI web apps such as chatgpt.com or claude.ai.
+Shadow does none of these. It has no console and no browser extension. With its [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) on it masks what people type into ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok, but not other AI web apps such as Microsoft Copilot.
 
 ## Where blocking and redaction fall short
 

@@ -11,7 +11,7 @@ keywords:
   - document redaction llm
 faq:
   - q: "Can Shadow redact a PDF before it is sent to ChatGPT or Claude?"
-    a: "Through the API, yes for text. With the default pdf = \"text\", Shadow extracts the PDF's text, masks it and sends it as a text document. Layout and images are lost, and scanned PDFs are not OCR'd. Consumer web apps such as chatgpt.com are not intercepted."
+    a: "Through the API, yes for text. With the default pdf = \"text\", Shadow extracts the PDF's text, masks it and sends it as a text document. Layout and images are lost, and scanned PDFs are not OCR'd. In chatgpt.com or claude.ai in a browser, Shadow masks only the typed prompt text (with the system proxy on), not uploaded files."
   - q: "Will my Word or Excel file still open after masking?"
     a: "Yes. DOCX, XLSX and PPTX are edited inside their ZIP container, so styles, tables and layout survive. In XLSX only shared strings are changed; numbers and formulas are untouched."
   - q: "Does Shadow mask text in images or screenshots?"
@@ -143,7 +143,7 @@ The model's markup of risky clauses comes back about Acme GmbH, Globex Ltd and J
 - **Split formatting.** A name that is half bold spans two text runs and may not be recognised.
 - **Uploads by reference.** A file uploaded earlier and referenced by `file_id` is not re-scanned.
 - **Archives** (`.zip`, `.tar`) other than Office formats pass through.
-- **Consumer web apps.** Uploads to chatgpt.com or claude.ai in a browser are not intercepted. Shadow covers API traffic.
+- **Uploads in chat apps.** With the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) on, Shadow masks only the prompt text in chatgpt.com or claude.ai in a browser, not uploaded files. Use an API-based client for documents.
 :::
 
 ## Related

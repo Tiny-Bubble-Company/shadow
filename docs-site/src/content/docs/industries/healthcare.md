@@ -15,7 +15,7 @@ faq:
   - q: "Is text masked by Shadow de-identified under HIPAA Safe Harbor?"
     a: "Not by itself. Safe Harbor requires removing all 18 identifier types, including dates and record numbers. Shadow does not mask dates, and it does not detect medical record numbers unless you add them or a detector that finds them, so treat masked text as reduced-risk PHI rather than de-identified data."
   - q: "Can clinicians use Shadow with the ChatGPT website?"
-    a: "Not as a built-in integration. Shadow intercepts provider APIs such as api.openai.com and Azure OpenAI, not consumer web apps like chatgpt.com. Give clinicians an approved API-backed client or internal tool and route it through Shadow."
+    a: "Yes, on a computer with the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) turned on: Shadow masks the prompt text sent to chatgpt.com and restores real values in the answer. Phone apps are not covered, and the chat web format can change without notice, so an approved API-backed client remains the more dependable option for clinical data."
   - q: "Where does patient data go when Shadow masks it?"
     a: "The real values stay in an encrypted vault on the machine or pod running Shadow. The provider receives realistic fakes, and the answer is translated back locally before anyone sees it."
   - q: "Can Shadow mask patient data in uploaded PDFs and Word documents?"

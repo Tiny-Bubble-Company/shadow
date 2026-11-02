@@ -62,7 +62,7 @@ It overlaps with DLP but behaves differently. DLP gateways usually block or reda
 
 ### Can Shadow run in a browser or on a phone?
 
-No. Shadow runs on macOS, Linux and Windows hosts, servers and containers. Browsers on those machines can use it through the system proxy or PAC file, but only for requests to the [intercepted AI API hosts](/shadow/reference/providers/). What people type into chatgpt.com, claude.ai or gemini.google.com is not masked; give them an API-based client that runs through Shadow instead.
+No. Shadow runs on macOS, Linux and Windows hosts, servers and containers. Browsers on those machines can use it through the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) (`shadow install --system-proxy --apply`). Then requests to the [intercepted AI API hosts](/shadow/reference/providers/) and the prompts people type into ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok are masked. AI apps on phones are not covered; give phone users an API-based client that runs through Shadow on a computer instead.
 
 ### What licence is Shadow under?
 

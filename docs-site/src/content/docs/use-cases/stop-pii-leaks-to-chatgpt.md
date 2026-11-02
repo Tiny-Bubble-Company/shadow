@@ -11,7 +11,7 @@ keywords:
   - safe chatgpt for employees
 faq:
   - q: "Can Shadow mask what employees type into the chatgpt.com website?"
-    a: "Not as a built-in, supported integration. Shadow intercepts the provider APIs such as api.openai.com, Azure OpenAI and api.anthropic.com, not consumer web apps such as chatgpt.com or claude.ai. The reliable pattern is an approved API-backed client that runs through Shadow."
+    a: "Yes, once you turn on the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) with `shadow install --system-proxy --apply`. Shadow masks the prompt text sent to chatgpt.com, claude.ai, Gemini, Perplexity, DeepSeek and Grok and restores the real values in the answer. Phone apps are not covered, and the web format can change without notice, so an API-backed client stays the most dependable option."
   - q: "Why not just block ChatGPT?"
     a: "Blocking rarely holds. People switch to a phone, a personal laptop or another AI site, and you lose all visibility. Shadow keeps an approved tool useful while the customer data in it is replaced with fakes, so there is less reason to route around it."
   - q: "Will the answers be worse if customer data is masked?"
@@ -24,7 +24,7 @@ sidebar:
   order: 1
 ---
 
-You can't reliably stop people pasting customer data into a chatbot by asking them not to, and blocking AI sites mostly pushes the habit somewhere you can't see. The approach that holds up is to give staff an approved, API-backed AI client and route it through Shadow, which replaces customer names, emails, phone numbers, IDs and secrets with realistic fakes before the request leaves the machine and restores them in the answer. Pair that with a short policy and a block or warning on the consumer sites you don't sanction.
+You can't reliably stop people pasting customer data into a chatbot by asking them not to, and blocking AI sites mostly pushes the habit somewhere you can't see. The approach that holds up is to route the AI tools staff use through Shadow: an approved API-backed client, or ChatGPT and other supported chat apps in a browser with the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) on. Shadow replaces customer names, emails, phone numbers, IDs and secrets with realistic fakes before the request leaves the machine and restores them in the answer. Pair that with a short policy and a block or warning on the consumer sites you don't sanction.
 
 ## Why do employees paste customer data into ChatGPT?
 
@@ -51,17 +51,18 @@ That single prompt sends a name, an email, a card number, a phone number, an add
 Shadow is the last row. It does not replace a policy or your blocking controls for unsanctioned sites; it makes the sanctioned path good enough that people use it. See [LLM data loss prevention](/shadow/use-cases/llm-data-loss-prevention-dlp/) for how this fits with an existing DLP stack.
 
 :::caution[What Shadow covers, and what it does not]
-Shadow intercepts the **provider APIs**: `api.openai.com`, Azure OpenAI, `api.anthropic.com`, Gemini, Vertex AI, Bedrock runtime, OpenRouter, Mistral and [others](/shadow/reference/providers/). It does **not** intercept the consumer web apps `chatgpt.com` or `claude.ai`, which use their own undocumented protocols. You can add hosts with `[proxy] extra_hosts`, but that is untested and unsupported for consumer web apps. The dependable setup is an approved client that calls the API.
+Shadow intercepts the **provider APIs**: `api.openai.com`, Azure OpenAI, `api.anthropic.com`, Gemini, Vertex AI, Bedrock runtime, OpenRouter, Mistral and [others](/shadow/reference/providers/). With the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) on (`shadow install --system-proxy --apply`), it also masks the prompt text in ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser and restores real values in the answers and in reloaded history. Those apps use the vendors' own web formats, which can change without notice; support is best effort and unrecognised requests are forwarded unchanged. Phone apps, Microsoft Copilot, Le Chat, Meta AI, Poe and certificate-pinning apps are **not** covered. The most dependable setup is an approved client that calls the API.
 :::
 
 ## How to set it up
 
 ### 1. Pick an approved, API-backed client
 
-Choose something that calls a provider API with your organisation's key, not a consumer web app:
+Choose something that calls a provider API with your organisation's key, or a supported chat app in a browser:
 
 - an internal chat UI your team already runs (Open WebUI, LibreChat or a home-grown one) pointed at OpenAI, Azure OpenAI or Anthropic;
 - a bring-your-own-key desktop chat client that lets you set the API base URL or honours the system proxy;
+- ChatGPT, Claude.ai or Gemini in a browser, with Shadow's [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) turned on;
 - task-specific internal tools, for example a "draft reply" button in your helpdesk.
 
 For a shared internal chat UI, run Shadow next to the server and point the UI at the [gateway](/shadow/integrate/gateway-mode/). For desktop clients, install Shadow on each machine (step 2).
@@ -138,7 +139,7 @@ There is no central admin console or fleet management yet, and an optional local
 
 ## Limits to be honest about
 
-- **Consumer web apps** such as `chatgpt.com` are not covered (see above).
+- **Browser chat needs the system proxy**, and phone apps and some chat apps (Microsoft Copilot, Le Chat, Meta AI, Poe) are not covered (see above).
 - **Detection is best effort.** Unusual names and internal ID formats can be missed. Test with `shadow scan`.
 - **No OCR.** Screenshots and scanned PDFs pass through unless you block them.
 - **Dates are not masked**, and **context can identify**: a unique incident described in detail can point to a customer even with every name replaced.

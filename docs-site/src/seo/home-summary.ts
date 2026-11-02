@@ -12,7 +12,7 @@ curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/pac
 
 - Single binary for macOS, Linux and Windows; no cloud service, account or telemetry.
 - Works with 15+ provider APIs, including OpenAI, Anthropic, Google Gemini, Vertex AI, Azure OpenAI, AWS Bedrock, Mistral, OpenRouter, Groq, DeepSeek, xAI and Cohere, plus self-hosted APIs.
-- Covers apps that call AI provider APIs (such as api.openai.com and api.anthropic.com). It does not see what people type into chatgpt.com, claude.ai or other AI web apps in a browser.
+- Covers apps that call AI provider APIs (such as api.openai.com and api.anthropic.com). With the opt-in system proxy (\`shadow install --system-proxy --apply\`) it also masks ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser. Phone apps are not covered.
 
 ## The problem: prompts carry far more than the question
 

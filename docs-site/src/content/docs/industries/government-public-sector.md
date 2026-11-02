@@ -17,7 +17,7 @@ faq:
   - q: "Can Shadow run in an air-gapped or restricted network?"
     a: "Shadow itself needs no internet access: it builds from source, has no licence server and sends nothing except the masked requests you route through it. It is useful in restricted networks that allow egress only to an approved model endpoint, which you can add with a custom gateway route or extra_hosts."
   - q: "Can caseworkers use ChatGPT with Shadow?"
-    a: "Not the consumer chatgpt.com web app, which is not a built-in intercepted host. Shadow covers API-based tools: internal assistants, SDK apps, agents and approved clients that call Azure OpenAI, OpenAI, Anthropic, Gemini or a self-hosted endpoint."
+    a: "Yes, in chatgpt.com in a browser once the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) is turned on; phone apps are not covered. Shadow also covers API-based tools: internal assistants, SDK apps, agents and approved clients that call Azure OpenAI, OpenAI, Anthropic, Gemini or a self-hosted endpoint."
   - q: "Is masked data safe to send for criminal justice information?"
     a: "CJIS Security Policy governs criminal justice information and the systems that handle it. Shadow can reduce identifiers in prompts, but it does not determine whether a workflow is permitted. Treat that as a decision for your CJIS security officer."
 sidebar:

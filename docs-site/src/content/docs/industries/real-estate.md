@@ -11,7 +11,7 @@ keywords:
   - fair housing ai
 faq:
   - q: "Can property managers use ChatGPT on tenant data?"
-    a: "Not through the consumer chatgpt.com website with Shadow, because that is not a built-in intercepted host. With an API-backed client or an internal tool routed through Shadow, tenant names, emails, phone numbers, addresses, bank details and recognised IDs are replaced with fakes before the request leaves, and restored in the answer."
+    a: "Yes, on a computer running Shadow with the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) turned on, in chatgpt.com in a browser as well as in an API-backed client or internal tool. Phone apps are not covered. Through Shadow, tenant names, emails, phone numbers, addresses, bank details and recognised IDs are replaced with fakes before the request leaves, and restored in the answer."
   - q: "Does Shadow mask property addresses?"
     a: "It detects street addresses written in English and German styles, and the optional NER sidecar or Presidio finds more locations. Addresses in other formats may not be detected. In listings the property address is often the point of the prompt, so decide per workflow whether it should be masked."
   - q: "Can AI help with leases and contracts without exposing the parties?"

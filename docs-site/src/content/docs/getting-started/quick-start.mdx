@@ -129,7 +129,7 @@ export HTTPS_PROXY=http://127.0.0.1:8877
 export NO_PROXY=localhost,127.0.0.1
 ```
 
-Only known AI hosts are decrypted. Everything else passes through a blind tunnel, which also means AI web apps such as chatgpt.com in a browser are not masked. Details in [Proxy mode](/shadow/integrate/proxy-mode/).
+Only known AI hosts are decrypted. Everything else passes through a blind tunnel. `HTTPS_PROXY` does not reach a browser; to mask ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser, turn on the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) with `shadow install --system-proxy --apply`. Details in [Proxy mode](/shadow/integrate/proxy-mode/).
 
 <Aside type="tip" title="Protect your own vocabulary">
 Detectors find structured values on their own. Add the names they cannot know about, such as codenames, customers and people:

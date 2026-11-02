@@ -11,7 +11,7 @@ keywords:
   - recruiting ai pii masking
 faq:
   - q: "Can recruiters paste CVs into ChatGPT?"
-    a: "Sending CVs to a consumer AI service puts candidate personal data with a third party, often without a clear lawful basis or agreement. Shadow masks names, emails, phones, addresses and recognised national IDs in CVs and documents before they reach a provider API. Consumer web apps such as chatgpt.com are not built-in hosts, so give recruiters an approved API-backed client."
+    a: "Sending CVs to a consumer AI service puts candidate personal data with a third party, often without a clear lawful basis or agreement. Shadow masks names, emails, phones, addresses and recognised national IDs in CVs and documents before they reach a provider API. In chatgpt.com in a browser, Shadow masks the typed prompt once the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) is on, but not uploaded files, so give recruiters an approved API-backed client for CVs."
   - q: "Does masking candidate names make AI screening fair or unbiased?"
     a: "No. Removing names and contact details can reduce some signals a model might react to, but bias can come from schools, employers, gaps, language and many other features that Shadow does not mask. Fairness needs testing, oversight and, where required, a bias audit."
   - q: "Is AI-assisted hiring high-risk under the EU AI Act?"

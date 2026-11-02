@@ -1,12 +1,14 @@
 ---
 title: Proxy mode
 seoTitle: "HTTPS proxy mode: mask PII in AI API traffic · Shadow"
-description: "Run Shadow as an HTTPS proxy that masks PII in the AI API traffic of every tool on a machine: local CA trust, intercepted hosts, bypass rules and PAC."
+description: "Run Shadow as an HTTPS proxy that masks PII in AI traffic from every tool, browser and chat app on a machine: system proxy, CA trust and bypass rules."
 faq:
   - q: "Does proxy mode decrypt all my HTTPS traffic?"
     a: "No. Shadow terminates TLS only for the AI API hosts on its intercept list. Every other host gets a plain TCP tunnel, and Shadow never holds a certificate for it."
-  - q: "Does proxy mode mask chatgpt.com or claude.ai in my browser?"
-    a: "No. AI web apps in a browser are not on the intercept list, so they go direct or through a blind tunnel and are not masked. Proxy mode covers tools that call AI provider APIs."
+  - q: "Does proxy mode mask ChatGPT or Claude.ai in my browser?"
+    a: "Yes, once the system proxy points at Shadow (shadow install --system-proxy --apply). Shadow masks the prompts you send in ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok, and restores your real values in the answers and in reloaded history. Phone apps and apps that pin certificates are not covered."
+  - q: "Does the system proxy slow down or log my other browsing?"
+    a: "No logging: traffic that is not going to an AI service is tunnelled byte for byte and never recorded. If Shadow is not running, apps connect directly instead, so stopping Shadow never cuts you off."
   - q: "What happens if Shadow stops?"
     a: "Tools configured with `HTTPS_PROXY` fail to connect instead of bypassing Shadow. To skip it for one command, run `env -u HTTPS_PROXY your-tool`."
   - q: "Why does an app still fail after I trusted the CA?"
@@ -18,6 +20,7 @@ import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 In proxy mode, tools send their traffic to Shadow with the standard `HTTPS_PROXY` setting. For each connection, Shadow looks at the destination host:
 
 - **Known AI host** (for example `api.openai.com`): Shadow terminates TLS with a certificate from its local CA, masks the request, forwards it to the real host over a fresh TLS connection, and restores the response.
+- **AI chat app** (ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek, Grok in a browser or desktop app): the same, but only the requests that send a prompt are masked, and only their prompt text. Sign-in, settings, pages and everything else go through unchanged. Answers and reloaded history are restored.
 - **Any other host**: Shadow opens a plain TCP tunnel and copies bytes in both directions. It never sees the content, because it never holds a certificate for that host.
 
 TLS is terminated only on your machine, before the request is encrypted again for the provider.
@@ -108,20 +111,67 @@ $env:CURL_CA_BUNDLE = "$env:APPDATA\shadow\ca\bundle.pem"
 
 Add `source "<data dir>/env.sh"` to `~/.zshrc` or `~/.bashrc` to make it permanent.
 
-## System-wide with a PAC file
+<a id="system-wide-with-a-pac-file"></a>
 
-Apps that use the OS proxy settings (browsers, many desktop apps) can use the PAC file Shadow serves at `/proxy.pac`. It sends only the intercepted hosts through Shadow and everything else direct. In a browser that means AI web apps such as chatgpt.com, claude.ai and gemini.google.com go direct and are not masked:
+## System-wide with the system proxy
+
+To cover browsers and desktop apps too, including ChatGPT, Claude.ai and Gemini in a browser, point the machine's system proxy at Shadow:
 
 ```sh
-# macOS
-networksetup -setautoproxyurl "Wi-Fi" http://127.0.0.1:8877/proxy.pac
+shadow install --system-proxy            # dry run: lists every setting it would change
+shadow install --system-proxy --apply    # service, CA trust, then the system proxy
 ```
 
-On Windows, set it under *Settings → Network → Proxy → Use setup script*. On GNOME, under *Settings → Network → Network Proxy → Automatic*.
+Or switch it on and off on its own, once Shadow is installed:
+
+```sh
+shadow system-proxy status
+shadow system-proxy on --apply
+shadow system-proxy off --apply
+```
+
+On macOS this sets an automatic proxy configuration on every enabled network service (Wi-Fi, Ethernet, ...); on Windows, the setup script in Internet Settings; on GNOME, the automatic proxy. All of them load `http://127.0.0.1:8877/proxy.pac?scope=all`, which:
+
+- sends all traffic to Shadow, except `localhost`, `.local` names and private addresses (`10/8`, `172.16/12`, `192.168/16`, `169.254/16`), which go direct;
+- falls back to a direct connection whenever Shadow is not answering (`PROXY 127.0.0.1:8877; DIRECT`), so stopping Shadow never cuts the machine off.
+
+Shadow still decrypts only AI hosts. Every other connection is tunnelled byte for byte and is **not recorded** anywhere: Shadow never becomes a log of your browsing. `shadow uninstall --apply` and `shadow system-proxy off --apply` turn off only settings that point at Shadow and leave any other proxy configuration alone.
+
+<Aside type="caution" title="What the system proxy does not reach">
+Apps that ignore the system proxy (many command-line tools, Node.js and Electron apps that bring their own network stack) still need `HTTPS_PROXY` or a base URL, as above. Firefox uses its own certificate store: turn on `security.enterprise_roots.enabled` in `about:config` (on by default in recent versions on macOS and Windows) so it trusts Shadow's CA. AI apps on phones and apps that pin their certificates are not covered. For capture of every connection from every app, see the [macOS Network Extension](https://github.com/Tiny-Bubble-Company/shadow/tree/main/apps/shadow-netext) (a scaffold that needs an Apple Developer ID to build).
+</Aside>
+
+### AI chat apps
+
+With the system proxy on and the local CA trusted, these chat apps are masked in a browser or their desktop app:
+
+| App | Host | What is masked |
+|---|---|---|
+| ChatGPT | `chatgpt.com` | The message you send (`messages[].content.parts`) |
+| Claude.ai | `claude.ai` | The prompt and pasted or attached text |
+| Gemini | `gemini.google.com` | The prompt (inside the `f.req` form field) |
+| Perplexity | `perplexity.ai` | The question |
+| DeepSeek | `chat.deepseek.com` | The prompt |
+| Grok | `grok.com` | The message |
+
+For each prompt request Shadow reads the goal first, like any other request: if you ask it to write to someone, that person goes through unchanged and everything else is masked. Values are replaced with persona fakes rather than `[PERSON_0001]` tokens, so the fakes can be restored when the app reloads the conversation later. The request's timezone is set to the persona's. Every answer, streamed or not, and the conversation history are restored on your machine, so the chat reads normally while the provider only ever stores the fakes.
+
+Each prompt shows up as an incident in the [activity dashboard](/shadow/concepts/activity-dashboard/), with the app (for example Google Chrome → ChatGPT) and the prompt as written and as sent.
+
+These are the vendors' own web formats, not public APIs, and they change without notice. Support is best effort: a request Shadow does not recognise is forwarded as it is, and WebSocket features (voice, live collaboration) are not processed. Microsoft Copilot, Le Chat, Meta AI and Poe are not supported yet. Turn chat apps off with:
+
+```toml
+[proxy]
+chat_apps = false
+```
+
+### Only AI hosts, with a PAC file
+
+To send only the intercepted AI hosts through Shadow and everything else direct, point an app or the OS at `http://127.0.0.1:8877/proxy.pac` (without `?scope=all`). With this file, chat apps in a browser are masked only if their hosts are on the list, which they are while `chat_apps` is on.
 
 ## Which hosts are intercepted
 
-Run `shadow hosts` to list the patterns in effect. The built-in list covers OpenAI, Anthropic, OpenRouter, Google Gemini and Vertex AI, Azure OpenAI and Azure AI services, Mistral, Groq, Together, DeepSeek, xAI, AWS Bedrock runtime, Cohere, Perplexity, Fireworks, Cerebras and Voyage AI. The full list is in [Supported providers](/shadow/reference/providers/).
+Run `shadow hosts` to list the patterns in effect. The built-in list covers model APIs (OpenAI, Anthropic, Google Gemini and Vertex AI, Mistral, DeepSeek, xAI, Cohere, Perplexity, AI21, Reka, Moonshot, Alibaba Qwen, Zhipu, MiniMax, Meta Llama API, Voyage AI), inference clouds (Azure OpenAI and Azure AI services, AWS Bedrock runtime, OpenRouter, Groq, Together, Fireworks, Cerebras, Replicate, Hugging Face, DeepInfra, Hyperbolic, SambaNova, Novita, Lambda, Baseten, NVIDIA NIM, Nebius, SiliconFlow, Cloudflare AI Gateway) and the six chat apps above. The full list is in [Supported providers](/shadow/reference/providers/).
 
 Add hosts, such as a self-hosted LLM gateway, with `extra_hosts`. Exclude hosts with `bypass_hosts`. Both accept `*` globs:
 

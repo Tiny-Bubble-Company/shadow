@@ -32,7 +32,7 @@ In a regulated enterprise, a privacy control is only as useful as the evidence b
 |---|---|
 | What data reaches the AI provider? | Masked content. Detected identifiers are replaced; see the coverage table in your assessment |
 | How do you know the control works? | `shadow scan` results on representative samples, recorded per release and per config change |
-| What is not covered? | The documented gaps: dates, internal IDs unless configured, images, consumer web chat, Realtime APIs |
+| What is not covered? | The documented gaps: dates, internal IDs unless configured, images, phone apps, chat apps not yet supported, Realtime APIs |
 | Who can reverse the pseudonyms? | Only holders of the data directory: `vault.key` on the endpoint or in a Kubernetes secret |
 | What happens on failure? | Traffic fails closed. Optional detectors fail open to the built-ins, with a warning |
 | Is anything sent in clear text by design? | Only `keep` decisions: the recipient when a user asks the model to write to or act on someone, and provider-hosted tool targets, each logged with kind and reason; both configurable off |

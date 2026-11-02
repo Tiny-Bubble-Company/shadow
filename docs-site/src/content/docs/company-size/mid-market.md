@@ -141,7 +141,7 @@ If an app runs agents, decide how provider-hosted tools are treated (`[policy.ac
 - **No admin console, policy server or fleet dashboard.** MDM and configuration management are the control plane.
 - **No central logging or SIEM export.** Each instance logs intent and counts locally; an optional local audit log is a roadmap "Next" item.
 - **Per-user `shadow terms add` entries** live in each user's `terms.json` and are not synchronised. Put shared terms in `shadow.toml`.
-- **No coverage for consumer web chat** (chatgpt.com, claude.ai), mobile apps or vendor backends such as GitHub Copilot. Pair Shadow with your web filter or CASB for those.
+- **No coverage for mobile apps, unsupported chat apps** (Microsoft Copilot, Le Chat, Meta AI, Poe) **or vendor backends** such as GitHub Copilot. Pair Shadow with your web filter or CASB for those. ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser are covered once the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) is on.
 :::
 
 ## Related

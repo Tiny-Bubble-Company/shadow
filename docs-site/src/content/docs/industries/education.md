@@ -15,7 +15,7 @@ faq:
   - q: "Does Shadow detect student ID numbers?"
     a: "Not with its built-in detectors, because student ID formats vary by institution and shadow.toml has no custom regex setting. Add known IDs as terms, enable the open-weight NER sidecar for account-style numbers, or embed Shadow in Rust with a custom detector."
   - q: "Can Shadow protect students using AI tools directly?"
-    a: "Shadow runs on managed laptops and servers, not phones or Chromebooks, and it covers API-based tools rather than consumer web apps like chatgpt.com. It suits staff devices and the institution's own AI services more than student-owned devices."
+    a: "Shadow runs on managed laptops and servers, not phones or Chromebooks, and it covers browser chat apps such as chatgpt.com only on machines with the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) turned on. It suits staff devices and the institution's own AI services more than student-owned devices."
   - q: "Can an LMS or edtech product use Shadow?"
     a: "Yes. Point the product's model client at Shadow's gateway (for example http://127.0.0.1:8877/gw/openai/v1) or run Shadow as a sidecar. Student data is masked before it leaves and restored in responses, including streamed ones."
   - q: "Does Shadow help with COPPA?"
@@ -123,7 +123,7 @@ A writing-feedback product sends essays to Anthropic through a Shadow sidecar. N
 | **Gateway** on a district or campus server | A shared internal assistant or LMS integration; keep Shadow on loopback next to the app |
 | **Sidecar** in Kubernetes | Edtech products with AI features, with egress limited to the sidecar |
 
-Shadow does not run on phones, tablets or Chromebooks, and it does not cover consumer web chat sites. The practical model for schools is an approved, API-backed assistant routed through Shadow. Distribute `shadow.toml` with your device management; there is no central console yet (see the [roadmap](/shadow/project/roadmap/)).
+Shadow does not run on phones, tablets or Chromebooks, and on staff computers it covers ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser only once the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) is turned on. The practical model for schools is an approved, API-backed assistant routed through Shadow. Distribute `shadow.toml` with your device management; there is no central console yet (see the [roadmap](/shadow/project/roadmap/)).
 
 ## Related
 

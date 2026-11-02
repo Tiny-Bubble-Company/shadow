@@ -53,7 +53,7 @@ Redaction (`[NAME]`, `***`) minimises well but breaks many tasks: a model can't 
 
 ### 1. Map where personal data meets an LLM
 
-List the tools and flows: chat clients, coding assistants, support tools, internal apps, agents, RAG pipelines. Note which provider each one calls. Shadow covers the provider APIs (OpenAI, Azure OpenAI, Anthropic, Gemini, Vertex AI, Mistral and [others](/shadow/reference/providers/)), not consumer web apps such as `chatgpt.com`.
+List the tools and flows: chat clients, coding assistants, support tools, internal apps, agents, RAG pipelines. Note which provider each one calls. Shadow covers the provider APIs (OpenAI, Azure OpenAI, Anthropic, Gemini, Vertex AI, Mistral and [others](/shadow/reference/providers/)) and, with the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) on, ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser.
 
 ### 2. Install Shadow where the data originates
 

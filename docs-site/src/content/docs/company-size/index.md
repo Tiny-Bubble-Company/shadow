@@ -62,7 +62,7 @@ Shadow is an open-source privacy layer that replaces sensitive values in AI requ
 - **No audit log yet.** Today the proxy logs the intent and counts per request, never values, and each machine's local [activity dashboard](/shadow/concepts/activity-dashboard/) shows counts by data type. An optional local, append-only audit log is a [roadmap](/shadow/project/roadmap/) "Next" item.
 - **No shared team identity yet.** Each machine has its own persona and vault. Team identities with key distribution are a "Later" item; today you can copy `persona.json`, `vault.bin` and `vault.key`.
 - **Release binaries and a published container image are in progress.** The install scripts fall back to building with `cargo` where no release exists, and the Docker image is built from `packaging/Dockerfile`.
-- **API traffic only.** Consumer web apps such as chatgpt.com are not built-in hosts.
+- **Browser chat needs the system proxy.** ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser are covered once you turn on the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy); phone apps are not.
 :::
 
 ## Related

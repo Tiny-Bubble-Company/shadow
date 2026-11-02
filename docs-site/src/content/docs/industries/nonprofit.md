@@ -13,7 +13,7 @@ faq:
   - q: "Is Shadow free for nonprofits?"
     a: "Yes. Shadow is open source under Apache-2.0 and free for everyone. There is no account, no licence key, no hosted service and no telemetry. Your only costs are the AI provider you already use and the time to set it up."
   - q: "Can charity staff paste donor lists into ChatGPT safely?"
-    a: "Not into the consumer chatgpt.com website through Shadow, because that is not a built-in intercepted host. With an approved API-backed client, Shadow turns donor names, emails, phones and addresses in bulk lists into typed tokens such as [PERSON_0001] before the request leaves, and restores them in the answer."
+    a: "Yes, on a computer running Shadow, either in chatgpt.com once the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) is on or in an approved API-backed client. Phone apps are not covered. Shadow turns donor names, emails, phones and addresses in bulk lists into typed tokens such as [PERSON_0001] before the request leaves, and restores them in the answer."
   - q: "We support vulnerable people. Is masking enough?"
     a: "No. Masking replaces names and contact details, but case notes describe situations that can identify someone, and Shadow does not mask dates or images. For safeguarding cases, keep the most sensitive material out of external AI and use Shadow for the work you do allow."
   - q: "Do we need technical staff to run it?"
@@ -85,7 +85,7 @@ Then point your AI tool at Shadow, either with its base URL setting (`http://127
 :::caution[What masking does not hide]
 - **Situations.** A case note describing a rare circumstance in a small community can identify someone without any name.
 - **Dates** are not masked, and **images and scanned forms** are not masked (no OCR).
-- **The ChatGPT website** is not covered. Shadow protects tools that call the provider APIs.
+- **Phone apps** are not covered. The ChatGPT website is covered on a computer once the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) is on.
 :::
 
 ## Regulations and frameworks

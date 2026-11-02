@@ -6,7 +6,7 @@ faq:
   - q: "How is Shadow different from redaction?"
     a: "Redaction replaces values with placeholders such as `[REDACTED]` or `<PERSON>`, so the model can no longer tell people apart or write to the right address. Shadow replaces each value with a stable, realistic fake of the same format and restores the real value in the answer."
   - q: "Does Shadow protect what I type into chatgpt.com or claude.ai?"
-    a: "No. Shadow covers apps that call AI provider APIs such as `api.openai.com` and `api.anthropic.com`. It does not see AI web apps in a browser or AI features built into other SaaS products."
+    a: "Yes, once you turn on the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) with `shadow install --system-proxy --apply`. Shadow then masks prompts in ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser, as well as apps that call provider APIs. It does not cover phone apps or AI features built into other SaaS products."
   - q: "Can the AI provider still tell who I am?"
     a: "Yes. Shadow protects the content of requests, not your identity: the provider still sees your IP address and the account behind your API key."
   - q: "What happens when I ask the model to email someone?"
@@ -60,7 +60,7 @@ The same real value always gets the same fake, and no two real values share a fa
 - **Not an anonymiser.** Providers still see your IP address and the account behind your API key. Shadow protects the *content* of requests. See the [security model](/shadow/reference/security/).
 - **Not a perfect detector.** Detection combines regular expressions, checksums, a dictionary of your own terms, local machine facts and optional NER or [Presidio](/shadow/concepts/detection/#presidio). It is best effort, and you can test it with `shadow scan`.
 - **Not a cloud service.** There is no account, no hosted component and no telemetry.
-- **Not a browser or SaaS filter.** Shadow covers apps that call AI provider APIs such as `api.openai.com` and `api.anthropic.com` (see [supported providers](/shadow/reference/providers/)). It does not see what people type into chatgpt.com, claude.ai or gemini.google.com, or into AI features built into other SaaS products.
+- **Not a browser or SaaS filter.** Shadow covers apps that call AI provider APIs such as `api.openai.com` and `api.anthropic.com` (see [supported providers](/shadow/reference/providers/)). With the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) on, it also masks what people type into ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser. It does not see phone apps or AI features built into other SaaS products.
 
 ## See what your AI tools send
 

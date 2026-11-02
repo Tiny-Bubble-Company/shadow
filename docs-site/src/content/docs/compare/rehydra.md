@@ -20,7 +20,7 @@ faq:
   - q: "Is Rehydra free?"
     a: "Yes. Rehydra is MIT-licensed and published on npm. Shadow is Apache-2.0. Both are free."
   - q: "Which one runs in the browser?"
-    a: "Rehydra runs on Node, Bun and in the browser. Shadow runs on macOS, Linux and Windows hosts, servers and containers, not inside a browser page. A browser can send traffic through it as the system proxy, but only calls to supported AI API hosts are masked, not web chat such as chatgpt.com or claude.ai."
+    a: "Rehydra runs on Node, Bun and in the browser. Shadow runs on macOS, Linux and Windows hosts, servers and containers, not inside a browser page. A browser can send traffic through it as the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy), and then calls to supported AI API hosts and chat apps such as chatgpt.com and claude.ai are masked."
   - q: "Do both work with Claude Code?"
     a: "Yes. Rehydra documents a local proxy for Claude Code and OpenAI and Anthropic clients. Shadow covers Claude Code through proxy mode or by setting the Anthropic base URL to its gateway."
   - q: "Which one is more accurate?"

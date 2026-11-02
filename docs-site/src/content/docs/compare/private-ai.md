@@ -75,7 +75,7 @@ Shadow classifies each request as act, report, code or converse and picks a trea
 
 ### Interception instead of integration
 
-Private AI is an API you call. Shadow is a proxy: set `HTTPS_PROXY` or a base URL and every tool on the machine that calls a [supported AI API](/shadow/reference/providers/) is covered, including tools you didn't write. Web chat in a browser is not. See [proxy mode](/shadow/integrate/proxy-mode/) and [gateway mode](/shadow/integrate/gateway-mode/).
+Private AI is an API you call. Shadow is a proxy: set `HTTPS_PROXY` or a base URL and every tool on the machine that calls a [supported AI API](/shadow/reference/providers/) is covered, including tools you didn't write. Turn on the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) and ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser are covered too. See [proxy mode](/shadow/integrate/proxy-mode/) and [gateway mode](/shadow/integrate/gateway-mode/).
 
 ## When should you choose Private AI?
 

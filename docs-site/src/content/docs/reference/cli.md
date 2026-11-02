@@ -32,7 +32,8 @@ Logs go to stderr. `shadow run` logs at `info` by default, every other command a
 |---|---|
 | [`init`](#shadow-init) | Create the persona, vault key and local CA |
 | [`run`](#shadow-run) | Run the proxy and gateway in the foreground |
-| [`install`](#shadow-install) / [`uninstall`](#shadow-uninstall) | Background service and CA trust (dry run by default) |
+| [`install`](#shadow-install) / [`uninstall`](#shadow-uninstall) | Background service and CA trust, optionally the system proxy (dry run by default) |
+| [`system-proxy`](#shadow-system-proxy) | Route the machine's traffic through Shadow, or stop |
 | [`status`](#shadow-status) | Configuration, persona, vault and proxy health |
 | [`identity`](#shadow-identity) | Show the persona |
 | [`mask`](#shadow-mask) / [`unmask`](#shadow-unmask) | Translate stdin to stdout |
@@ -42,6 +43,7 @@ Logs go to stderr. `shadow run` logs at `info` by default, every other command a
 | [`hosts`](#shadow-hosts) | List intercepted hosts and gateway routes |
 | [`top`](#shadow-top) | Live activity view in the terminal |
 | [`activity`](#shadow-activity) | Print an activity summary |
+| [`incidents`](#shadow-incidents) | List incidents, or show one with its prompt and source |
 | [`dashboard`](#shadow-dashboard) | Open the web activity dashboard |
 
 ## `shadow init`
@@ -79,19 +81,32 @@ On start it prints the persona, the gateway URL pattern, the proxy setting and t
 Install the background service and trust the local CA. Prints the plan; performs it only with `--apply`.
 
 ```sh
-shadow install [--apply] [--listen <ADDR>]
+shadow install [--apply] [--listen <ADDR>] [--system-proxy]
 ```
 
 | Flag | Description |
 |---|---|
 | `--apply` | Perform the steps. Without it, nothing changes |
 | `--listen <ADDR>` | Listen address for the service |
+| `--system-proxy` | Also point the system proxy at Shadow, so browsers and desktop apps (ChatGPT, Claude.ai, Gemini, ...) are covered. See [`system-proxy`](#shadow-system-proxy) |
 
 Creates the persona, key and CA first if needed. After the plan, it prints how to point tools at Shadow (gateway URLs, the proxy environment, and the macOS PAC command). With `--apply`, it also writes `env.sh` (`env.ps1` on Windows) to the data directory. See [Installation](/shadow/getting-started/installation/#run-as-a-background-service) for the per-OS steps.
 
 ## `shadow uninstall`
 
-Remove the background service and the CA trust. Same flags as `install`, also a dry run unless `--apply`. The data directory is left in place.
+Remove the system proxy (where it points at Shadow), the background service and the CA trust. Same flags as `install`, also a dry run unless `--apply`. The data directory is left in place.
+
+## `shadow system-proxy`
+
+Route the machine's traffic through Shadow with the system proxy settings, or stop. `on` and `off` print the steps and perform them only with `--apply`; `status` shows where the system proxy points at Shadow.
+
+```sh
+shadow system-proxy status
+shadow system-proxy on [--apply]
+shadow system-proxy off [--apply]
+```
+
+`on` sets `http://<listen>/proxy.pac?scope=all` as the automatic proxy configuration: on every enabled macOS network service (`networksetup`), in Windows Internet Settings (`AutoConfigURL`) or in GNOME (`gsettings`). The PAC file sends all traffic to Shadow except local and private addresses, and falls back to a direct connection when Shadow is not running. Shadow decrypts only AI hosts and chat apps; everything else is tunnelled and not recorded. `off` turns off only settings that point at Shadow. See [Proxy mode](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy).
 
 ## `shadow status`
 
@@ -209,6 +224,21 @@ Print the activity summary as plain tables, or as JSON with `--json`. `--window`
 ```sh
 shadow activity [--window <WINDOW>] [--json] [--demo]
 ```
+
+## `shadow incidents`
+
+List incidents (masked or blocked requests) with their IDs, or show one in full: the app, process and conversation that sent it, the AI and model it went to, each value caught and what replaced it, and the prompt as written and as sent. Details come from the running proxy's memory (the last 200 incidents by default).
+
+```sh
+shadow incidents [-n <N>] [--json]
+shadow incidents <ID> [--reveal] [--json]
+```
+
+| Flag | Description |
+|---|---|
+| `-n`, `--limit <N>` | How many incidents to list (default 30) |
+| `--reveal` | Print caught values in full instead of shortened (`ma*******om`) |
+| `--json` | Print the raw JSON from the proxy, values in full |
 
 ## `shadow dashboard`
 

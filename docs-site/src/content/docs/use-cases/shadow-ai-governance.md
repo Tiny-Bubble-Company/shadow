@@ -56,7 +56,7 @@ Shadow intercepts provider APIs (OpenAI, Anthropic, Azure OpenAI, Gemini and Ver
 - desktop chat clients that use your own API key;
 - internal assistants and agents your teams build on the OpenAI or Anthropic SDKs.
 
-Consumer web apps such as chatgpt.com and claude.ai, and vendor backends such as GitHub Copilot or Cursor's hosted service, are not built in. Govern those with your existing web controls.
+With the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) turned on, Shadow also masks ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser. Phone apps, chat apps it does not support yet (Microsoft Copilot, Le Chat, Meta AI, Poe) and vendor backends such as GitHub Copilot or Cursor's hosted service are not covered. Govern those with your existing web controls.
 
 ### 2. Install Shadow on endpoints
 
@@ -110,7 +110,7 @@ The service log shows each request's intent and treatment counts, and the local 
 
 - **Discovery.** It cannot tell you which AI tools are in use.
 - **Personal devices and accounts.** It protects the machines it is installed on.
-- **Web chat UIs and pinned apps.** Browser chat and certificate-pinning apps are outside its scope.
+- **Unsupported chat apps and pinned apps.** Chat apps other than ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok, and certificate-pinning apps, are outside its scope. Browser chat needs the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy).
 - **Phones and Chromebooks.** Shadow runs on macOS, Linux, Windows, servers and containers.
 - **User-level monitoring.** No per-user reporting; logs never contain values.
 

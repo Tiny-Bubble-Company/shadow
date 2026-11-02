@@ -27,7 +27,7 @@
 
 ---
 
-Shadow is an endpoint privacy layer between your apps and AI clouds: OpenAI, Anthropic, Gemini, Azure OpenAI, OpenRouter, Mistral, Groq and more. It runs on your machine as a local proxy or gateway, or inside your Rust service as a library. It finds sensitive values in every outbound request, swaps them for format-preserving fakes from a persistent **persona**, keeps the mapping in an encrypted local vault, and translates responses back, including streamed responses and tool calls.
+Shadow is an endpoint privacy layer between your apps and AI clouds: OpenAI, Anthropic, Gemini, Azure OpenAI, OpenRouter, Mistral, Groq, 20+ inference clouds, and ChatGPT, Claude.ai and Gemini in your browser. It runs on your machine as a local proxy or gateway, or inside your Rust service as a library. It finds sensitive values in every outbound request, swaps them for format-preserving fakes from a persistent **persona**, keeps the mapping in an encrypted local vault, and translates responses back, including streamed responses and tool calls.
 
 ```text
 you      ──"Summarise this thread: jane@acme.com asks when Project Falcon ships to Acme GmbH"──────────────────────▶ Shadow
@@ -105,7 +105,8 @@ The log on disk holds counts only. Prompt text and caught values are kept in mem
 | **File masking** | Text, CSV, JSON, HTML, XML; DOCX, XLSX, PPTX masked in place; PDF text extracted and masked |
 | **Pluggable detection** | Regex, checksums, your dictionary, local machine facts, an optional local NER model, and Microsoft Presidio |
 | **Local and encrypted** | ChaCha20-Poly1305 vault, `0600` key, atomic multi-process writes; the mapping never leaves the machine |
-| **Minimal interception** | Only known AI hosts are decrypted; all other traffic is tunnelled byte for byte |
+| **Minimal interception** | Only known AI hosts are decrypted; all other traffic is tunnelled byte for byte and never recorded |
+| **AI chat apps in the browser** | With the system proxy on, prompts sent in ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok are masked, and answers and history are restored |
 | **Identity scrubbing** | OpenAI `user`, Anthropic `metadata.user_id`, org and OS headers replaced or stripped |
 | **Activity dashboard** | Counts by data type, destination and app on disk, plus each incident's prompt, caught values and sending process in memory: web UI on loopback, `shadow top`, `shadow incidents`, and a menu-bar / tray app |
 
@@ -155,6 +156,15 @@ shadow install            # dry run: prints exactly what would change
 shadow install --apply    # background service, menu-bar app at login, trust the local CA, env file
 export HTTPS_PROXY=http://127.0.0.1:8877
 ```
+
+**Cover browsers and chat apps too (system proxy)**
+
+```sh
+shadow install --system-proxy --apply   # also points the system proxy at Shadow
+shadow system-proxy off --apply         # turn it off again
+```
+
+Every app that follows the system proxy goes through Shadow. ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok prompts are masked; everything else you browse is tunnelled untouched and not recorded. If Shadow stops, apps connect directly.
 
 **Verify**
 
@@ -312,7 +322,7 @@ url = "http://127.0.0.1:5002/analyze"
 
 ## Security model
 
-Shadow protects the **content** of AI requests from the provider, its subprocessors, logs, training sets and breaches. It trusts the endpoint it runs on. It does not hide your IP address or the account behind your API key (use `upstream_proxy` to route AI traffic through a relay). Detection is best effort: add your own terms and test with `shadow scan`. Only the [listed AI API hosts](https://getshadow.dev/reference/providers/) are intercepted, so AI web apps in a browser (chatgpt.com, claude.ai, gemini.google.com) are not masked. For actions the provider runs itself, the contact details the action needs are sent real by default and logged. Images are not OCR'd; WebSocket/Realtime APIs and gRPC are not processed; SigV4-signed requests are forwarded unmasked with a warning; certificate-pinning apps reject the local CA in proxy mode.
+Shadow protects the **content** of AI requests from the provider, its subprocessors, logs, training sets and breaches. It trusts the endpoint it runs on. It does not hide your IP address or the account behind your API key (use `upstream_proxy` to route AI traffic through a relay). Detection is best effort: add your own terms and test with `shadow scan`. Only the [listed AI hosts](https://getshadow.dev/reference/providers/) are decrypted. Chat apps in a browser are covered only with the system proxy on, only for the six supported apps (their private web formats can change), and not for WebSocket features; apps that ignore the system proxy need `HTTPS_PROXY` or a base URL, and phone apps are not covered. For actions the provider runs itself, the contact details the action needs are sent real by default and logged. Images are not OCR'd; WebSocket/Realtime APIs and gRPC are not processed; SigV4-signed requests are forwarded unmasked with a warning; certificate-pinning apps reject the local CA in proxy mode.
 
 Read the full [security model](https://getshadow.dev/reference/security/). Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
 
