@@ -10,7 +10,7 @@ use axum::{Json, Router};
 use serde_json::{json, Value};
 use shadow_core::activity::{Action, ActivityLog, Detail, Event, TextPart};
 use shadow_core::Change;
-use shadow_proxy::hub::{enroll, upload_pending, Enrollment};
+use shadow_proxy::hub::{enroll, upload_pending};
 
 #[derive(Default)]
 struct Mock {
@@ -97,7 +97,7 @@ async fn enrol_then_upload_at_each_sharing_level() {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        let mode = std::fs::metadata(Enrollment::path(dir.path()))
+        let mode = std::fs::metadata(shadow_proxy::hub::Enrollment::path(dir.path()))
             .unwrap()
             .permissions()
             .mode()
