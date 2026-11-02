@@ -530,3 +530,20 @@
 	color: var(--sl-color-text-accent);
 	font-weight: 600;
 }
+
+/* The buyer CTA in the header bar (the menu panel carries it on narrow screens). */
+.sh-header__cta {
+	display: none;
+}
+.sh-header__cta .sh-cta,
+.sh-menu__panel .sh-cta {
+	margin: 0;
+}
+.sh-menu__panel .sh-cta {
+	margin-top: 0.75rem;
+}
+@media (min-width: 62rem) {
+	.sh-header__cta {
+		display: block;
+	}
+}

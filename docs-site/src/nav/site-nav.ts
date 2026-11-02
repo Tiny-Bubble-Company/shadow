@@ -114,9 +114,22 @@ export const RESOURCE_LINKS: NavLink[] = [
 export async function mainNav() {
 	const g = await sectionGroups();
 	const pick = (dir: string) => g[dir] ?? { id: dir, label: dir, links: [] };
+	const hub: NavGroup = {
+		id: 'hub',
+		label: 'Shadow Hub',
+		href: sitePath('/hub/'),
+		links: [
+			{ label: 'Shadow Hub for teams', href: sitePath('/hub/'), description: 'See what your team sends to AI, per user and tool' },
+			{ label: 'Pricing', href: sitePath('/pricing/'), description: 'Core is free; Hub is per monitored user' },
+			{ label: 'Trust and data', href: sitePath('/trust/'), description: 'What Hub receives, stores and never sees' },
+			{ label: 'Connect a machine', href: sitePath('/hub/connect/'), description: 'shadow hub connect, and how to disconnect' },
+			{ label: 'Teams and organisations', href: sitePath('/integrate/organisations/'), description: 'Invites, sharing levels, the managed notice' },
+			{ label: 'Compare AI DLP tools', href: sitePath('/compare/ai-dlp/'), description: 'Endpoint DLP vs browser extension vs LLM proxy' },
+		],
+	};
 	const product: NavGroup = {
 		id: 'product',
-		label: 'Product',
+		label: 'Shadow Core',
 		href: sitePath('/'),
 		links: [
 			{ label: 'What is Shadow', href: sitePath('/getting-started/introduction/'), description: 'Reversible fakes instead of blocking' },
@@ -134,15 +147,15 @@ export async function mainNav() {
 		id: 'docs',
 		label: 'Docs',
 		href: sitePath('/getting-started/introduction/'),
-		columns: [pick('getting-started'), pick('integrate'), pick('concepts'), pick('reference')],
+		columns: [product, pick('getting-started'), pick('integrate'), pick('concepts'), pick('reference')],
 	};
 	const solutions = {
 		id: 'solutions',
 		label: 'Solutions',
 		href: pick('use-cases').href,
-		columns: [pick('use-cases'), pick('company-size')],
+		columns: [pick('use-cases'), pick('company-size'), pick('industries')],
 	};
 	const industries = pick('industries');
 	const compare = pick('compare');
-	return { product, docs, solutions, industries, compare };
+	return { product, hub, docs, solutions, industries, compare };
 }

@@ -35,7 +35,7 @@ if ($userPath -notlike "*$Dest*") { [Environment]::SetEnvironmentVariable("Path"
 & "$Dest\shadow.exe" init
 
 if ($env:SHADOW_ENROLL) {
-  & "$Dest\shadow.exe" enroll $env:SHADOW_ENROLL
+  & "$Dest\shadow.exe" hub connect --yes $env:SHADOW_ENROLL
   & "$Dest\shadow.exe" install --apply --system-proxy
   Write-Host ""
   Write-Host "Done. This machine is protected by Shadow and reports to your organisation."

@@ -1,0 +1,259 @@
+---
+// Pricing tiers, annual/monthly toggle and a seat-count estimator, all from
+// src/data/pricing.ts. The estimator runs in the browser and sends nothing.
+import { TIERS, PRICING_NOTES, HUB_TIERS } from '../data/pricing';
+import { hub, BUYER_CTA, DEMO_CTA, INSTALL_CMD } from '../data/hub';
+
+interface Props {
+	/** Compact summary (Hub page): no toggle or estimator. */
+	summary?: boolean;
+	location?: string;
+}
+const { summary = false, location = 'pricing' } = Astro.props;
+const money = (n: number | null) => (n === null ? '' : `$${n}`);
+const estimatorTiers = JSON.stringify(HUB_TIERS.map((t) => ({ id: t.id, name: t.name, min: t.seats.min, max: t.seats.max, annual: t.price.annual, monthly: t.price.monthly, label: t.priceLabel ?? null })));
+---
+
+<div class="sh-pricing not-content" data-billing="annual" data-location={location}>
+	{
+		!summary && (
+			<div class="sh-pricing__bar">
+				<div class="sh-pricing__toggle" role="group" aria-label="Billing">
+					<button type="button" data-billing-set="annual" aria-pressed="true">Annual</button>
+					<button type="button" data-billing-set="monthly" aria-pressed="false">Monthly</button>
+				</div>
+				<p class="sh-pricing__hint">Prices per monitored user per month, in USD. Hub is in early access: plans and prices may change.</p>
+			</div>
+		)
+	}
+	<div class:list={['sh-pricing__grid', { 'is-summary': summary }]}>
+		{
+			TIERS.map((t) => (
+				<article class:list={['sh-tier', { 'is-featured': t.featured }]} id={t.id}>
+					{(t.aliases ?? []).map((a) => <span id={a} class="sh-anchor" />)}
+					<h3>{t.name}</h3>
+					<p class="sh-tier__size">{t.size}</p>
+					<p class="sh-tier__price">
+						<span class="sh-tier__amount" data-annual={t.priceLabel ?? money(t.price.annual)} data-monthly={t.priceLabel ?? (t.price.monthly === null ? money(t.price.annual) : money(t.price.monthly))}>
+							{t.priceLabel ?? money(t.price.annual)}
+						</span>
+						<span class="sh-tier__note" data-annual={t.priceNote} data-monthly={t.price.monthly === null && !t.priceLabel ? `${t.priceNote}, annual billing only` : t.priceNote}>
+							{t.priceNote}
+						</span>
+					</p>
+					{!summary && (
+						<ul>
+							{t.includes.map((i) => <li>{i}</li>)}
+						</ul>
+					)}
+					{t.cta.action === 'install' ? (
+						<button type="button" class="sh-tier__btn" data-copy-cmd={INSTALL_CMD} data-tier={t.id} data-track="install_copy" data-track-props={JSON.stringify({ method: 'script' })}>
+							<span data-copy-label>{t.cta.label}</span>
+						</button>
+					) : t.cta.action === 'demo' ? (
+						<button type="button" class="sh-tier__btn" data-tier={t.id} data-open-form="demo" data-form-location={location}>{DEMO_CTA}</button>
+					) : hub.hubLive ? (
+						<a class:list={['sh-tier__btn', { 'is-primary': t.featured }]} data-tier={t.id} href={hub.signupUrl} data-track="hub_start_free" data-track-props={JSON.stringify({ location })}>{t.cta.label}</a>
+					) : (
+						<button type="button" class:list={['sh-tier__btn', { 'is-primary': t.featured }]} data-tier={t.id} data-open-form="waitlist" data-form-location={location} data-track="hub_start_free" data-track-props={JSON.stringify({ location })}>
+							{BUYER_CTA}
+						</button>
+					)}
+				</article>
+			))
+		}
+	</div>
+	{
+		!summary && (
+			<>
+				<ul class="sh-pricing__notes">
+					{PRICING_NOTES.map((n) => <li>{n}</li>)}
+				</ul>
+				<div class="sh-estimator">
+					<label for="sh-seats">
+						Estimate your Hub cost: <strong><output id="sh-seats-out">25</output> users</strong>
+					</label>
+					<input id="sh-seats" type="range" min="1" max="1000" step="1" value="25" />
+					<p class="sh-estimator__result" aria-live="polite" />
+					<p class="sh-estimator__fine">Calculated in your browser; nothing is sent.</p>
+				</div>
+			</>
+		)
+	}
+	<script type="application/json" class="sh-pricing__data" set:html={estimatorTiers} />
+</div>
+
+<script>
+	import { track } from '../scripts/track';
+
+	document.querySelectorAll<HTMLElement>('.sh-pricing').forEach((root) => {
+		const location = root.dataset.location ?? 'pricing';
+		const tiers = JSON.parse(root.querySelector('.sh-pricing__data')?.textContent || '[]') as {
+			id: string; name: string; min: number; max: number | null; annual: number | null; monthly: number | null; label: string | null;
+		}[];
+		const setBilling = (b: string) => {
+			root.dataset.billing = b;
+			root.querySelectorAll<HTMLElement>('[data-annual]').forEach((el) => (el.textContent = (b === 'monthly' ? el.dataset.monthly : el.dataset.annual) ?? ''));
+			root.querySelectorAll<HTMLButtonElement>('[data-billing-set]').forEach((btn) => btn.setAttribute('aria-pressed', String(btn.dataset.billingSet === b)));
+			estimate();
+		};
+		const slider = root.querySelector<HTMLInputElement>('#sh-seats');
+		const out = root.querySelector('#sh-seats-out');
+		const result = root.querySelector('.sh-estimator__result');
+		function estimate() {
+			if (!slider || !out || !result) return;
+			const n = Number(slider.value);
+			out.textContent = String(n);
+			const t = tiers.find((x) => n >= x.min && (x.max === null || n <= x.max)) ?? tiers[tiers.length - 1];
+			if (!t) return;
+			const monthly = root.dataset.billing === 'monthly';
+			const per = monthly ? (t.monthly ?? t.annual) : t.annual;
+			if (t.label === 'Custom') {
+				result.textContent = `${t.name}: custom pricing from $${t.annual}/user/month, about $${(n * (t.annual ?? 0)).toLocaleString('en-US')}/month. Book a demo for a quote.`;
+			} else if (!per) {
+				result.textContent = `${t.name}: free.`;
+			} else {
+				const note = monthly && t.monthly === null ? ' (annual billing only)' : '';
+				result.textContent = `${t.name}: about $${(n * per).toLocaleString('en-US')}/month at $${per}/user${note}.`;
+			}
+		}
+		root.querySelectorAll<HTMLButtonElement>('[data-billing-set]').forEach((btn) => btn.addEventListener('click', () => setBilling(btn.dataset.billingSet ?? 'annual')));
+		slider?.addEventListener('input', estimate);
+		estimate();
+		root.addEventListener('click', (e) => {
+			const btn = (e.target as Element | null)?.closest<HTMLElement>('[data-tier]');
+			if (btn) track('pricing_tier_click', { tier: btn.dataset.tier ?? '', billing: root.dataset.billing ?? 'annual' });
+		});
+	});
+</script>
+
+<style>
+	.sh-pricing__bar {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem 1.25rem;
+		margin: 1rem 0;
+	}
+	.sh-pricing__toggle {
+		display: inline-flex;
+		padding: 3px;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.6rem;
+	}
+	.sh-pricing__toggle button {
+		border: 0;
+		background: transparent;
+		color: var(--sl-color-gray-2);
+		font: inherit;
+		font-weight: 600;
+		font-size: 0.88rem;
+		padding: 0.3rem 0.9rem;
+		border-radius: 0.45rem;
+		cursor: pointer;
+	}
+	.sh-pricing__toggle button[aria-pressed='true'] {
+		background: var(--sl-color-accent-low);
+		color: var(--sl-color-white);
+	}
+	.sh-pricing__hint,
+	.sh-estimator__fine {
+		margin: 0;
+		color: var(--sl-color-gray-3);
+		font-size: 0.85rem;
+	}
+	.sh-pricing__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+		gap: 0.9rem;
+	}
+	.sh-tier {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		padding: 1.1rem 1.1rem 1.2rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.9rem;
+		background: var(--sl-color-bg);
+	}
+	.sh-tier.is-featured {
+		border-color: var(--sl-color-accent);
+		box-shadow: 0 0 0 1px var(--sl-color-accent);
+	}
+	.sh-tier h3 {
+		margin: 0;
+		font-size: 1.05rem;
+	}
+	.sh-tier__size,
+	.sh-tier__note {
+		margin: 0;
+		color: var(--sl-color-gray-3);
+		font-size: 0.85rem;
+	}
+	.sh-tier__price {
+		margin: 0.2rem 0;
+		display: grid;
+	}
+	.sh-tier__amount {
+		font-size: 1.7rem;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+	}
+	.sh-tier ul {
+		margin: 0.3rem 0 0.6rem;
+		padding-left: 1.1rem;
+		font-size: 0.88rem;
+		flex: 1;
+	}
+	.sh-tier ul li {
+		margin: 0.15rem 0;
+	}
+	.sh-tier__btn {
+		margin-top: auto;
+		display: inline-flex;
+		justify-content: center;
+		align-items: center;
+		min-height: 2.3rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.6rem;
+		background: transparent;
+		color: var(--sl-color-white);
+		font: inherit;
+		font-weight: 600;
+		font-size: 0.9rem;
+		text-decoration: none;
+		cursor: pointer;
+	}
+	.sh-tier__btn.is-primary {
+		background: var(--sl-color-accent);
+		border-color: var(--sl-color-accent);
+		color: #fff;
+	}
+	.sh-pricing__notes {
+		margin: 1rem 0;
+		padding-left: 1.1rem;
+		color: var(--sl-color-gray-2);
+		font-size: 0.9rem;
+	}
+	.sh-estimator {
+		margin: 1rem 0;
+		padding: 1rem 1.1rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.9rem;
+		display: grid;
+		gap: 0.5rem;
+	}
+	.sh-estimator input {
+		width: 100%;
+		accent-color: var(--sl-color-accent);
+	}
+	.sh-estimator__result {
+		margin: 0;
+		font-weight: 600;
+	}
+	.sh-anchor {
+		position: absolute;
+		top: -5rem;
+	}
+</style>

@@ -1,0 +1,6 @@
+Contact: mailto:support@getshadow.dev
+Contact: https://github.com/Tiny-Bubble-Company/shadow/security/advisories/new
+Expires: 2027-11-01T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://getshadow.dev/.well-known/security.txt
+Policy: https://github.com/Tiny-Bubble-Company/shadow/blob/main/SECURITY.md

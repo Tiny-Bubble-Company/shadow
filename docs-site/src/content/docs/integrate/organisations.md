@@ -10,12 +10,12 @@ faq:
   - q: "Do employees know their machine is managed?"
     a: "Yes. The menu-bar app, the local dashboard and `shadow status` all say which organisation manages the machine and what is shared with its admins."
   - q: "Is Shadow Hub open source?"
-    a: "No. Shadow, which protects each machine, is open source under Apache-2.0. Shadow Hub, the central dashboard for organisations, is a commercial service, also available self-hosted. Contact support@getshadow.dev."
+    a: "No. Shadow Core, which protects each machine, is open source under Apache-2.0 and never phones home. Shadow Hub, the central dashboard for organisations, is a commercial service in early access. See [Shadow Hub](/shadow/hub/)."
 ---
 
 Shadow protects one machine at a time. **Shadow Hub** brings those machines together for an organisation: admins invite employees, every enrolled laptop and server reports what Shadow protected, and the hub shows it per person, per machine and across the workforce, including what kinds of data leak most and to which AI services.
 
-Shadow itself (everything in this documentation) stays open source and works on its own. Shadow Hub is a separate, commercial product. To try it, write to [support@getshadow.dev](mailto:support@getshadow.dev).
+Shadow itself (everything in this documentation) stays open source and works on its own. Shadow Hub is a separate, commercial product, now in early access: see [Shadow Hub](/shadow/hub/) and [pricing](/shadow/pricing/), or write to [support@getshadow.dev](mailto:support@getshadow.dev).
 
 ## Joining an organisation
 
@@ -34,16 +34,18 @@ $env:SHADOW_ENROLL='https://hub.example.com/join/inv_...'; irm https://raw.githu
 With `SHADOW_ENROLL` set, the installer:
 
 1. installs Shadow (and the menu-bar app on macOS);
-2. enrols the machine with the organisation (`shadow enroll <join link>`);
+2. connects the machine to the organisation (`shadow hub connect --yes <join link>`);
 3. installs the background service, trusts the local CA and turns on the [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) (`shadow install --apply --system-proxy`), so browsers and chat apps are covered too.
 
-On a machine where Shadow is already installed, enrolling is one command:
+On a machine where Shadow is already installed, connecting is one command. Shadow shows the organisation and what it will see, and asks before anything is sent:
 
 ```sh
-shadow enroll 'https://hub.example.com/join/inv_...'
-shadow status        # shows the organisation and what is shared
-shadow unenroll      # stop reporting from this machine
+shadow hub connect 'https://hub.example.com/join/inv_...'
+shadow hub status       # the organisation and what is shared
+shadow hub disconnect   # stop reporting from this machine
 ```
+
+See [Connect a machine](/shadow/hub/connect/) for what is sent and never sent.
 
 ## What is shared
 

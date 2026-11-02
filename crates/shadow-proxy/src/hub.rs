@@ -93,6 +93,29 @@ pub fn parse_join_link(link: &str) -> Option<(String, String)> {
     Some((base.to_string(), token.to_string()))
 }
 
+/// What a join link offers, shown before anything is sent: `(org name, sharing level, invited email)`.
+pub async fn join_info(join_link: &str) -> anyhow::Result<(String, String, Option<String>)> {
+    let (hub_url, token) = parse_join_link(join_link).ok_or_else(|| {
+        anyhow::anyhow!("that doesn't look like a join link (https://<hub>/join/<token>)")
+    })?;
+    let r = client()?
+        .get(format!("{hub_url}/api/join/{token}"))
+        .send()
+        .await
+        .map_err(|e| anyhow::anyhow!("could not reach the hub at {hub_url}: {e}"))?;
+    let v: Value = serde_json::from_str(&r.text().await.unwrap_or_default()).unwrap_or_default();
+    anyhow::ensure!(
+        v.get("valid").and_then(Value::as_bool) == Some(true),
+        "this invite link has expired, been used or been revoked"
+    );
+    let s = |k: &str| v.get(k).and_then(Value::as_str).map(str::to_string);
+    Ok((
+        s("org_name").unwrap_or_default(),
+        s("share_level").unwrap_or_default(),
+        s("email"),
+    ))
+}
+
 /// Enrol this machine with the hub behind `join_link` and save the enrolment.
 pub async fn enroll(
     join_link: &str,

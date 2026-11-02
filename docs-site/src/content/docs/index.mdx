@@ -16,15 +16,18 @@ keywords:
   - prompt anonymization
   - mask PII before sending to OpenAI
 hero:
-  title: Shadow
-  tagline: '<span class="hero-oss">Free &amp; open source · Apache-2.0 · Self-hosted</span>The open-source privacy layer for AI. Shadow swaps names, emails, customers and secrets for realistic, reversible fakes before a request leaves your machine, and restores them in the answer.'
+  title: Use AI at work without leaking your data.
+  tagline: '<span class="hero-oss">Core: free &amp; open source · Apache-2.0</span>Shadow Core is a free, open-source proxy that masks PII and secrets before they reach ChatGPT, Claude, Copilot or any LLM, and restores them in the answer. Shadow Hub gives your security team one dashboard for every user.'
   image:
     file: ../../assets/logo.svg
     alt: Shadow logo, a crescent partly covered by a shadow
   actions:
-    - text: Get started
+    - text: Install Core free
       link: getting-started/quick-start/
       icon: right-arrow
+    - text: Shadow Hub for teams
+      link: hub/
+      variant: secondary
     - text: Read the docs
       link: getting-started/introduction/
       variant: minimal
@@ -40,7 +43,7 @@ faq:
   - q: Is Shadow a Presidio alternative?
     a: "It is a complement more than a replacement. Microsoft Presidio is a detector and anonymizer library that replaces values with placeholders or hashes. Shadow adds what sits around detection: consistent, format-preserving fakes from one persona, an encrypted mapping, restoration of responses, streams and tool calls, and a ready-made HTTPS proxy and gateway. Shadow can call Presidio as an extra detector. See [Shadow vs Presidio](/shadow/compare/presidio/)."
   - q: Does Shadow work with Claude Code, Cursor or GitHub Copilot?
-    a: "Claude Code and other tools that accept a base URL (`ANTHROPIC_BASE_URL`, `OPENAI_BASE_URL`) or honour `HTTPS_PROXY` work through [gateway mode](/shadow/integrate/gateway-mode/) or [proxy mode](/shadow/integrate/proxy-mode/), and the `code` intent keeps identifiers readable. Cursor and GitHub Copilot send traffic to their vendors' own backends, which are not on Shadow's built-in host list; you can add hosts with `extra_hosts`, but check the request log before relying on it, and clients that pin certificates cannot be intercepted. See [integrating any endpoint](/shadow/integrate/any-endpoint/)."
+    a: "Claude Code, Codex, Gemini CLI, GitHub Copilot and other tools that accept a base URL (`ANTHROPIC_BASE_URL`, `OPENAI_BASE_URL`) or honour `HTTPS_PROXY` work through [gateway mode](/shadow/integrate/gateway-mode/) or [proxy mode](/shadow/integrate/proxy-mode/), and the `code` intent keeps identifiers readable. Cursor and Windsurf use their own binary protocols through their vendors' servers, which Shadow cannot rewrite: it recognises that traffic and shows it as *seen, not protected* instead. Clients that pin certificates cannot be intercepted. See the [catalog of AI services](/shadow/reference/providers/#the-catalog)."
   - q: Is Shadow GDPR or HIPAA compliant?
     a: "No tool makes an organisation compliant on its own. Shadow helps you meet data-minimisation, confidentiality and transfer requirements under GDPR and HIPAA by replacing the personal data and PHI it detects before requests reach AI providers, and its mapping never leaves your machine. Detection is best effort, and an action the provider runs itself (a hosted tool) is sent the real contact details it needs, each one logged. Whether you are compliant still depends on your whole programme: contracts, policies, access control and what else you send. See [industries](/shadow/industries/)."
   - q: Does Shadow work offline and self-hosted?
@@ -60,6 +63,7 @@ faq:
 import FaqSection from '../../components/FaqSection.astro';
 import Proof from '../../components/home/Proof.astro';
 import InstallBar from '../../components/home/InstallBar.astro';
+import CoreAndHub from '../../components/home/CoreAndHub.astro';
 import Problem from '../../components/home/Problem.astro';
 import HowItWorks from '../../components/home/HowItWorks.astro';
 import Features from '../../components/home/Features.astro';
@@ -70,6 +74,8 @@ import Audiences from '../../components/home/Audiences.astro';
 import FinalCta from '../../components/home/FinalCta.astro';
 
 <InstallBar />
+
+<CoreAndHub />
 
 <Proof />
 

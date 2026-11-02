@@ -7,6 +7,10 @@
 	"compatibility_date": "2025-06-01",
 	// Served only on the custom domains, not on a workers.dev subdomain.
 	"workers_dev": false,
+	// First-party funnel events from POST /api/e (see worker/README.md).
+	"analytics_engine_datasets": [{ "binding": "EVENTS", "dataset": "shadow_funnel" }],
+	// Forms: add the KV namespace once created (see worker/README.md):
+	// "kv_namespaces": [{ "binding": "FORMS", "id": "<namespace id>" }],
 	"assets": {
 		"directory": "./dist",
 		"binding": "ASSETS",

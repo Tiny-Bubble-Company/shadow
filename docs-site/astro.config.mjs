@@ -21,7 +21,10 @@ export default defineConfig({
 		// Starlight would add this automatically; listing it pins the version and lets us
 		// keep the 404 page out of the sitemap.
 		sitemap({
-			filter: (page) => !/\/404\/?$/.test(page),
+			// noindex pages stay out too: case studies until a customer approves, guide stubs
+			// until written, and the Hub connect page (it may carry an invite token).
+			filter: (page) =>
+				!/\/404\/?$/.test(page) && !/\/(customers|guides|docs\/hub)\/|\/hub\/connect\//.test(page),
 		}),
 		starlight({
 			title: 'Shadow',

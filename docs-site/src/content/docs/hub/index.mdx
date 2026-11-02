@@ -1,0 +1,93 @@
+---
+title: See every AI request your team makes, and what Shadow stopped
+seoTitle: "Shadow Hub: see what your team sends to AI | Shadow"
+description: "AI usage dashboard for teams: masked and blocked events per user, tool and AI service, from Shadow on every laptop. Priced per monitored user."
+template: splash
+editUrl: false
+keywords:
+  - ai visibility
+  - shadow ai detection
+  - ai usage monitoring
+  - ai governance platform
+  - ai governance dashboard
+  - ai audit log
+  - chatgpt monitoring
+  - dlp for ai
+faq:
+  - q: "How do I monitor employee AI usage?"
+    a: "Install Shadow Core on each laptop and connect it to Shadow Hub with one command from an invite link. Every request to an AI service then shows up in Hub per person, machine, app and AI service, with what was masked or blocked. Employees see that their machine is managed and what is shared."
+  - q: "Can I see what my team pastes into ChatGPT?"
+    a: "Yes, for ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser once the system proxy is on, and for AI APIs and coding agents. How much you see depends on the sharing level your organisation picks: counts only, the prompt as the AI received it (fakes, no real values), or full detail."
+  - q: "Does Hub see prompt text?"
+    a: "Only if your organisation chooses it. With the counts level Hub receives no text at all; with sanitised it receives the prompt as the AI received it, after Shadow replaced real values with fakes; with full detail it also receives the original prompt and values. The level is applied on each laptop before anything is sent. See [Trust](/shadow/trust/)."
+  - q: "Does Core work without Hub?"
+    a: "Yes. Shadow Core is free, open source and complete on its own: masking, blocking, the local dashboard and the menu-bar app. Core never phones home; nothing is sent anywhere unless someone connects the machine to Hub."
+  - q: "How is Hub different from AI DLP?"
+    a: "AI DLP tools mostly block or redact in the browser or on the endpoint. Shadow masks sensitive values with reversible fakes, so people keep using AI tools while the data stays on the machine, and Hub shows the whole team's activity. See [AI DLP compared](/shadow/compare/ai-dlp/)."
+  - q: "How much does Shadow Hub cost?"
+    a: "Hub is free for up to 5 users, then priced per monitored user per month: from $8 on Starter (6-50 users) and $15 on Business (51-500), with custom Enterprise pricing above 500. Admins are free. Hub is in early access; prices may change. See [Pricing](/shadow/pricing/)."
+---
+
+import HubCta from '../../../components/HubCta.astro';
+import PricingTable from '../../../components/PricingTable.astro';
+import PlaceholderShot from '../../../components/PlaceholderShot.astro';
+
+**Shadow Hub is the hosted dashboard that shows a security or IT team every AI request their people make, and what Shadow masked or blocked: per user, machine, app and AI service. It is for teams that run the free, open-source Shadow Core on laptops and servers. Hub is free for 5 users, then from $8 per user per month. Unlike AI DLP, Shadow masks data reversibly instead of blocking work.**
+{/* PLACEHOLDER: price figures pending confirmation */}
+
+Hub is in early access. Join the waitlist and we'll open your workspace, or book a demo.
+
+<HubCta location="hub" show={['hub', 'demo']} />
+
+<PlaceholderShot label="Hub overview: requests, values protected, what leaks and where it goes" />
+
+## AI visibility for security teams
+
+Most teams can't answer three questions: which AI tools are people using, what data are they sending, and is any of it customer or regulated data? Hub answers them from the traffic itself, not from surveys.
+
+- **Every AI service, recognised.** Shadow's [catalog of 288 AI services](/shadow/reference/providers/) covers model APIs, inference clouds, routers, coding agents and chat apps.
+- **Every app.** Claude Code, Codex, Cursor, the OpenAI SDK, Chrome, Safari and more, named on each request.
+- **Every machine.** Laptops and servers enrolled with one command, with the person they belong to.
+
+## Shadow AI detection
+
+Shadow AI is the AI tools people use without IT knowing. Hub lists **newly seen AI services** each week and who uses them, and flags services Shadow recognises but can't protect yet (for example tools with their own binary protocols) as *seen, not protected*, so nothing AI-bound goes by unnoticed.
+
+<PlaceholderShot label="Insights: newly seen AI services and who uses them" ratio="16 / 7" />
+
+## Per-user insights: masked, blocked, policy violations
+
+Open any person or machine to see the same dashboard for just them, then any incident in full:
+
+- what was caught (names, emails, card numbers, national IDs, secrets, hostnames, ...) and what the AI received instead;
+- which requests were blocked by policy (for example image uploads);
+- the app, process, model and AI service;
+- the prompt, as written and as sent, when your sharing level includes it.
+
+Hub ranks people by the sensitivity of what they sent, and shows which data types go to which AI services, so you can fix the process, not just the person.
+
+## Roll out with Jamf, Intune or Fleet
+
+Today each person runs one command from their invite link: it installs Core, connects the machine to Hub and turns on protection, including browsers and chat apps. MDM rollout profiles for Jamf, Intune and Fleet are on the way. {/* PLACEHOLDER: MDM profiles not built yet */}
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/shadow/main/packaging/install.sh | SHADOW_ENROLL='<your invite link>' sh
+```
+
+People see that their machine is managed, by which organisation, and what is shared, in the menu bar, the local dashboard and `shadow status`.
+
+## An AI governance dashboard your auditors accept
+
+Policy documents say "don't paste customer data into AI tools". Hub shows whether that holds: every protected value and blocked request is an event with a person, a machine, a time and an AI service, kept for your retention period. {/* PLACEHOLDER: audit export formats (CSV, SIEM) pending */}
+
+Read what Hub stores and never sees on the [Trust page](/shadow/trust/).
+
+## Pricing
+
+Core is free forever. Hub is free for up to 5 users, then priced per monitored user; admins are free.
+
+<PricingTable summary location="hub" />
+
+[See full pricing and the cost estimator](/shadow/pricing/)
+
+<HubCta location="hub" show={['hub', 'demo', 'install']} />

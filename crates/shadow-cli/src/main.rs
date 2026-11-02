@@ -20,7 +20,8 @@ use shadow_proxy::{CertAuthority, Proxy};
 #[command(
     name = "shadow",
     version,
-    about = "Endpoint privacy layer for AI clouds: masks what leaves, restores what returns."
+    about = "Endpoint privacy layer for AI clouds: masks what leaves, restores what returns.",
+    after_help = "Teams: shadow hub connect | status | disconnect connects this machine to Shadow Hub (https://getshadow.dev/hub/)."
 )]
 struct Cli {
     /// Path to shadow.toml (default: <data dir>/shadow.toml).
@@ -59,8 +60,11 @@ enum Cmd {
     Uninstall(InstallArgs),
     /// Route this machine's traffic through Shadow with the system proxy settings (or stop).
     SystemProxy(SystemProxyArgs),
-    /// Join an organisation's Shadow Hub with the link from your invite. Activity is then
-    /// reported to the organisation, as its sharing level allows.
+    /// Connect this machine to your organisation's Shadow Hub, or check or end the connection.
+    #[command(subcommand)]
+    Hub(HubCmd),
+    /// Same as `shadow hub connect <link> --yes` (used by the installer).
+    #[command(hide = true)]
     Enroll {
         /// The join link from the invite (https://<hub>/join/<token>).
         link: String,
@@ -71,7 +75,8 @@ enum Cmd {
         #[arg(long)]
         name: Option<String>,
     },
-    /// Stop reporting to the organisation's hub on this machine.
+    /// Same as `shadow hub disconnect`.
+    #[command(hide = true)]
     Unenroll,
     /// Show configuration, persona, vault and proxy health.
     Status {
@@ -119,6 +124,7 @@ enum Cmd {
         demo: bool,
     },
     /// Print an activity summary (for servers and scripts).
+    #[command(visible_alias = "stats")]
     Activity {
         /// 1h, 24h, 7d, 30d or today.
         #[arg(long, short, default_value = "24h")]
@@ -129,6 +135,9 @@ enum Cmd {
         /// Summarise synthetic demo data.
         #[arg(long)]
         demo: bool,
+        /// Don't show the weekly Shadow Hub hint (or set `hints = false` in shadow.toml).
+        #[arg(long)]
+        no_hints: bool,
     },
     /// List incidents (masked or blocked requests), or show one with its prompt, the values
     /// caught and the app that sent it.
@@ -308,9 +317,20 @@ fn real_main(cli: Cli) -> anyhow::Result<()> {
             };
             top::run(source)
         }
-        Cmd::Activity { window, json, demo } => {
-            activity::run(&load_config(&cli)?, window, *json, *demo)
+        Cmd::Activity {
+            window,
+            json,
+            demo,
+            no_hints,
+        } => {
+            let cfg = load_config(&cli)?;
+            activity::run(&cfg, window, *json, *demo)?;
+            if !*json && !*no_hints && cfg.hints {
+                weekly_hint(&cfg.data_dir);
+            }
+            Ok(())
         }
+        Cmd::Hub(h) => hub_cmd(&cli, h),
         Cmd::Incidents {
             id,
             limit,
@@ -471,6 +491,147 @@ fn svc_ctx(cli: &Cli, listen: Option<String>) -> anyhow::Result<(ShadowConfig, s
         ..ctx
     };
     Ok((cfg, ctx))
+}
+
+#[derive(Subcommand)]
+enum HubCmd {
+    /// Connect this machine to your organisation's Shadow Hub with the link from your invite.
+    /// Shows the organisation and what it will see, and asks before anything is sent.
+    Connect {
+        /// The join link from your invite (https://<hub>/join/<token>). Without it, explains how to get one.
+        link: Option<String>,
+        /// Connect without asking (for scripts and MDM).
+        #[arg(long, short)]
+        yes: bool,
+        /// Your work email, if the invite isn't for a named person.
+        #[arg(long)]
+        email: Option<String>,
+        /// Your name, if the invite isn't for a named person.
+        #[arg(long)]
+        name: Option<String>,
+    },
+    /// Show whether this machine is connected, to which organisation, and what is shared.
+    Status,
+    /// Stop reporting to the hub from this machine (Shadow keeps protecting it).
+    Disconnect,
+}
+
+const HUB_CONNECT_PAGE: &str = "https://getshadow.dev/hub/connect/?source=cli";
+
+fn hub_cmd(cli: &Cli, h: &HubCmd) -> anyhow::Result<()> {
+    match h {
+        HubCmd::Connect { link: None, .. } => {
+            ui::header("Connect to Shadow Hub");
+            println!(
+                "  Shadow Hub shows your organisation what Shadow protected across its machines."
+            );
+            println!("  You need the join link from your organisation's invite, then run:");
+            println!("    shadow hub connect 'https://<hub>/join/<token>'");
+            println!(
+                "  What is sent, and how to disconnect: {}",
+                HUB_CONNECT_PAGE.trim_end_matches("?source=cli")
+            );
+            let _ = open_url(HUB_CONNECT_PAGE);
+            Ok(())
+        }
+        HubCmd::Connect {
+            link: Some(link),
+            yes,
+            email,
+            name,
+        } => {
+            let rt = tokio::runtime::Runtime::new()?;
+            let (org, level, invited) = rt.block_on(shadow_proxy::hub::join_info(link))?;
+            let preview = shadow_proxy::hub::Enrollment {
+                org_name: org.clone(),
+                share_level: level,
+                ..Default::default()
+            };
+            ui::header(&format!("Connect this machine to {org}"));
+            if let Some(e) = &invited {
+                ui::kv("invited", e);
+            }
+            ui::kv("shared", &preview.notice());
+            ui::kv(
+                "never sent",
+                "non-AI traffic, anything from before you connect, your vault and keys",
+            );
+            if !*yes && !confirm("Connect and start sharing? [y/N] ")? {
+                ui::ok("Not connected. Nothing was sent.");
+                return Ok(());
+            }
+            enroll(cli, link, email.as_deref(), name.as_deref())
+        }
+        HubCmd::Status => {
+            let cfg = load_config(cli)?;
+            match shadow_proxy::hub::Enrollment::load(&cfg.data_dir) {
+                Some(e) => {
+                    ui::kv("connected", &format!("{} ({})", e.org_name, e.hub_url));
+                    ui::kv("as", &e.user_email);
+                    ui::kv("shared", &e.notice());
+                }
+                None => ui::kv(
+                    "connected",
+                    "no (Shadow works on its own; nothing is sent anywhere)",
+                ),
+            }
+            Ok(())
+        }
+        HubCmd::Disconnect => unenroll(cli),
+    }
+}
+
+fn confirm(prompt: &str) -> anyhow::Result<bool> {
+    use std::io::IsTerminal;
+    if !std::io::stdin().is_terminal() {
+        anyhow::bail!("can't ask for confirmation without a terminal; add --yes to connect");
+    }
+    print!("{prompt}");
+    std::io::stdout().flush()?;
+    let mut line = String::new();
+    std::io::stdin().read_line(&mut line)?;
+    Ok(matches!(
+        line.trim().to_ascii_lowercase().as_str(),
+        "y" | "yes"
+    ))
+}
+
+fn open_url(url: &str) -> std::io::Result<()> {
+    let cmd = if cfg!(target_os = "macos") {
+        "open"
+    } else if cfg!(windows) {
+        "explorer"
+    } else {
+        "xdg-open"
+    };
+    std::process::Command::new(cmd)
+        .arg(url)
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+        .map(|_| ())
+}
+
+/// At most once a week, one local line about Shadow Hub. No network call.
+fn weekly_hint(data_dir: &Path) {
+    let stamp = data_dir.join(".hub-hint");
+    let week = std::time::Duration::from_secs(7 * 86_400);
+    let recent = std::fs::metadata(&stamp)
+        .and_then(|m| m.modified())
+        .ok()
+        .and_then(|t| t.elapsed().ok())
+        .is_some_and(|age| age < week);
+    if recent || shadow_proxy::hub::Enrollment::load(data_dir).is_some() {
+        return;
+    }
+    println!();
+    println!(
+        "  {}",
+        ui::dim(
+            "Want this for your whole team? getshadow.dev/hub  (hide: --no-hints or hints = false)"
+        )
+    );
+    let _ = std::fs::write(&stamp, b"");
 }
 
 fn enroll(cli: &Cli, link: &str, email: Option<&str>, name: Option<&str>) -> anyhow::Result<()> {

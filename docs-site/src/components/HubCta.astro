@@ -1,0 +1,122 @@
+---
+// The global CTAs, driven by src/data/hub.ts:
+// - "Install Core free": copies the install command (install_copy)
+// - "Start free Hub trial" / "Join the Hub waitlist": signup link or the waitlist form (hub_start_free)
+// - "Book a demo": booking link or the demo form (book_demo)
+import { hub, BUYER_CTA, DEMO_CTA, CORE_CTA, INSTALL_CMD } from '../data/hub';
+
+interface Props {
+	location: string;
+	show?: ('install' | 'hub' | 'demo')[];
+	/** Which button is the filled one. */
+	primary?: 'install' | 'hub' | 'demo';
+	compact?: boolean;
+	/** Extra props for every tracked click (for example a competitor). */
+	extra?: Record<string, string>;
+	/** Also fire this event (for example compare_cta) on every button. */
+	alsoTrack?: string;
+}
+const { location, show = ['install', 'hub', 'demo'], primary = 'hub', compact = false, extra = {}, alsoTrack } = Astro.props;
+const props = (p: Record<string, string>) => JSON.stringify({ ...p, ...extra });
+const cls = (k: string) => ['sh-cta__btn', k === primary ? 'is-primary' : 'is-secondary'];
+---
+
+<div class:list={['sh-cta not-content', { 'is-compact': compact }]} data-also-track={alsoTrack} data-also-props={JSON.stringify(extra)}>
+	{
+		show.map((k) =>
+			k === 'install' ? (
+				<button
+					type="button"
+					class:list={cls(k)}
+					data-copy-cmd={INSTALL_CMD}
+					data-track="install_copy"
+					data-track-props={JSON.stringify({ method: 'script' })}
+					title={`Copies: ${INSTALL_CMD}`}
+				>
+					<span data-copy-label>{CORE_CTA}</span>
+				</button>
+			) : k === 'hub' ? (
+				hub.hubLive ? (
+					<a class:list={cls(k)} href={hub.signupUrl} data-track="hub_start_free" data-track-props={props({ location })}>
+						{BUYER_CTA}
+					</a>
+				) : (
+					<button
+						type="button"
+						class:list={cls(k)}
+						data-open-form="waitlist"
+						data-form-location={location}
+						data-track="hub_start_free"
+						data-track-props={props({ location })}
+					>
+						{BUYER_CTA}
+					</button>
+				)
+			) : hub.demoBookingUrl ? (
+				<a class:list={cls(k)} href={hub.demoBookingUrl} rel="noopener" data-track="book_demo" data-track-props={props({ location })}>
+					{DEMO_CTA}
+				</a>
+			) : (
+				<button type="button" class:list={cls(k)} data-open-form="demo" data-form-location={location}>
+					{DEMO_CTA}
+				</button>
+			),
+		)
+	}
+</div>
+
+<script>
+	import { track } from '../scripts/track';
+	// Comparison pages: every CTA also counts as compare_cta.
+	document.addEventListener('click', (e) => {
+		const btn = (e.target as Element | null)?.closest<HTMLElement>('.sh-cta__btn');
+		const box = btn?.closest<HTMLElement>('[data-also-track]');
+		if (!box?.dataset.alsoTrack) return;
+		try {
+			track(box.dataset.alsoTrack, JSON.parse(box.dataset.alsoProps || '{}'));
+		} catch {
+			/* ignore */
+		}
+	});
+</script>
+
+<style>
+	.sh-cta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		margin: 1.25rem 0;
+	}
+	.sh-cta__btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		min-height: 2.5rem;
+		padding: 0 1.1rem;
+		border-radius: 0.6rem;
+		font: inherit;
+		font-weight: 600;
+		font-size: 0.95rem;
+		text-decoration: none;
+		cursor: pointer;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg);
+		color: var(--sl-color-white);
+	}
+	.sh-cta__btn:hover {
+		border-color: var(--sl-color-accent);
+	}
+	.sh-cta__btn.is-primary {
+		background: var(--sl-color-accent);
+		border-color: var(--sl-color-accent);
+		color: var(--sl-color-black);
+	}
+	:root[data-theme='light'] .sh-cta__btn.is-primary {
+		color: #fff;
+	}
+	.sh-cta.is-compact .sh-cta__btn {
+		min-height: 2rem;
+		padding: 0 0.8rem;
+		font-size: 0.85rem;
+	}
+</style>

@@ -1,0 +1,58 @@
+---
+title: Connect a machine to Shadow Hub
+seoTitle: "Connect Shadow to Shadow Hub"
+description: "What happens when you connect Shadow Core to your organisation's Shadow Hub, what is sent and never sent, and how to disconnect."
+editUrl: false
+head:
+  - tag: meta
+    attrs:
+      name: robots
+      content: noindex, follow
+---
+
+import HubCta from '../../../components/HubCta.astro';
+import ConnectPageTracker from '../../../components/ConnectPageTracker.astro';
+
+You're here because you ran `shadow hub connect` or opened an invite from your organisation. This page explains what connecting does before anything is sent.
+
+## Connect
+
+With the invite link from your organisation:
+
+```sh
+shadow hub connect 'https://hub.example.com/join/inv_...'
+```
+
+Shadow shows the organisation's name and what it will see, and asks you to confirm. Nothing is sent before you say yes. On a new machine, the one-line installer from the invite page installs Shadow and connects it in one go.
+
+## What is sent
+
+Your organisation chooses one sharing level, and Shadow applies it **on your machine** before anything leaves it:
+
+| Level | Sent to your organisation |
+|---|---|
+| Counts | Which AI services and apps were used, how many values of each type Shadow protected, what was blocked. No text. |
+| Sanitised | The above, plus each incident's prompt **as the AI received it** (real names, emails and other values already replaced with fakes), the model and the app's process. |
+| Full | The above, plus the original prompt and values, and conversation ids the app sent. |
+
+Every level includes your machine's name, operating system, user name and the person it is enrolled to.
+
+## What is never sent
+
+- Traffic that is not going to an AI service: none of your other browsing or app traffic is recorded, at any level.
+- Anything from before you connected.
+- Your Shadow vault, persona or keys.
+
+`shadow status`, the menu-bar app and the local dashboard always show which organisation manages the machine and the current level.
+
+## Disconnect
+
+```sh
+shadow hub disconnect
+```
+
+Shadow stops reporting immediately and keeps protecting the machine. Ask an admin to remove the machine from Hub as well.
+
+<HubCta location="hub" show={['install']} primary="install" />
+
+<ConnectPageTracker />

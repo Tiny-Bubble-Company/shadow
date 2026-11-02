@@ -4,13 +4,15 @@
 import { Icon } from '@astrojs/starlight/components';
 import { ORG_NAME, ORG_URL, REPO_URL, SUPPORT_EMAIL } from '../site.mjs';
 import { RESOURCE_LINKS, mainNav, sectionGroups, sitePath, type NavGroup } from '../nav/site-nav';
+import HubCta from './HubCta.astro';
 
 const groups = await sectionGroups();
 const nav = await mainNav();
 const g = (dir: string): NavGroup => groups[dir] ?? { id: dir, label: dir, links: [] };
 
 const columns: (NavGroup & { span?: number })[] = [
-	{ ...nav.product, label: 'Product' },
+	{ ...nav.product, label: 'Shadow Core' },
+	{ ...nav.hub, label: 'Shadow Hub' },
 	{ ...g('getting-started'), label: 'Get started' },
 	{ ...g('integrate'), label: 'Integrations' },
 	{ ...g('concepts'), label: 'Concepts' },
@@ -45,10 +47,8 @@ const year = new Date().getFullYear();
 			<ul class="sh-footer__badges" aria-label="Project facts">
 				{badges.map((b) => <li>{b}</li>)}
 			</ul>
+			<HubCta location="footer" show={['install', 'hub', 'demo']} primary="install" compact />
 			<div class="sh-footer__actions">
-				<a class="sh-footer__btn sh-footer__btn--primary" href={sitePath('/getting-started/quick-start/')}>
-					Quick start <span aria-hidden="true">→</span>
-				</a>
 				<a class="sh-footer__btn" href={REPO_URL} rel="noopener">
 					<Icon name="github" size="1rem" /> Star on GitHub
 				</a>

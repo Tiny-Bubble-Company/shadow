@@ -30,12 +30,14 @@ const policy = [
 	"default-src 'self'",
 	// 'wasm-unsafe-eval': Pagefind search runs as WebAssembly.
 	// static.cloudflareinsights.com: the Cloudflare Web Analytics beacon (src/site.mjs).
-	`script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com ${[...hashes].sort().join(' ')}`,
+	// challenges.cloudflare.com: Turnstile on the waitlist and demo forms.
+	`script-src 'self' 'wasm-unsafe-eval' https://static.cloudflareinsights.com https://challenges.cloudflare.com ${[...hashes].sort().join(' ')}`,
 	// Inline style attributes (chart widths) and Astro's inlined <style> blocks.
 	"style-src 'self' 'unsafe-inline'",
 	"img-src 'self' data:",
 	"font-src 'self'",
-	"connect-src 'self' https://cloudflareinsights.com",
+	"connect-src 'self' https://cloudflareinsights.com https://challenges.cloudflare.com",
+	"frame-src https://challenges.cloudflare.com",
 	"manifest-src 'self'",
 	"worker-src 'self'",
 	"object-src 'none'",

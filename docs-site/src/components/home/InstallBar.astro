@@ -10,7 +10,7 @@ const cmd = 'curl -fsSL https://raw.githubusercontent.com/Tiny-Bubble-Company/sh
 	<div class="hp-install__bar">
 		<span class="hp-install__label">Install</span>
 		<code class="hp-install__cmd"><span aria-hidden="true">$ </span>{cmd}</code>
-		<button type="button" class="hp-install__copy" data-copy={cmd} aria-label="Copy install command">
+		<button type="button" class="hp-install__copy" data-copy={cmd} data-track="install_copy" data-track-props='{"method":"script"}' aria-label="Copy install command">
 			<Icon name="document" size="1rem" />
 			<span data-copy-label>Copy</span>
 		</button>

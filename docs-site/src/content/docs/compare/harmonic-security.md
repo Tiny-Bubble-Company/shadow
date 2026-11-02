@@ -1,114 +1,75 @@
 ---
-title: "Shadow vs Harmonic Security — open-source Harmonic alternative for AI data protection"
-seoTitle: "Shadow vs Harmonic Security: open-source alternative"
-description: Shadow vs Harmonic Security. Harmonic's browser extension warns, blocks or redirects AI use; Shadow masks API prompts with reversible fakes.
+title: "Shadow Hub vs Harmonic Security: AI governance for teams"
+seoTitle: "Harmonic Security vs Shadow Hub: AI data protection"
+description: "Harmonic Security vs Shadow. Harmonic logs, warns, coaches or blocks AI use; Shadow masks prompts with reversible fakes and restores the answers."
 sidebar:
   label: Harmonic Security
   order: 16
 keywords:
+  - harmonic security
   - harmonic security alternative
   - harmonic security vs shadow
   - harmonic security pricing
   - open source harmonic alternative
-  - genai browser extension dlp
+  - AI governance
   - AI DLP
   - GenAI DLP
-  - PII redaction for LLM
 faq:
-  - q: "Is Shadow a free alternative to Harmonic Security?"
-    a: "For API and agent traffic, partly. Shadow is free and open source and masks prompts to model APIs with reversible fakes. Harmonic is a commercial browser-extension product that watches employee use of AI apps with small language models and warns, blocks or redirects. Shadow does not provide browser-level visibility or user coaching."
+  - q: "Is Shadow an alternative to Harmonic Security?"
+    a: "Partly. Both act on AI use at the endpoint, but in different ways. Harmonic classifies AI activity with small language models and logs, warns, coaches or blocks. Shadow Core masks PII and secrets with realistic, reversible fakes so the request still goes through, and Shadow Hub (early access) shows teams what was masked or blocked."
   - q: "How does Harmonic Security detect sensitive data?"
-    a: "Harmonic says it uses small language models in a browser extension to judge the intent and sensitivity of what users share. It claims under 200 ms latency and 96% better accuracy than regex; these are vendor claims and we have not seen independent results."
-  - q: "Does Harmonic restore redacted values in AI responses?"
-    a: "Not that public documentation describes. Harmonic focuses on warning, blocking, redirecting to approved tools and, per the vendor, redaction. Shadow restores its fakes in responses, streams and tool calls."
+    a: "Harmonic says small language models read the full interaction and make a judgement in under 200 milliseconds, classifying AI activity by business use case rather than by pattern matching. These are Harmonic's own statements."
+  - q: "Does Harmonic redact or mask prompts?"
+    a: "Harmonic's public product pages list silent logging, contextual warnings, employee coaching and real-time blocking. They mention masking only for employee names in its portal. Shadow masks the sensitive values inside the prompt and restores them in the answer."
   - q: "How much does Harmonic Security cost?"
-    a: "Harmonic pricing is by quote. Shadow is free under Apache-2.0."
-  - q: "Can Harmonic and Shadow be used together?"
-    a: "Yes. Harmonic can cover employee use of AI web apps on managed browsers while Shadow masks traffic from developer tools, agents and services that a browser extension does not see."
+    a: "Harmonic's pricing page lists Explore, Guide and Command plans without prices: not published (as of 2 Nov 2026). Shadow Core is free. Shadow Hub's planned pricing is free for 1-5 users, then from $8 per user per month; these prices are provisional."
+  - q: "Is Shadow Hub available now?"
+    a: "Not generally. Shadow Hub is in early access with a waitlist. Shadow Core is available today and free."
 ---
 
-**Harmonic Security is a browser extension, deployed through device management, that uses small language models to spot sensitive data and risky intent in employee AI use, then warns, blocks or redirects users to approved tools. Shadow is an open-source privacy layer that translates sensitive values in AI API requests into realistic, reversible fakes and restores them in the response.** Harmonic shapes how people use AI web apps; Shadow protects the content of API, agent and file traffic while the tools keep working.
+**Choose Harmonic Security if you want AI governance across your workforce: discovery of AI tools, classification of what people use them for, and coaching or blocking in the browser, desktop apps and MCP. Choose Shadow if you want prompts masked with reversible fakes so work continues: Core is free for developers, and Shadow Hub (early access) adds a team view.**
 
-:::note[TL;DR]
-Harmonic is a user-facing control in the browser: AI app visibility, contextual detection with small models, and nudges that change behaviour. Shadow is a traffic-level control on the endpoint: reversible, format-preserving fakes, restored in streams and tool calls. Different layers, often complementary.
-:::
+[Shadow Hub for teams](/shadow/hub/) · [Install Core free](/shadow/getting-started/quick-start/)
 
 ## At a glance
 
-| | Shadow | Harmonic Security |
-|---|---|---|
-| **Open source / licence** | Yes, Apache-2.0 | No, commercial |
-| **Deployment** | Endpoint HTTPS proxy, gateway (`/gw/<provider>/`), Rust library | Browser extension deployed via MDM, with a cloud console |
-| **Protection method** | Reversible realistic fakes from a persona; typed tokens for reports; optional redaction | Warn, block, redirect; redaction per vendor |
-| **Restores responses** | Yes, automatically | No |
-| **Streaming** | Yes, SSE and NDJSON with split-fake reassembly | Not applicable (acts before submission) |
-| **Tool calls** | Yes, arguments restored locally; intent-aware for provider-hosted tools | Not applicable |
-| **Files** | DOCX, XLSX, PPTX masked in place; PDF to text; CSV, JSON, HTML | Upload monitoring and control |
-| **Self-hosted** | Yes, single binary, no account | No |
-| **Price model** | Free | Quote |
+| | Harmonic Security | Shadow Core | Shadow Hub |
+|---|---|---|---|
+| **Deployment model** | Commercial platform: browser extension, endpoint rollout through Intune, Jamf, Kandji or Group Policy, and an MCP Gateway | Free local proxy, a single binary on each laptop or server | Hosted console in early access (waitlist); members run one command that installs Core and enrols the machine |
+| **Where it runs** | Supported browsers; desktop apps such as Claude CoWork, Cursor and ChatGPT Desktop; command-line tools, IDEs, AI APIs and MCP workflows on Windows, macOS and Linux | On the device, between apps and AI services: model APIs, coding agents, and with the system proxy on, ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser | Masking stays on each machine; the hub receives what the organisation chooses to share: counts only, sanitised prompts or full detail |
+| **Masking vs blocking** | Silent logging, contextual warnings, employee coaching, real-time blocking | Masks PII and secrets with realistic fakes; blocks file uploads by policy | Same as Core, plus a view of what was masked or blocked per person, machine, app and AI service |
+| **Reversible pseudonymisation** | Not described on its public pages | Yes, real values restored in answers | Yes, through Core |
+| **Open source** | No | Yes, Apache-2.0 | No, commercial hosted service |
+| **Published pricing** | No: Explore, Guide and Command plans, not published (as of 2 Nov 2026) | Free | Provisional: free for 1-5 users, then from $8 per user per month |
+| **Best for** | Security and governance teams that want to discover, classify and control AI use across the workforce | Developers and engineers using model APIs and coding agents | Teams that want to see what Core masked or blocked across members, without collecting real values unless they choose to |
 
-## What Harmonic does well
+## When to choose Harmonic Security
 
-- **Context-aware detection.** Small language models judge what is being shared rather than relying only on patterns, which can catch things like unreleased financials or source code that regex misses. Harmonic claims it is "96% more accurate than regex" (vendor claim).
-- **Low friction for users.** Warnings and redirects explain the risk and point people to sanctioned tools, which tends to reduce workarounds compared with hard blocks.
-- **Shadow-AI visibility.** Security teams see which AI apps are used across the organisation, including new ones.
-- **Fast deployment.** An extension pushed via MDM covers managed browsers without network changes.
-- **Upload awareness.** File uploads to AI apps are covered as well as typed prompts.
-- **Low latency claims.** The vendor states under 200 ms per check.
+- **You want to understand how AI is used.** Harmonic classifies every AI task by business use case and scores each AI application for risk, including whether the vendor trains on customer data.
+- **You want context-aware detection.** Harmonic uses small language models that read the full interaction, rather than only matching patterns.
+- **Behaviour change matters more than masking.** Coaching shows users what was flagged and why, and the intervention text and branding can be customised. Many teams start with warn-and-log and add blocking later.
+- **You need coverage for desktop apps, IDEs and MCP.** Harmonic names desktop apps including Cursor, and its MCP Gateway governs agentic workflows on Windows, macOS and Linux.
+- **Employee privacy and hosting options matter.** Harmonic says some functions can be excluded from reporting, employee names can be masked, and EU hosting is available on request.
 
-## Where Shadow is different
+## When to choose Shadow
 
-### What happens after sensitive data is detected?
+- **The request should go through, safely.** Shadow replaces names, emails, card numbers and secrets with realistic, consistent fakes, and restores the real values in the answer, so people do not have to rewrite or abandon the prompt. See [how it works](/shadow/concepts/how-it-works/).
+- **Developers and agents are the main AI users.** Core sits in front of model APIs, inference clouds and coding agents such as Claude Code, Codex, Gemini CLI and GitHub Copilot, and recognises 288 AI services.
+- **You want to start free and bottom-up.** Core is open source under Apache-2.0, needs no account and runs on the machine. See the [quick start](/shadow/getting-started/quick-start/).
+- **You want a team view without collecting real values.** With [Shadow Hub](/shadow/hub/) (early access, waitlist), admins invite members by link and see what was masked or blocked per person, machine, app and AI service, with incident detail and insights. Each organisation chooses whether machines share counts only, sanitised prompts or full detail.
 
-Harmonic mostly decides whether to warn, block or redirect. Shadow decides how to transform: every sensitive value it detects becomes a realistic fake from a persistent [persona](/shadow/concepts/personas/), the request proceeds, and the real values are restored in the answer. Users don't have to choose between privacy and getting the work done.
-
-### Traffic a browser extension cannot see
-
-IDE assistants, CLIs, agents, CI jobs and back-end services call model APIs directly. Shadow covers them when they call a [supported AI API host](/shadow/reference/providers/) through [proxy mode](/shadow/integrate/proxy-mode/), [gateway mode](/shadow/integrate/gateway-mode/) or the [Rust library](/shadow/integrate/rust/), and restores [streams](/shadow/concepts/how-it-works/#streaming-hold-back) and [tool-call arguments](/shadow/concepts/tool-calls/).
-
-### Intent that changes the transformation
-
-Harmonic's intent detection decides whether to flag. Shadow's [intent-aware policy](/shadow/concepts/intent-policy/) decides how to transform: typed tokens for bulk reports, kept recipients and provider-hosted action targets, fakes elsewhere.
-
-### Files masked in place
-
-Shadow masks DOCX, XLSX and PPTX uploads in place and turns PDFs into masked text. See [file masking](/shadow/concepts/file-masking/).
-
-### Open source and local
-
-No account, no telemetry, auditable code.
-
-## When should you choose Harmonic?
-
-- Your priority is employee behaviour in AI web apps across managed browsers.
-- You want contextual detection beyond regex with coaching and redirects.
-- You need visibility into which AI tools staff use.
-- You want a fast, extension-based rollout.
-
-## When should you choose Shadow?
-
-- You need to protect model API traffic from tools, agents and services.
-- Users must keep working with sensitive data and get answers with real values.
-- You need streaming, tool-call and Office-file support.
-- You want an open-source, self-hosted component.
-
-## Using Harmonic and Shadow together
-
-1. Use Harmonic in managed browsers for web-chat AI use and coaching.
-2. Install Shadow on developer machines, CI runners and services that call model APIs.
-3. Use Harmonic's console for organisation-wide visibility, and Shadow's per-request logs (counts and kinds, never values) for API traffic.
-4. Optionally strengthen Shadow's detection with the open-weight NER sidecar or Presidio. See [detection](/shadow/concepts/detection/).
-
-## How do they compare on accuracy?
-
-Harmonic's accuracy figures are vendor claims without a public dataset we could reproduce. Shadow publishes its methodology and code on the [benchmarks page](/shadow/benchmarks/).
+Know Shadow's limits before choosing it. It does not cover phone apps, apps that pin certificates, WebSocket features, or apps that ignore the system proxy unless pointed at it. Cursor, Windsurf, Amazon Q and Kiro use binary protocols Shadow cannot mask; it shows them as "seen, not protected". Shadow is not a browser extension, has no SaaS app connectors, no DLP for files on disk and no SOC 2 or other certification.
 
 ## Sources
 
-- [Harmonic Security: browser-based GenAI security](https://www.harmonic.security/solutions/browser-based-genai-security)
-- [Harmonic Security](https://www.harmonic.security/)
-- [Shadow: intent-aware policy](/shadow/concepts/intent-policy/)
+Harmonic Security facts on this page come from Harmonic's own public pages:
+
+- [Harmonic Security home page](https://www.harmonic.security/) (fetched 2 Nov 2026): classification of AI tasks, browser extension, endpoint rollout tools, MCP Gateway, logging, warnings, coaching and blocking, employee privacy options, EU hosting on request.
+- [Harmonic Guide](https://www.harmonic.security/products/guide) (fetched 2 Nov 2026): small language models under 200 ms, named desktop apps, MCP Gateway on Windows, macOS and Linux, enforcement options, customisable interventions, application risk scores.
+- [Harmonic pricing](https://www.harmonic.security/pricing) (fetched 2 Nov 2026): Explore, Guide and Command plans with no prices shown.
+
+Shadow facts: [how it works](/shadow/concepts/how-it-works/), [supported providers](/shadow/reference/providers/), [proxy mode](/shadow/integrate/proxy-mode/).
 
 ---
 
-*Last reviewed: 2026-10-31. Harmonic Security is a trademark of its owner; this comparison is based on public documentation as of the review date.*
+*Last reviewed: 2 Nov 2026. Harmonic Security is a trademark of its owner; this comparison is based on Harmonic's public pages as of the review date. See also [AI DLP compared](/shadow/compare/ai-dlp/).*

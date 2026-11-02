@@ -1,11 +1,12 @@
 ---
-title: "Shadow vs Prompt Security — open-source Prompt Security alternative for LLM data"
-seoTitle: "Shadow vs Prompt Security: open-source LLM data protection"
-description: Shadow vs Prompt Security (SentinelOne). Prompt Security filters or blocks AI prompts; Shadow masks them with reversible fakes and restores answers.
+title: "Shadow Hub vs Prompt Security: AI data protection for teams"
+seoTitle: "Prompt Security vs Shadow Hub: AI data protection"
+description: "Prompt Security (SentinelOne) vs Shadow. Prompt Security redacts and enforces AI policy; Shadow masks prompts with reversible fakes and restores answers."
 sidebar:
   label: Prompt Security
   order: 32
 keywords:
+  - prompt security
   - prompt security alternative
   - prompt security vs shadow
   - prompt security sentinelone
@@ -13,100 +14,63 @@ keywords:
   - open source prompt security alternative
   - AI DLP
   - GenAI DLP
-  - PII redaction for LLM
 faq:
-  - q: "Is Shadow a free alternative to Prompt Security?"
-    a: "For AI API data protection, partly. Shadow is free and open source and masks prompts with reversible fakes on the machines where it runs. Prompt Security, now part of SentinelOne, is a commercial platform with a browser extension and gateway that also addresses prompt injection, shadow AI and other AI security risks that Shadow does not cover."
-  - q: "Did SentinelOne acquire Prompt Security?"
-    a: "Yes. SentinelOne announced the acquisition of Prompt Security in August 2025."
+  - q: "Is Shadow an alternative to Prompt Security?"
+    a: "For keeping sensitive data out of AI prompts, partly. Prompt Security, from SentinelOne, is a broad AI security platform covering employee AI use, developer tools, homegrown AI apps and agents. Shadow does one job: Core masks PII and secrets with reversible fakes on each machine, and Shadow Hub (early access) shows teams what was masked or blocked."
+  - q: "Is Prompt Security part of SentinelOne?"
+    a: "Yes. Prompt Security brands itself as Prompt Security from SentinelOne, and its platform pages are on sentinelone.com as part of the Singularity Platform."
   - q: "Does Prompt Security redact sensitive data?"
-    a: "Its public material describes filtering and blocking prompts that contain sensitive data. We could not verify detailed documentation of redaction or of restoring values in responses, so check with the vendor. Shadow replaces values with realistic fakes and restores them."
+    a: "Yes. SentinelOne says Prompt Security redacts sensitive data and enforces policies across 15,000+ AI services, and that its AI Usage Control redacts data before a prompt leaves the device. Its pages do not describe restoring the original values in answers; Shadow does."
   - q: "How much does Prompt Security cost?"
-    a: "Pricing is by quote through SentinelOne. Shadow is free under Apache-2.0."
-  - q: "Can Prompt Security and Shadow run together?"
-    a: "Yes. Prompt Security can govern employee AI use and screen for AI threats while Shadow masks the content of API, agent and developer traffic on the endpoint."
+    a: "Not published (as of 2 Nov 2026). SentinelOne's packages page lists prices for Singularity endpoint packages but none for Prompt Security. Shadow Core is free. Shadow Hub's planned pricing is free for 1-5 users, then from $8 per user per month; these prices are provisional."
+  - q: "Is Shadow Hub available now?"
+    a: "Not generally. Shadow Hub is in early access with a waitlist. Shadow Core is available today and free."
 ---
 
-**Prompt Security, acquired by SentinelOne in 2025, offers a browser extension and a gateway that give organisations visibility into AI use and filter or block risky prompts. Shadow is an open-source privacy layer that translates sensitive values in AI API requests into realistic, reversible fakes and restores them in the response.** Prompt Security is a broad AI security platform; Shadow does one job, keeping data out of provider requests while tools keep working.
+**Choose Prompt Security if you want a broad AI security platform from SentinelOne that governs employee AI use, developer tools, homegrown AI apps and agents, including prompt-injection defence. Choose Shadow if your goal is narrower: mask sensitive data in prompts with reversible fakes so answers stay useful. Core is free; Shadow Hub is in early access.**
 
-:::note[TL;DR]
-Prompt Security covers AI security broadly: shadow-AI discovery, prompt filtering and blocking, and protection against AI-specific threats, now within SentinelOne. Its redaction behaviour is not documented in detail publicly. Shadow masks values with consistent, format-preserving fakes and restores them in streams, tool calls and files, locally and for free.
-:::
+[Shadow Hub for teams](/shadow/hub/) · [Install Core free](/shadow/getting-started/quick-start/)
 
 ## At a glance
 
-| | Shadow | Prompt Security (SentinelOne) |
-|---|---|---|
-| **Open source / licence** | Yes, Apache-2.0 | No, commercial |
-| **Deployment** | Endpoint HTTPS proxy, gateway (`/gw/<provider>/`), Rust library | Browser extension, gateway, SaaS console |
-| **Protection method** | Reversible realistic fakes from a persona; typed tokens for reports; optional redaction | Filter or block; redaction not verified |
-| **Restores responses** | Yes, automatically | Not documented |
-| **Streaming** | Yes, SSE and NDJSON with split-fake reassembly | Not documented |
-| **Tool calls** | Yes, arguments restored locally; intent-aware for provider-hosted tools | Not documented |
-| **Files** | DOCX, XLSX, PPTX masked in place; PDF to text; CSV, JSON, HTML | Not documented |
-| **Self-hosted** | Yes, single binary, no account | Not documented |
-| **Price model** | Free | Quote |
+| | Prompt Security | Shadow Core | Shadow Hub |
+|---|---|---|---|
+| **Deployment model** | Commercial platform, part of SentinelOne's Singularity Platform | Free local proxy, a single binary on each laptop or server | Hosted console in early access (waitlist); members run one command that installs Core and enrols the machine |
+| **Where it runs** | Browser, desktop and embedded copilots for employees; developer tools such as GitHub Copilot, Cursor and Claude Code; homegrown AI apps; agents and MCP servers | On the device, between apps and AI services: model APIs, coding agents, and with the system proxy on, ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser | Masking stays on each machine; the hub receives what the organisation chooses to share: counts only, sanitised prompts or full detail |
+| **Masking vs blocking** | Redacts sensitive data, coaches users, blocks unsanctioned tools and adversarial prompts | Masks PII and secrets with realistic fakes; blocks file uploads by policy | Same as Core, plus a view of what was masked or blocked per person, machine, app and AI service |
+| **Reversible pseudonymisation** | Not described on its public pages | Yes, real values restored in answers | Yes, through Core |
+| **Open source** | Platform: no. Some separate tools (ps-fuzz, ClawSec) are on GitHub | Yes, Apache-2.0 | No, commercial hosted service |
+| **Published pricing** | No, not published (as of 2 Nov 2026) | Free | Provisional: free for 1-5 users, then from $8 per user per month |
+| **Best for** | Organisations that want AI usage control, AI app security and agent security from one vendor, especially SentinelOne customers | Developers and engineers using model APIs and coding agents | Teams that want to see what Core masked or blocked across members, without collecting real values unless they choose to |
 
-## What Prompt Security does well
+## When to choose Prompt Security
 
-- **Broad AI security scope.** Beyond data leakage, it addresses risks such as prompt injection and unsafe AI use, which Shadow does not attempt.
-- **Shadow-AI discovery.** The extension gives security teams visibility into which AI tools employees use.
-- **Two enforcement points.** A browser extension for employee use and a gateway for applications cover both people and apps.
-- **Central policy and reporting.** Policies are managed in one console, with visibility for security teams.
-- **SentinelOne integration.** As part of SentinelOne, it can sit alongside endpoint and XDR tooling that many security teams already run.
+- **You need more than data protection.** Prompt Security covers prompt injection and jailbreak testing before deployment, runtime protection for homegrown AI apps, and an AI firewall that blocks adversarial prompts.
+- **You govern agents and MCP.** It maps agents and MCP servers, discovers shadow MCP servers and enforces least-privilege access.
+- **You want wide AI service coverage.** SentinelOne says policies apply across 15,000+ AI services, and that unsanctioned tools can be blocked.
+- **You already run SentinelOne.** Prompt Security is part of the Singularity Platform, so it fits an existing SentinelOne estate.
+- **You want coaching.** Employees are coached in the moment rather than simply blocked.
 
-## Where Shadow is different
+## When to choose Shadow
 
-### Filter and block, or translate?
+- **Answers must keep working.** Shadow replaces names, emails, card numbers and secrets with realistic, consistent fakes, so the model can still reason about them, and restores the real values in the answer. See [how it works](/shadow/concepts/how-it-works/).
+- **You want a focused, inspectable tool.** Core is open source under Apache-2.0, needs no account and runs on the machine. It recognises 288 AI services and sits in front of model APIs and coding agents such as Claude Code, Codex, Gemini CLI and GitHub Copilot. See the [quick start](/shadow/getting-started/quick-start/).
+- **You want to start bottom-up.** Developers can install Core today; the team can add Shadow Hub later.
+- **You want a team view without collecting real values.** With [Shadow Hub](/shadow/hub/) (early access, waitlist), admins invite members by link and see what was masked or blocked per person, machine, app and AI service. Each organisation chooses whether machines share counts only, sanitised prompts or full detail.
 
-Blocking or filtering a prompt prevents a leak but also stops or degrades the work. Shadow sends the request with every sensitive value it detects translated into a realistic fake from a persistent [persona](/shadow/concepts/personas/): `Acme GmbH` becomes `Zhilan Technology Co., Ltd.`, emails and phone numbers keep their shape, card numbers stay Luhn-valid. The model answers normally and Shadow restores the real values.
-
-### Streams and tool calls
-
-Shadow restores fakes in [SSE and NDJSON streams](/shadow/concepts/how-it-works/#streaming-hold-back), even when split across events, and in [tool-call arguments](/shadow/concepts/tool-calls/) before local tools run. Public Prompt Security documentation does not describe restoration.
-
-### Intent-aware policy
-
-Shadow picks a treatment per value based on what the request is for: fakes in conversation, typed tokens for bulk reports, kept recipients and provider-hosted action targets. See [intent-aware policy](/shadow/concepts/intent-policy/).
-
-### Files
-
-Shadow masks DOCX, XLSX and PPTX uploads in place and turns PDFs into masked text. See [file masking](/shadow/concepts/file-masking/).
-
-### Open source and local
-
-No account, no telemetry, auditable code, and no plaintext sent to a vendor cloud.
-
-## When should you choose Prompt Security?
-
-- You want one platform for AI security: discovery, data protection and AI threat protection.
-- You already use SentinelOne and want AI controls in the same ecosystem.
-- You need central visibility over employee AI use.
-- Blocking or filtering fits your risk appetite.
-
-## When should you choose Shadow?
-
-- Your priority is keeping sensitive values out of model API requests while answers stay useful.
-- You rely on streaming, agents and tool calls.
-- You want Office files masked before upload.
-- You need an open-source, self-hosted control with no licence cost.
-
-## Using Prompt Security and Shadow together
-
-1. Use Prompt Security for AI discovery, employee browser use and AI threat screening.
-2. Install Shadow on developer machines, CI runners and services that call model APIs, in [proxy mode](/shadow/integrate/proxy-mode/) or [gateway mode](/shadow/integrate/gateway-mode/).
-3. If both sit in the API path, put Shadow closest to the application so that the gateway only sees masked content. Check that any prompt-injection scanning still works on masked text.
-
-## How do they compare on accuracy?
-
-Prompt Security does not publish PII detection results on public datasets that we could find. Shadow publishes its methodology on the [benchmarks page](/shadow/benchmarks/).
+Know Shadow's limits before choosing it. It does not cover phone apps, apps that pin certificates, WebSocket features, or apps that ignore the system proxy unless pointed at it. Cursor, Windsurf, Amazon Q and Kiro use binary protocols Shadow cannot mask; it shows them as "seen, not protected". Shadow does not detect prompt injection, is not a browser extension, has no SaaS app connectors, no DLP for files on disk and no SOC 2 or other certification.
 
 ## Sources
 
-- [SentinelOne acquires Prompt Security (SiliconANGLE)](https://siliconangle.com/2025/08/05/sentinelone-acquires-ai-security-startup-prompt-security/)
-- [Prompt Security](https://www.prompt.security/)
-- [Shadow: how it works](/shadow/concepts/how-it-works/)
+Prompt Security facts on this page come from Prompt Security's and SentinelOne's own public pages:
+
+- [Prompt Security home page](https://www.prompt.security/) (fetched 2 Nov 2026): "Prompt Security from SentinelOne" branding; open-source tools ps-fuzz and ClawSec on GitHub.
+- [SentinelOne: Securing AI with Prompt Security](https://www.sentinelone.com/platform/securing-ai-prompt/) (fetched 2 Nov 2026): Singularity Platform; redaction across 15,000+ AI services; AI firewall; developer tools; homegrown apps; agents and MCP.
+- [SentinelOne: Prompt Security AI Usage Control](https://www.sentinelone.com/platform/prompt-security-ai-usage-control/) (fetched 2 Nov 2026): redaction before a prompt leaves the device; coaching; blocking unsanctioned tools; browser, desktop and embedded copilots.
+- [SentinelOne platform packages](https://www.sentinelone.com/platform-packages/) (fetched 2 Nov 2026): no published price for Prompt Security.
+
+Shadow facts: [how it works](/shadow/concepts/how-it-works/), [supported providers](/shadow/reference/providers/), [proxy mode](/shadow/integrate/proxy-mode/).
 
 ---
 
-*Last reviewed: 2026-10-31. Prompt Security and SentinelOne are trademarks of their owners; this comparison is based on public documentation as of the review date.*
+*Last reviewed: 2 Nov 2026. Prompt Security and SentinelOne are trademarks of their owners; this comparison is based on their public pages as of the review date. See also [AI DLP compared](/shadow/compare/ai-dlp/).*

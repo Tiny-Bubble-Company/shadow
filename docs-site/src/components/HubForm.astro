@@ -1,0 +1,201 @@
+---
+// The Hub waitlist and Book a demo form: one <dialog> on every page, opened by any button
+// with data-open-form="waitlist|demo". Submits to POST /api/form (worker/index.js) with a
+// Turnstile token. Until the endpoint is configured it offers email instead.
+import { SUPPORT_EMAIL } from '../site.mjs';
+
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '';
+---
+
+<dialog class="sh-form" id="sh-hub-form" aria-labelledby="sh-form-title" data-sitekey={siteKey} data-support={SUPPORT_EMAIL}>
+	<form method="dialog" class="sh-form__close-row">
+		<button class="sh-form__close" aria-label="Close">×</button>
+	</form>
+	<h2 id="sh-form-title" data-title-waitlist="Join the Shadow Hub waitlist" data-title-demo="Book a Shadow Hub demo">Join the Shadow Hub waitlist</h2>
+	<p class="sh-form__lead" data-lead-waitlist="Hub is in early access. We'll email you when your workspace is ready. No newsletter." data-lead-demo="Tell us a little about your team and we'll find a time.">
+		Hub is in early access. We'll email you when your workspace is ready. No newsletter.
+	</p>
+	<form class="sh-form__body" novalidate>
+		<input type="hidden" name="form_type" value="waitlist" />
+		<input type="hidden" name="location" value="" />
+		<label>Work email <input type="email" name="email" required autocomplete="email" maxlength="200" /></label>
+		<label>Name <input type="text" name="name" autocomplete="name" maxlength="120" /></label>
+		<label>Company <input type="text" name="company" autocomplete="organization" maxlength="120" /></label>
+		<label>
+			Team size
+			<select name="team_size">
+				<option value="">Choose…</option>
+				<option>1-5</option>
+				<option>6-50</option>
+				<option>51-500</option>
+				<option>500+</option>
+			</select>
+		</label>
+		<label class="sh-form__msg">Anything we should know? <textarea name="message" rows="3" maxlength="2000"></textarea></label>
+		<div class="sh-form__turnstile"></div>
+		<p class="sh-form__status" role="status" aria-live="polite"></p>
+		<button type="submit" class="sh-form__submit">Join the waitlist</button>
+		<p class="sh-form__fine">We use your email only to contact you about Shadow Hub. No cookies, no trackers.</p>
+	</form>
+</dialog>
+
+<script>
+	import { track } from '../scripts/track';
+
+	const dialog = document.getElementById('sh-hub-form') as HTMLDialogElement | null;
+	const form = dialog?.querySelector<HTMLFormElement>('.sh-form__body');
+	let turnstileLoaded = false;
+	let widget: string | undefined;
+
+	type Turnstile = { render: (el: Element, o: Record<string, unknown>) => string; reset: (id?: string) => void; getResponse: (id?: string) => string | undefined };
+	const ts = () => (window as unknown as { turnstile?: Turnstile }).turnstile;
+
+	function loadTurnstile() {
+		const key = dialog?.dataset.sitekey;
+		if (!key || turnstileLoaded) return;
+		turnstileLoaded = true;
+		const s = document.createElement('script');
+		s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+		s.async = true;
+		s.onload = () => {
+			const box = dialog?.querySelector('.sh-form__turnstile');
+			if (box && ts()) widget = ts()!.render(box, { sitekey: key, size: 'flexible' });
+		};
+		document.head.appendChild(s);
+	}
+
+	function open(kind: string, where: string) {
+		if (!dialog || !form) return;
+		const k = kind === 'demo' ? 'demo' : 'waitlist';
+		(form.elements.namedItem('form_type') as HTMLInputElement).value = k;
+		(form.elements.namedItem('location') as HTMLInputElement).value = where;
+		const title = dialog.querySelector<HTMLElement>('#sh-form-title')!;
+		const lead = dialog.querySelector<HTMLElement>('.sh-form__lead')!;
+		title.textContent = title.dataset[k === 'demo' ? 'titleDemo' : 'titleWaitlist'] ?? '';
+		lead.textContent = lead.dataset[k === 'demo' ? 'leadDemo' : 'leadWaitlist'] ?? '';
+		form.querySelector<HTMLButtonElement>('.sh-form__submit')!.textContent = k === 'demo' ? 'Request a demo' : 'Join the waitlist';
+		form.querySelector('.sh-form__msg')!.toggleAttribute('hidden', k !== 'demo');
+		form.querySelector('.sh-form__status')!.textContent = '';
+		loadTurnstile();
+		dialog.showModal();
+		form.querySelector<HTMLInputElement>('input[name=email]')?.focus();
+	}
+
+	document.addEventListener('click', (e) => {
+		const btn = (e.target as Element | null)?.closest<HTMLElement>('[data-open-form]');
+		if (!btn) return;
+		e.preventDefault();
+		open(btn.dataset.openForm ?? 'waitlist', btn.dataset.formLocation ?? 'other');
+	});
+
+	form?.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		const status = form.querySelector<HTMLElement>('.sh-form__status')!;
+		const data = Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
+		if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email || '')) {
+			status.textContent = 'Enter a valid work email.';
+			return;
+		}
+		const support = dialog?.dataset.support ?? '';
+		const mailto = `mailto:${support}?subject=${encodeURIComponent(data.form_type === 'demo' ? 'Shadow Hub demo' : 'Shadow Hub waitlist')}`;
+		status.textContent = 'Sending…';
+		try {
+			const r = await fetch('/api/form', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ ...data, turnstile: ts()?.getResponse(widget) }),
+			});
+			if (r.ok) {
+				track(data.form_type === 'demo' ? 'book_demo' : 'waitlist_submit', { location: data.location || 'other' });
+				status.textContent = data.form_type === 'demo' ? "Thanks. We'll be in touch to find a time." : "You're on the list. We'll email you when your workspace is ready.";
+				form.reset();
+				return;
+			}
+			const out = (await r.json().catch(() => ({}))) as { error?: string };
+			if (r.status === 503 || r.status === 404 || r.status === 405) {
+				status.innerHTML = `Online sign-up isn't open yet. Email <a href="${mailto}">${support}</a> and we'll add you.`;
+			} else {
+				status.textContent = out.error ?? 'Something went wrong. Please try again.';
+				ts()?.reset(widget);
+			}
+		} catch {
+			status.innerHTML = `Couldn't send that. Email <a href="${mailto}">${support}</a> instead.`;
+		}
+	});
+</script>
+
+<style>
+	.sh-form {
+		width: min(28rem, calc(100vw - 2rem));
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.9rem;
+		padding: 1.25rem 1.4rem 1.4rem;
+		background: var(--sl-color-bg);
+		color: var(--sl-color-white);
+	}
+	.sh-form::backdrop {
+		background: rgb(10 8 24 / 0.55);
+	}
+	.sh-form h2 {
+		margin: 0 0 0.35rem;
+		font-size: 1.2rem;
+	}
+	.sh-form__close-row {
+		display: flex;
+		justify-content: flex-end;
+		margin: -0.5rem -0.6rem 0 0;
+	}
+	.sh-form__close {
+		border: 0;
+		background: none;
+		font-size: 1.4rem;
+		color: var(--sl-color-gray-3);
+		cursor: pointer;
+	}
+	.sh-form__lead,
+	.sh-form__fine {
+		color: var(--sl-color-gray-3);
+		font-size: 0.88rem;
+		margin: 0 0 0.9rem;
+	}
+	.sh-form__body {
+		display: grid;
+		gap: 0.65rem;
+	}
+	.sh-form__body label {
+		display: grid;
+		gap: 0.25rem;
+		font-size: 0.85rem;
+		font-weight: 600;
+	}
+	.sh-form__body input,
+	.sh-form__body select,
+	.sh-form__body textarea {
+		font: inherit;
+		font-weight: 400;
+		padding: 0.5rem 0.6rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-gray-7, var(--sl-color-bg));
+		color: inherit;
+	}
+	.sh-form__submit {
+		min-height: 2.5rem;
+		border: 0;
+		border-radius: 0.6rem;
+		background: var(--sl-color-accent);
+		color: #fff;
+		font: inherit;
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.sh-form__status {
+		min-height: 1.2em;
+		margin: 0;
+		font-size: 0.88rem;
+	}
+	.sh-form__fine {
+		margin: 0;
+		font-size: 0.78rem;
+	}
+</style>

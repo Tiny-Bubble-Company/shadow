@@ -1,7 +1,7 @@
 ---
 // Site header for the home page and every docs page (overrides Starlight's Header).
-// Logo · mega menu (Product, Docs, Solutions, Industries, Compare, Benchmarks) · search ·
-// GitHub · theme. Menus are <details>; a small script only closes them on Escape,
+// Logo · menu (Docs, Hub, Pricing, Compare, Solutions, Trust) · search · GitHub · the
+// buyer CTA · theme. Also mounts the funnel tracking and the waitlist/demo form once. Menus are <details>; a small script only closes them on Escape,
 // outside click or when another one opens. Below 75rem the groups move into one "Menu"
 // panel (on docs pages under 50rem Starlight's own sidebar menu takes over).
 import Search from '@astrojs/starlight/components/Search.astro';
@@ -10,25 +10,15 @@ import ThemeSelect from '@astrojs/starlight/components/ThemeSelect.astro';
 import { Icon } from '@astrojs/starlight/components';
 import { REPO_URL } from '../site.mjs';
 import { mainNav, sitePath, type NavGroup } from '../nav/site-nav';
+import HubCta from './HubCta.astro';
+import HubForm from './HubForm.astro';
 
 const nav = await mainNav();
-const columnsOf = (g: NavGroup) => [g];
-const menus: { id: string; label: string; wide?: boolean; columns: NavGroup[]; all?: { label: string; href: string } }[] = [
-	{ id: 'product', label: 'Product', columns: columnsOf(nav.product) },
+type Menu = { id: string; label: string; wide?: boolean; columns?: NavGroup[]; href?: string; all?: { label: string; href: string } };
+const menus: Menu[] = [
 	{ id: 'docs', label: 'Docs', wide: true, columns: nav.docs.columns },
-	{
-		id: 'solutions',
-		label: 'Solutions',
-		wide: true,
-		columns: nav.solutions.columns,
-	},
-	{
-		id: 'industries',
-		label: 'Industries',
-		wide: true,
-		columns: [nav.industries],
-		all: nav.industries.href ? { label: 'All industries', href: nav.industries.href } : undefined,
-	},
+	{ id: 'hub', label: 'Hub', columns: [nav.hub], all: { label: 'Shadow Hub overview', href: sitePath('/hub/') } },
+	{ id: 'pricing', label: 'Pricing', href: sitePath('/pricing/') },
 	{
 		id: 'compare',
 		label: 'Compare',
@@ -36,8 +26,9 @@ const menus: { id: string; label: string; wide?: boolean; columns: NavGroup[]; a
 		columns: [nav.compare],
 		all: nav.compare.href ? { label: 'Compare all AI data-leak tools', href: nav.compare.href } : undefined,
 	},
+	{ id: 'solutions', label: 'Solutions', wide: true, columns: nav.solutions.columns },
+	{ id: 'trust', label: 'Trust', href: sitePath('/trust/') },
 ];
-const benchmarks = sitePath('/benchmarks/');
 const { hasSidebar } = Astro.locals.starlightRoute;
 ---
 
@@ -49,7 +40,11 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 	<nav class="sh-nav" aria-label="Main">
 		<ul class="sh-nav__list">
 			{
-				menus.map((m) => (
+				menus.map((m) => m.href ? (
+					<li>
+						<a class="sh-nav__link" href={m.href}>{m.label}</a>
+					</li>
+				) : (
 					<li>
 						<details class="sh-nav__item" data-sh-menu>
 							<summary>
@@ -57,10 +52,10 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 								<Icon name="down-caret" size="0.9rem" class="sh-caret" />
 							</summary>
 							<div class:list={['sh-panel', { 'sh-panel--wide': m.wide }]}>
-								<div class:list={['sh-panel__cols', `sh-panel__cols--${m.columns.length}`, { 'sh-panel__cols--many': m.columns.length === 1 && m.columns[0]!.links.length > 10 }]}>
-									{m.columns.map((g) => (
+								<div class:list={['sh-panel__cols', `sh-panel__cols--${m.columns!.length}`, { 'sh-panel__cols--many': m.columns!.length === 1 && m.columns![0]!.links.length > 10 }]}>
+									{m.columns!.map((g) => (
 										<div class="sh-panel__group">
-											{m.columns.length > 1 && (
+											{m.columns!.length > 1 && (
 												<p class="sh-panel__heading">
 													{g.href ? <a href={g.href}>{g.label}</a> : g.label}
 												</p>
@@ -70,7 +65,7 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 													<li>
 														<a href={l.href}>
 															<span class="sh-panel__label">{l.label}</span>
-															{m.id === 'product' && l.description && <span class="sh-panel__desc">{l.description}</span>}
+															{(g.id === 'product' || g.id === 'hub') && l.description && <span class="sh-panel__desc">{l.description}</span>}
 														</a>
 													</li>
 												))}
@@ -88,7 +83,6 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 					</li>
 				))
 			}
-			<li><a class="sh-nav__link" href={benchmarks}>Benchmarks</a></li>
 		</ul>
 	</nav>
 
@@ -102,6 +96,7 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 			<span>GitHub</span>
 			<span class="sh-gh__badge">Open source</span>
 		</a>
+		<div class="sh-header__cta"><HubCta location="header" show={['hub']} compact /></div>
 		<ThemeSelect />
 	</div>
 
@@ -112,12 +107,14 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 		</summary>
 		<div class="sh-menu__panel">
 			{
-				menus.map((m) => (
+				menus.map((m) => m.href ? (
+					<a class="sh-menu__link" href={m.href}>{m.label}</a>
+				) : (
 					<details class="sh-menu__group">
 						<summary>{m.label}</summary>
-						{m.columns.map((g) => (
+						{m.columns!.map((g) => (
 							<div class="sh-menu__sub">
-								{m.columns.length > 1 && <p class="sh-panel__heading">{g.href ? <a href={g.href}>{g.label}</a> : g.label}</p>}
+								{m.columns!.length > 1 && <p class="sh-panel__heading">{g.href ? <a href={g.href}>{g.label}</a> : g.label}</p>}
 								<ul>
 									{g.links.map((l) => (
 										<li>
@@ -135,7 +132,8 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 					</details>
 				))
 			}
-			<a class="sh-menu__link" href={benchmarks}>Benchmarks</a>
+			<a class="sh-menu__link" href={sitePath('/benchmarks/')}>Benchmarks</a>
+			<HubCta location="header" show={['hub', 'install']} compact />
 			<div class="sh-menu__foot">
 				<a class="sh-gh" href={REPO_URL} rel="noopener">
 					<Icon name="github" size="1.1rem" /> <span>GitHub</span>
@@ -146,6 +144,11 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 		</div>
 	</details>
 </div>
+<HubForm />
+
+<script>
+	import '../scripts/track';
+</script>
 
 <script>
 	const menus = () => [...document.querySelectorAll<HTMLDetailsElement>('[data-sh-menu]')];

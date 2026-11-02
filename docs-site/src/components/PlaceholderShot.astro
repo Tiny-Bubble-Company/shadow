@@ -1,0 +1,38 @@
+---
+// A labelled grey placeholder where a product screenshot will go. Deliberately shows no
+// mock data, so nothing on the page looks like a real customer's numbers.
+interface Props {
+	label: string;
+	ratio?: string;
+}
+const { label, ratio = '16 / 9' } = Astro.props;
+---
+
+<figure class="sh-shot not-content" style={{ aspectRatio: ratio }} role="img" aria-label={`Screenshot coming soon: ${label}`}>
+	<figcaption><span>Screenshot coming soon</span>{label}</figcaption>
+</figure>
+
+<style>
+	.sh-shot {
+		margin: 1.25rem 0;
+		display: grid;
+		place-items: center;
+		border: 1px dashed var(--sl-color-gray-4);
+		border-radius: 0.9rem;
+		background: var(--sl-color-gray-6);
+	}
+	.sh-shot figcaption {
+		display: grid;
+		gap: 0.25rem;
+		text-align: center;
+		color: var(--sl-color-gray-2);
+		font-weight: 600;
+	}
+	.sh-shot figcaption span {
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--sl-color-gray-3);
+	}
+</style>

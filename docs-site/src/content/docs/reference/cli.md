@@ -34,7 +34,7 @@ Logs go to stderr. `shadow run` logs at `info` by default, every other command a
 | [`run`](#shadow-run) | Run the proxy and gateway in the foreground |
 | [`install`](#shadow-install) / [`uninstall`](#shadow-uninstall) | Background service and CA trust, optionally the system proxy (dry run by default) |
 | [`system-proxy`](#shadow-system-proxy) | Route the machine's traffic through Shadow, or stop |
-| [`enroll`](#shadow-enroll) / [`unenroll`](#shadow-unenroll) | Join an organisation's Shadow Hub, or leave it |
+| [`hub`](#shadow-hub) | Connect this machine to your organisation's Shadow Hub, check it, or disconnect |
 | [`status`](#shadow-status) | Configuration, persona, vault and proxy health |
 | [`identity`](#shadow-identity) | Show the persona |
 | [`mask`](#shadow-mask) / [`unmask`](#shadow-unmask) | Translate stdin to stdout |
@@ -220,25 +220,25 @@ shadow top [--demo]
 
 ## `shadow activity`
 
-Print the activity summary as plain tables, or as JSON with `--json`. `--window` (`-w`) is `1h`, `24h` (default), `7d`, `30d` or `today`. `--demo` summarises synthetic data.
+Print the activity summary as plain tables, or as JSON with `--json` (`shadow stats` is the same command). At most once a week it ends with one line about Shadow Hub; `--no-hints` or `hints = false` in `shadow.toml` turns that off. The hint makes no network call. `--window` (`-w`) is `1h`, `24h` (default), `7d`, `30d` or `today`. `--demo` summarises synthetic data.
 
 ```sh
 shadow activity [--window <WINDOW>] [--json] [--demo]
 ```
 
-## `shadow enroll`
+## `shadow hub`
 
-Join an organisation's [Shadow Hub](/shadow/integrate/organisations/) with the link from an invite. The machine then reports its activity to the organisation, trimmed to the organisation's sharing level before it leaves the machine.
+Connect this machine to your organisation's [Shadow Hub](/shadow/hub/), check the connection, or end it. Core works fully on its own and never phones home: nothing is sent anywhere unless you connect.
 
 ```sh
-shadow enroll <JOIN LINK> [--email <EMAIL>] [--name <NAME>]
+shadow hub connect [<JOIN LINK>] [--yes] [--email <EMAIL>] [--name <NAME>]
+shadow hub status
+shadow hub disconnect
 ```
 
-`--email` and `--name` are used when the invite was not made out to a named person. The enrolment is stored in `<data dir>/hub.json` (mode `0600`).
+`connect` shows the organisation and exactly what it will see at its sharing level, and asks before anything is sent (`--yes` skips the question, for scripts and MDM). Without a link it explains how to get one and opens [getshadow.dev/hub/connect](/shadow/hub/connect/). `--email` and `--name` are used when the invite was not made out to a named person. The connection is stored in `<data dir>/hub.json` (mode `0600`). `disconnect` stops reporting; Shadow keeps protecting the machine.
 
-## `shadow unenroll`
-
-Stop reporting to the organisation from this machine (removes `hub.json`). Shadow keeps protecting the machine.
+The installer connects in one step when run with `SHADOW_ENROLL='<join link>'`. `shadow enroll` and `shadow unenroll` remain as aliases.
 
 ## `shadow incidents`
 

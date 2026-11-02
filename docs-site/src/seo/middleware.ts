@@ -3,6 +3,7 @@
 // BreadcrumbList, FAQPage) for every docs page.
 
 import { defineRouteMiddleware } from '@astrojs/starlight/route-data';
+import { HUB_PRICE_RANGE, HUB_TIERS } from '../data/pricing';
 import type { HeadConfig } from '@astrojs/starlight/types';
 import { getCollection } from 'astro:content';
 import {
@@ -178,7 +179,7 @@ export const onRequest = defineRouteMiddleware(async (context) => {
 		{
 			'@type': 'SoftwareApplication',
 			'@id': appId,
-			name: SITE_NAME,
+			name: 'Shadow Core',
 			description: SITE_DESCRIPTION,
 			url: HOME_URL,
 			applicationCategory: 'SecurityApplication',
@@ -310,6 +311,34 @@ export const onRequest = defineRouteMiddleware(async (context) => {
 				name: it.name,
 				url: pageUrl(it.url.replace(/^\/|\/$/g, '')),
 			})),
+		});
+	}
+
+	// Shadow Hub, the paid team dashboard, with its per-user offers from src/data/pricing.ts.
+	if (slug === 'hub' || slug === 'pricing') {
+		graph.push({
+			'@type': 'SoftwareApplication',
+			'@id': `${HOME_URL}#hub`,
+			name: 'Shadow Hub',
+			description:
+				'Hosted dashboard for teams running Shadow Core: AI usage per user, machine, app and AI service, with what was masked or blocked.',
+			url: pageUrl('hub'),
+			applicationCategory: 'SecurityApplication',
+			operatingSystem: 'Web',
+			offers: {
+				'@type': 'AggregateOffer',
+				lowPrice: String(HUB_PRICE_RANGE.low),
+				highPrice: String(HUB_PRICE_RANGE.high),
+				priceCurrency: 'USD',
+				offerCount: HUB_TIERS.length,
+				priceSpecification: {
+					'@type': 'UnitPriceSpecification',
+					priceCurrency: 'USD',
+					unitText: 'per user per month',
+				},
+			},
+			publisher: { '@id': orgId },
+			isRelatedTo: { '@id': appId },
 		});
 	}
 

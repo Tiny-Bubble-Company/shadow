@@ -41,6 +41,9 @@ pub struct ShadowConfig {
     pub presidio: PresidioConfig,
     /// The privacy-safe activity feed behind the dashboard, `shadow top` and the tray app.
     pub activity: ActivityConfig,
+    /// Show at most one local hint a week (in `shadow activity`) about Shadow Hub. Never
+    /// makes a network call.
+    pub hints: bool,
 }
 
 /// Activity feed (see [`crate::activity`]): counts and categories only, never values.
@@ -409,6 +412,7 @@ impl ShadowConfig {
             files: FilesConfig::default(),
             presidio: PresidioConfig::default(),
             activity: ActivityConfig::default(),
+            hints: true,
         }
     }
 

@@ -54,7 +54,7 @@ fi
 
 if [ -n "${SHADOW_ENROLL:-}" ]; then
   echo
-  "$BIN_DIR/shadow" enroll "$SHADOW_ENROLL"
+  "$BIN_DIR/shadow" hub connect --yes "$SHADOW_ENROLL"
   echo
   "$BIN_DIR/shadow" install --apply --system-proxy
   echo

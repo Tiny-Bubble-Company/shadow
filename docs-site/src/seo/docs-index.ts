@@ -15,8 +15,11 @@ type Data = DocEntry['data'] & { sidebar?: { order?: number } };
 
 /** All published pages grouped by section, in sidebar order. Home page excluded. */
 export async function groupedPages() {
+	// noindex pages (stubs, case-study templates, the Hub connect page) stay out of llms.txt too.
+	const noindex = (e: DocEntry) =>
+		(e.data.head ?? []).some((h) => h.tag === 'meta' && h.attrs?.name === 'robots' && String(h.attrs?.content).includes('noindex'));
 	const all = (await getCollection('docs')).filter(
-		(e) => !e.data.draft && e.id !== 'index' && e.id !== '404' && !e.id.endsWith('/404'),
+		(e) => !e.data.draft && e.id !== 'index' && e.id !== '404' && !e.id.endsWith('/404') && !noindex(e),
 	);
 	const byDir = new Map<string, DocEntry[]>();
 	for (const e of all) {

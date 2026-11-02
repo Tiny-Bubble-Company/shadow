@@ -166,6 +166,12 @@ shadow system-proxy off --apply         # turn it off again
 
 Every app that follows the system proxy goes through Shadow. ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok prompts are masked; everything else you browse is tunnelled untouched and not recorded. If Shadow stops, apps connect directly.
 
+**Shadow Hub for teams**
+
+Shadow Core is free and complete on its own. [Shadow Hub](https://getshadow.dev/hub/) is the paid dashboard that shows a security team what was masked or blocked across every user, tool and AI service ([pricing](https://getshadow.dev/pricing/)).
+Connect a machine with `shadow hub connect <invite link>`; it shows what your organisation will see and asks first.
+Core never phones home. Nothing is sent unless you run `shadow hub connect`.
+
 **Verify**
 
 ```sh

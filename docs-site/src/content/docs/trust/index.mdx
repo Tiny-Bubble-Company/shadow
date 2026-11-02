@@ -1,0 +1,81 @@
+---
+title: Trust and data
+seoTitle: "Shadow trust: what Hub receives, stores and never sees"
+description: "How Shadow handles data: Core runs locally and never phones home; Hub receives only what your organisation's sharing level allows. Storage and security."
+template: splash
+editUrl: false
+keywords:
+  - shadow security
+  - ai governance data privacy
+  - ai usage monitoring privacy
+faq:
+  - q: "Does Shadow Core send any data to Shadow or anyone else?"
+    a: "No. Core has no telemetry, update pings or usage stats. It only forwards your own requests to the AI services you call, with sensitive values masked. Nothing goes to Shadow Hub unless someone connects the machine with `shadow hub connect`."
+  - q: "What does Shadow Hub receive?"
+    a: "What your organisation's sharing level allows, applied on each laptop before upload: counts only; or also prompts as the AI received them (fakes, no real values); or full detail including original prompts and values. Never non-AI traffic, and nothing from before the machine was connected."
+  - q: "How long does Hub keep data?"
+    a: "For your organisation's retention period, 90 days by default and configurable from 1 day. Older events are deleted automatically every hour."
+  - q: "Is Shadow SOC 2 or ISO 27001 certified?"
+    a: "No. Shadow does not hold SOC 2, ISO 27001, ISO 42001 or HIPAA certifications. Core is open source, so you can review exactly what runs on your machines."
+  - q: "Can we get a DPA?"
+    a: "Yes, on request: write to support@getshadow.dev."
+---
+
+**Shadow Core runs entirely on your machines and never phones home. Shadow Hub receives only what your organisation's sharing level allows, applied on each laptop before anything is sent: counts only, prompts as the AI received them, or full detail. Non-AI traffic and activity from before a machine joined are never sent.**
+{/* PLACEHOLDER: hosting region, subprocessors, encryption at rest, SSO and DPA wording pending confirmation */}
+
+## How data flows
+
+```text
+ laptop or server                                   your organisation
+┌───────────────────────────────────────────┐      ┌─────────────────────────┐
+│ apps → Shadow Core → masked request ──────┼────▶ │ AI service (OpenAI, …)  │
+│          │  real values stay in the local │      └─────────────────────────┘
+│          │  encrypted vault               │
+│          └─ events, trimmed to your        │      ┌─────────────────────────┐
+│             sharing level (only if         ├────▶ │ Shadow Hub dashboard    │
+│             connected to Hub) ─────────────┘      └─────────────────────────┘
+└───────────────────────────────────────────┘
+```
+
+- **Core is local.** Detection, masking and restoring happen on the machine. The mapping between real values and fakes stays in a local, encrypted vault and is never uploaded.
+- **Core never phones home.** No telemetry, update checks or usage statistics. The [source code](https://github.com/Tiny-Bubble-Company/shadow) is open for you to check.
+- **Hub is opt-in.** A machine reports to Hub only after someone runs `shadow hub connect` (or the installer from an invite) and confirms. The menu-bar app, local dashboard and `shadow status` show it is managed and what is shared.
+
+## What Hub receives
+
+| Sharing level | Hub receives | Never |
+|---|---|---|
+| Counts | Per request: time, AI service, app, action (masked, blocked, clean), how many values of each type | Any prompt text |
+| Sanitised | Counts, plus the prompt as the AI received it (fakes), the model and the app's process | Real values or the original prompt |
+| Full | Sanitised, plus the original prompt, the values caught and conversation ids | |
+
+All levels include the machine's name, operating system and user name, and the person it is enrolled to. No level includes traffic that isn't going to an AI service, or anything from before the machine was connected. Hub enforces the level again on arrival, so an outdated client can't send more than your organisation chose.
+
+## What Hub stores and for how long
+
+- Events and incident details, for your organisation's retention period: **90 days by default**, configurable. Older data is deleted hourly.
+- Accounts: admin names and emails, with passwords hashed using Argon2.
+- Invite, session and device tokens are stored only as SHA-256 hashes.
+
+## Hosting and subprocessors
+
+Hub's hosting region, EU data residency and list of subprocessors will be published here before Hub is generally available. Self-hosting is available on request.
+
+## Encryption and access
+
+- All traffic between Core and Hub, and between your browser and Hub, uses HTTPS.
+- Each organisation's data is isolated; admins see only their own organisation.
+- Admin sign-in uses email and password today; single sign-on is planned.
+
+## Open-source Core
+
+Core is Apache-2.0. Everything that runs on your machines, including the code that decides what is sent to Hub, is in the public repository: [github.com/Tiny-Bubble-Company/shadow](https://github.com/Tiny-Bubble-Company/shadow).
+
+## Vulnerability disclosure
+
+Report security issues to support@getshadow.dev, or privately through [GitHub security advisories](https://github.com/Tiny-Bubble-Company/shadow/security/advisories/new). See [SECURITY.md](https://github.com/Tiny-Bubble-Company/shadow/blob/main/SECURITY.md) and [/.well-known/security.txt](/.well-known/security.txt).
+
+## DPA
+
+A data processing agreement is available on request: [support@getshadow.dev](mailto:support@getshadow.dev).

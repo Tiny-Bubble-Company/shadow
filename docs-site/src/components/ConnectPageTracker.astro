@@ -1,0 +1,11 @@
+---
+// /hub/connect/: count the visit by source; the query string itself (it may hold an invite
+// token) is never sent, and is removed from the address bar.
+---
+
+<script>
+	import { track } from '../scripts/track';
+	const s = new URLSearchParams(location.search).get('source');
+	track('hub_connect_page', { source: s === 'cli' || s === 'invite' ? s : 'other' });
+	if (location.search) history.replaceState(null, '', location.pathname);
+</script>
