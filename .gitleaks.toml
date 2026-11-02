@@ -12,4 +12,7 @@ paths = [
   '''crates/.*/tests/.*''',
   '''crates/shadow-core/src/detect/patterns\.rs$''',
   '''docs-site/src/content/docs/.*\.mdx?$''',
+  # Hostnames and docs URLs only (catalog_is_well_formed rejects anything else); API hosts
+  # such as asr.api.speechmatics.com trip the generic-api-key rule.
+  '''crates/shadow-core/catalog\.json$''',
 ]
