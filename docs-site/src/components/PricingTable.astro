@@ -11,6 +11,12 @@ interface Props {
 }
 const { summary = false, location = 'pricing' } = Astro.props;
 const money = (n: number | null) => (n === null ? '' : `$${n}`);
+/** Hub signup link for a tier; the plan and billing period carry over to checkout. */
+const planOf = (id: string) => (id === 'hub-starter' ? 'starter' : id === 'hub-business' ? 'business' : '');
+const signupHref = (id: string, billing = 'annual') => {
+	const plan = planOf(id);
+	return plan ? `${hub.signupUrl}?plan=${plan}&interval=${billing}` : hub.signupUrl;
+};
 const estimatorTiers = JSON.stringify(HUB_TIERS.map((t) => ({ id: t.id, name: t.name, min: t.seats.min, max: t.seats.max, annual: t.price.annual, monthly: t.price.monthly, label: t.priceLabel ?? null })));
 ---
 
@@ -53,7 +59,7 @@ const estimatorTiers = JSON.stringify(HUB_TIERS.map((t) => ({ id: t.id, name: t.
 					) : t.cta.action === 'demo' ? (
 						<button type="button" class="sh-tier__btn" data-tier={t.id} data-open-form="demo" data-form-location={location}>{DEMO_CTA}</button>
 					) : hub.hubLive ? (
-						<a class:list={['sh-tier__btn', { 'is-primary': t.featured }]} data-tier={t.id} href={hub.signupUrl} data-track="hub_start_free" data-track-props={JSON.stringify({ location })}>{t.cta.label}</a>
+						<a class:list={['sh-tier__btn', { 'is-primary': t.featured }]} data-tier={t.id} data-plan={planOf(t.id)} href={signupHref(t.id)} data-track="hub_start_free" data-track-props={JSON.stringify({ location })}>{t.cta.label}</a>
 					) : (
 						<button type="button" class:list={['sh-tier__btn', { 'is-primary': t.featured }]} data-tier={t.id} data-open-form="waitlist" data-form-location={location} data-track="hub_start_free" data-track-props={JSON.stringify({ location })}>
 							{BUYER_CTA}
@@ -95,6 +101,13 @@ const estimatorTiers = JSON.stringify(HUB_TIERS.map((t) => ({ id: t.id, name: t.
 			root.dataset.billing = b;
 			root.querySelectorAll<HTMLElement>('[data-annual]').forEach((el) => (el.textContent = (b === 'monthly' ? el.dataset.monthly : el.dataset.annual) ?? ''));
 			root.querySelectorAll<HTMLButtonElement>('[data-billing-set]').forEach((btn) => btn.setAttribute('aria-pressed', String(btn.dataset.billingSet === b)));
+			// Signup links carry the billing period (Business is annual only).
+			root.querySelectorAll<HTMLAnchorElement>('a[data-plan]').forEach((a) => {
+				if (!a.dataset.plan) return;
+				const u = new URL(a.href);
+				u.searchParams.set('interval', b === 'monthly' && a.dataset.plan !== 'business' ? 'monthly' : 'annual');
+				a.href = u.toString();
+			});
 			estimate();
 		};
 		const slider = root.querySelector<HTMLInputElement>('#sh-seats');
