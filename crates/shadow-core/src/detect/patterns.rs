@@ -451,16 +451,84 @@ const CARD_CTX: &[&str] = &[
     "betalkort",
 ];
 
+// Card expiry and security code, after a label anywhere in the text.
+re!(
+    LABELLED_EXPIRY,
+    r"(?i:\b(?:exp(?:iry|iration|ires)?(?:\s+date)?|valid\s+(?:thru|through|until)|good\s+thru)\b)[^\S\n]*[:#.]?[^\S\n]*((?:0[1-9]|1[0-2])[^\S\n]?[/-][^\S\n]?(?:20\d{2}|\d{2}))\b"
+);
+re!(
+    LABELLED_CVV,
+    r"(?i:\b(?:cvv2?|cvc2?|csc|cvn|cid|security\s+code|card\s+verification(?:\s+(?:code|value))?)\b)[^\S\n]*[:#.]?[^\S\n]*(\d{3,4})\b"
+);
+// Unlabelled expiry and security code in the few characters after a card number.
+re!(
+    EXPIRY,
+    r"\b(?:0[1-9]|1[0-2])[^\S\n]?/[^\S\n]?(?:20\d{2}|\d{2})\b"
+);
+re!(CVV, r"(?:^|[\s,;:|(])(\d{3,4})(?:$|[\s,;.|)])");
+
+/// How far after a card number its expiry and security code are looked for, in bytes.
+const CARD_TAIL: usize = 48;
+
+/// Expiry dates and security codes: after a label ("CVV: 123", "exp 12/29"), or unlabelled
+/// right after a card number ("4111 1111 1111 1111 12/29 123"), the way people paste them.
+fn card_details(text: &str, cards: &[Finding]) -> Vec<Finding> {
+    let mut out = vec![];
+    for re in [&*LABELLED_EXPIRY, &*LABELLED_CVV] {
+        for c in re.captures_iter(text) {
+            if let Some(m) = c.get(1) {
+                out.push(Finding::new(
+                    m.start(),
+                    m.end(),
+                    Kind::CreditCard,
+                    "card_details",
+                ));
+            }
+        }
+    }
+    for card in cards {
+        let mut end = (card.end + CARD_TAIL).min(text.len());
+        while !text.is_char_boundary(end) {
+            end -= 1;
+        }
+        let tail = &text[card.end..end];
+        // Stop at a blank line: the next paragraph is about something else.
+        let tail = tail.split("\n\n").next().unwrap_or(tail);
+        let mut from = 0;
+        if let Some(m) = EXPIRY.find(tail) {
+            out.push(Finding::new(
+                card.end + m.start(),
+                card.end + m.end(),
+                Kind::CreditCard,
+                "card_details",
+            ));
+            from = m.end();
+        }
+        if let Some(m) = CVV.captures(&tail[from..]).and_then(|c| c.get(1)) {
+            let start = card.end + from + m.start();
+            out.push(Finding::new(
+                start,
+                start + m.len(),
+                Kind::CreditCard,
+                "card_details",
+            ));
+        }
+    }
+    out
+}
+
 /// Payment cards: Luhn-validated with a known network prefix, or any 13-19 digit number in
 /// card grouping right after a card label ("Card number: 4141-6246-9771-0810"), since test
-/// and sample documents often carry numbers that fail the checksum.
+/// and sample documents often carry numbers that fail the checksum. Their expiry date and
+/// security code are found too (see [`card_details`]).
 pub struct CardDetector;
 impl Detector for CardDetector {
     fn name(&self) -> &'static str {
         "credit_card"
     }
     fn detect(&self, text: &str) -> Vec<Finding> {
-        CARD.find_iter(text)
+        let cards = CARD
+            .find_iter(text)
             .filter(|m| {
                 let d: String = m.as_str().chars().filter(char::is_ascii_digit).collect();
                 let network = matches!(d.as_bytes()[0], b'3' | b'4' | b'5' | b'6')
@@ -481,7 +549,9 @@ impl Detector for CardDetector {
                 grouped && has_context(text, m.start(), CARD_CTX) && !dummy_number(&d)
             })
             .map(|m| Finding::new(m.start(), m.end(), Kind::CreditCard, "credit_card"))
-            .collect()
+            .collect::<Vec<_>>();
+        let details = card_details(text, &cards);
+        cards.into_iter().chain(details).collect()
     }
 }
 
@@ -1531,6 +1601,37 @@ mod tests {
             .iter()
             .map(|f| t[f.start..f.end].to_string())
             .collect()
+    }
+
+    #[test]
+    fn card_expiry_and_security_code() {
+        let pasted = "here is my credit card info...pls keep this with you:\n4222 2222 2222 2222\n12/29\n123\n";
+        assert_eq!(
+            kinds(&CardDetector, pasted),
+            ["4222 2222 2222 2222", "12/29", "123"]
+        );
+        assert_eq!(
+            kinds(
+                &CardDetector,
+                "Card 4111111111111111, exp: 03/2027, CVV: 4821. Meet at 10/12 with 300 people."
+            ),
+            ["4111111111111111", "03/2027", "4821", "03/2027", "4821"]
+        );
+        assert_eq!(
+            kinds(&CardDetector, "Expires 11/26, security code 907"),
+            ["11/26", "907"]
+        );
+        assert!(kinds(
+            &CardDetector,
+            "Release 10/12 shipped 300 fixes; order 1234."
+        )
+        .is_empty());
+        assert!(kinds(
+            &CardDetector,
+            "Card 4111111111111111.\n\nSee page 12/29 and 123."
+        )
+        .iter()
+        .all(|v| v == "4111111111111111"));
     }
 
     #[test]
