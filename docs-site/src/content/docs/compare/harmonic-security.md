@@ -22,7 +22,7 @@ faq:
   - q: "Does Harmonic redact or mask prompts?"
     a: "Harmonic's public product pages list silent logging, contextual warnings, employee coaching and real-time blocking. They mention masking only for employee names in its portal. Shadow masks the sensitive values inside the prompt and restores them in the answer."
   - q: "How much does Harmonic Security cost?"
-    a: "Harmonic's pricing page lists Explore, Guide and Command plans without prices: not published (as of 2 Nov 2026). Shadow Core is free. Shadow Hub's planned pricing is free for 1-3 users, then from $8 per user per month; these prices are provisional."
+    a: "Harmonic's pricing page lists Explore, Guide and Command plans without prices: not published (as of 2 Nov 2026). Shadow Core is free. Shadow Hub's planned pricing is free for 1-3 users, then $3 per user per month; these prices are provisional."
   - q: "Is Shadow Hub available now?"
     a: "Yes. Shadow Hub has a 14-day free trial with no card, then stays free for up to 3 users. Shadow Core is free and open source."
 ---
@@ -40,7 +40,7 @@ faq:
 | **Masking vs blocking** | Silent logging, contextual warnings, employee coaching, real-time blocking | Masks PII and secrets with realistic fakes; blocks file uploads by policy | Same as Core, plus a view of what was masked or blocked per person, machine, app and AI service |
 | **Reversible pseudonymisation** | Not described on its public pages | Yes, real values restored in answers | Yes, through Core |
 | **Open source** | No | Yes, Apache-2.0 | No, commercial hosted service |
-| **Published pricing** | No: Explore, Guide and Command plans, not published (as of 2 Nov 2026) | Free | Provisional: free for 1-3 users, then from $8 per user per month |
+| **Published pricing** | No: Explore, Guide and Command plans, not published (as of 2 Nov 2026) | Free | Provisional: free for 1-3 users, then $3 per user per month |
 | **Best for** | Security and governance teams that want to discover, classify and control AI use across the workforce | Developers and engineers using model APIs and coding agents | Teams that want to see what Core masked or blocked across members, without collecting real values unless they choose to |
 
 ## When to choose Harmonic Security

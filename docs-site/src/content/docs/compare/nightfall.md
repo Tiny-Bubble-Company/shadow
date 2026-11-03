@@ -22,7 +22,7 @@ faq:
   - q: "Does Shadow restore the real values in AI answers?"
     a: "Yes. Shadow Core replaces sensitive values with realistic fakes before the request leaves the machine and puts the real values back in the answer. Nightfall's public pages describe coaching, redaction and blocking; they do not describe restoring values."
   - q: "How much does Nightfall cost?"
-    a: "Nightfall's pricing page lists Foundation and Premier editions priced per user per year, but the amounts are not published (as of 2 Nov 2026); it asks buyers to contact sales for a quote. Shadow Core is free. Shadow Hub's planned pricing is free for 1-3 users, then from $8 per user per month; these prices are provisional."
+    a: "Nightfall's pricing page lists Foundation and Premier editions priced per user per year, but the amounts are not published (as of 2 Nov 2026); it asks buyers to contact sales for a quote. Shadow Core is free. Shadow Hub's planned pricing is free for 1-3 users, then $3 per user per month; these prices are provisional."
   - q: "Is Shadow Hub available now?"
     a: "Yes. Shadow Hub has a 14-day free trial with no card, then stays free for up to 3 users. Shadow Core is free and open source."
   - q: "Can Nightfall and Shadow run together?"
@@ -42,7 +42,7 @@ faq:
 | **Masking vs blocking** | Coach, redact or block | Masks PII and secrets with realistic fakes; blocks file uploads by policy | Same as Core, plus a view of what was masked or blocked per person, machine, app and AI service |
 | **Reversible pseudonymisation** | Not described on its public pages | Yes, real values restored in answers | Yes, through Core |
 | **Open source** | No | Yes, Apache-2.0 | No, commercial hosted service |
-| **Published pricing** | No: editions priced per user per year, amounts not published (as of 2 Nov 2026) | Free | Provisional: free for 1-3 users, then from $8 per user per month |
+| **Published pricing** | No: editions priced per user per year, amounts not published (as of 2 Nov 2026) | Free | Provisional: free for 1-3 users, then $3 per user per month |
 | **Best for** | Security teams that want DLP across SaaS, endpoints and AI in one platform | Developers and engineers using model APIs and coding agents | Teams that want to see what Core masked or blocked across members, without collecting real values unless they choose to |
 
 ## When to choose Nightfall

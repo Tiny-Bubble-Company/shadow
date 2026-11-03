@@ -22,7 +22,7 @@ faq:
   - q: "Does Prompt Security redact sensitive data?"
     a: "Yes. SentinelOne says Prompt Security redacts sensitive data and enforces policies across 15,000+ AI services, and that its AI Usage Control redacts data before a prompt leaves the device. Its pages do not describe restoring the original values in answers; Shadow does."
   - q: "How much does Prompt Security cost?"
-    a: "Not published (as of 2 Nov 2026). SentinelOne's packages page lists prices for Singularity endpoint packages but none for Prompt Security. Shadow Core is free. Shadow Hub's planned pricing is free for 1-3 users, then from $8 per user per month; these prices are provisional."
+    a: "Not published (as of 2 Nov 2026). SentinelOne's packages page lists prices for Singularity endpoint packages but none for Prompt Security. Shadow Core is free. Shadow Hub's planned pricing is free for 1-3 users, then $3 per user per month; these prices are provisional."
   - q: "Is Shadow Hub available now?"
     a: "Yes. Shadow Hub has a 14-day free trial with no card, then stays free for up to 3 users. Shadow Core is free and open source."
 ---
@@ -40,7 +40,7 @@ faq:
 | **Masking vs blocking** | Redacts sensitive data, coaches users, blocks unsanctioned tools and adversarial prompts | Masks PII and secrets with realistic fakes; blocks file uploads by policy | Same as Core, plus a view of what was masked or blocked per person, machine, app and AI service |
 | **Reversible pseudonymisation** | Not described on its public pages | Yes, real values restored in answers | Yes, through Core |
 | **Open source** | Platform: no. Some separate tools (ps-fuzz, ClawSec) are on GitHub | Yes, Apache-2.0 | No, commercial hosted service |
-| **Published pricing** | No, not published (as of 2 Nov 2026) | Free | Provisional: free for 1-3 users, then from $8 per user per month |
+| **Published pricing** | No, not published (as of 2 Nov 2026) | Free | Provisional: free for 1-3 users, then $3 per user per month |
 | **Best for** | Organisations that want AI usage control, AI app security and agent security from one vendor, especially SentinelOne customers | Developers and engineers using model APIs and coding agents | Teams that want to see what Core masked or blocked across members, without collecting real values unless they choose to |
 
 ## When to choose Prompt Security
