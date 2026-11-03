@@ -224,3 +224,20 @@ fn allow_terms_and_forget() {
     assert_eq!(s.forget("10.9.8.7").unwrap(), 1);
     assert_eq!(s.unmask(&m.text), m.text, "forgotten mapping is gone");
 }
+
+#[test]
+fn national_ids_next_to_each_other_are_all_found() {
+    let dir = tempfile::tempdir().unwrap();
+    let s = Shadow::open(config(dir.path())).unwrap();
+    let t = "SSN 123-45-6789. UK NI number AB 12 34 56 C. PAN ABCPE1234F.";
+    let ids: Vec<&str> = s
+        .scan(t)
+        .iter()
+        .filter(|f| f.kind == Kind::NationalId)
+        .map(|f| &t[f.start..f.end])
+        .collect();
+    for id in ["123-45-6789", "AB 12 34 56 C", "ABCPE1234F"] {
+        assert!(ids.contains(&id), "{id:?} not found in {ids:?}");
+    }
+    assert!(s.scan(t).iter().all(|f| f.kind != Kind::Address));
+}

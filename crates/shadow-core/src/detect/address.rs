@@ -61,10 +61,17 @@ static ROMANCE: LazyLock<Regex> = LazyLock::new(|| {
 });
 
 // The same street types with the number first, as in internationalised records:
-// "83 Via Brancaccio", "151 Rotonda Osvaldo", "54 Paseo de Macario Ureña".
+// "83 Via Brancaccio", "151 Rotonda Osvaldo", "54 Paseo de Macario Ureña". The one-letter
+// "C." and "C/" are left out: after a number they are more often an ID's check letter
+// ("AB 12 34 56 C. PAN ...") than a street.
 static ROMANCE_NUM: LazyLock<Regex> = LazyLock::new(|| {
+    let types = ROMANCE_TYPES
+        .split('|')
+        .filter(|t| !matches!(*t, "C/" | "C\\."))
+        .collect::<Vec<_>>()
+        .join("|");
     Regex::new(&format!(
-        r"\b\d{{1,5}}[A-Za-z]?,?[^\S\n]+(?:{ROMANCE_TYPES})[^\S\n]+(?:(?:{LINK})[^\S\n]+)*{CAP}(?:[^\S\n]+(?:(?:{LINK})[^\S\n]+)*{CAP}){{0,3}}"
+        r"\b\d{{1,5}}[A-Za-z]?,?[^\S\n]+(?:{types})[^\S\n]+(?:(?:{LINK})[^\S\n]+)*{CAP}(?:[^\S\n]+(?:(?:{LINK})[^\S\n]+)*{CAP}){{0,3}}"
     ))
     .expect("valid regex")
 });
@@ -270,6 +277,10 @@ impl Detector for AddressDetector {
             }
         }
         for m in ROMANCE.find_iter(text).chain(ROMANCE_NUM.find_iter(text)) {
+            // A street name cut out of a longer token ("PAN ABCPE" from "ABCPE1234F").
+            if text[m.end()..].starts_with(|c: char| c.is_alphanumeric()) {
+                continue;
+            }
             push(&mut out, m.start(), m.end());
         }
         for m in IN.find_iter(text) {
@@ -1417,6 +1428,18 @@ mod tests {
             .iter()
             .map(|f| t[f.start..f.end].to_string())
             .collect()
+    }
+
+    #[test]
+    fn id_check_letters_are_not_streets() {
+        let d = AddressDetector;
+        // "56 C." is the end of an NI number, not "Calle"; "PAN ABCPE" is cut out of a PAN.
+        assert!(found(
+            &d,
+            "SSN 123-45-6789. UK NI number AB 12 34 56 C. PAN ABCPE1234F."
+        )
+        .is_empty());
+        assert!(found(&d, "ref 12 C/ Mayor, then PAN ABCPE1234F").is_empty());
     }
 
     #[test]
