@@ -63,11 +63,14 @@ pub struct ActivityConfig {
     /// only turn it on behind your own access control (e.g. a Docker port bound to localhost).
     pub allow_remote: bool,
     /// Keep the prompt text, the values found and the sending process of recent masked
-    /// or blocked requests, so the dashboard can show what caused each incident. Held in
-    /// memory only (never written to disk) and cleared when Shadow restarts.
+    /// or blocked requests, so the dashboard can show what caused each incident.
     pub details: bool,
     /// How many incidents keep their details.
     pub details_limit: usize,
+    /// Save those details to `<data_dir>/activity/details.bin`, encrypted with the vault key
+    /// like the vault itself (0600), so they survive restarts. Off = memory only, cleared
+    /// when Shadow restarts.
+    pub persist_details: bool,
 }
 
 impl Default for ActivityConfig {
@@ -80,6 +83,7 @@ impl Default for ActivityConfig {
             allow_remote: false,
             details: true,
             details_limit: 200,
+            persist_details: true,
         }
     }
 }

@@ -15,7 +15,7 @@ faq:
   - q: Can I see which prompt caused an incident?
     a: Yes. Open an incident in the dashboard, the menu-bar app or shadow incidents <ID> to see the prompt as written and as the AI received it, each value caught and what replaced it, the model, and the app and process that sent it.
   - q: Does Shadow store my prompts or the values it masked?
-    a: Not on disk. The activity log on disk holds counts and categories only. The prompt text and values of the most recent incidents (200 by default) are kept in the proxy's memory so you can review them, and are gone when Shadow restarts. Set activity.details = false to keep none.
+    a: "Only encrypted. The activity log on disk holds counts and categories only. The prompt text and values of the most recent incidents (200 by default) are saved in details.bin, encrypted with your vault key like the vault itself, so you can review them after a restart. Set activity.persist_details = false to keep them in memory only, or activity.details = false to keep none."
   - q: Can someone else on my network see the dashboard?
     a: No. The dashboard and the activity API only answer connections from the same machine, and only when the Host header names a loopback address. You can opt in to remote access with activity.allow_remote.
   - q: How do I turn activity recording off?
@@ -57,9 +57,9 @@ Every request that Shadow translates produces one small event:
 
 **Never written to disk:** the real values, the fakes or tokens sent in their place, prompts, responses, request paths and query strings, headers, API keys, file names, and the text of block messages (which can contain a file name). Unknown apps are named by the first product token of their `User-Agent` only (`MyTool/1.2 (build-host; jane@acme.com)` becomes `MyTool`), so the comment part, where hostnames and user names tend to appear, is dropped. Responses are never kept anywhere.
 
-### Incident details (memory only)
+### Incident details
 
-So you can see what caused an incident, Shadow also keeps these for the most recent masked or blocked requests, in the proxy's memory only:
+So you can see what caused an incident, Shadow also keeps these for the most recent masked or blocked requests:
 
 | Detail | Example |
 |---|---|
@@ -70,7 +70,7 @@ So you can see what caused an incident, Shadow also keeps these for the most rec
 | Conversation | session, conversation or thread ids the app sent as headers |
 | Block message | `image blocked by policy` |
 
-Details are kept for the last 200 incidents (`details_limit`), are never written to the log file, and are gone when Shadow restarts. Clean requests keep nothing. The process is found from the connection's local port (`lsof` on macOS and Linux, `netstat` on Windows), so it is shown for apps on the same machine only. Tool and function definitions, images and file payloads are left out of the prompt view. Set `details = false` to keep counts only.
+Details are kept for the last 200 incidents (`details_limit`) and are never written to the log file. They are saved to `<data_dir>/activity/details.bin` (mode 0600), encrypted with ChaCha20-Poly1305 under your `vault.key`, so they survive a restart; set `persist_details = false` to keep them in memory only. Clean requests keep nothing. The process is found from the connection's local port (`lsof` on macOS and Linux, `netstat` on Windows), so it is shown for apps on the same machine only. Tool and function definitions, images and file payloads are left out of the prompt view. Set `details = false` to keep counts only.
 
 Blind tunnels to hosts that Shadow does not intercept are not recorded at all: Shadow cannot see inside them.
 
@@ -150,7 +150,7 @@ All endpoints are on the proxy's listen address and return JSON.
 |---|---|
 | `GET /shadow/activity?since=<id>&limit=<n>&action=masked,blocked` | Recent events, newest first. `action=incidents` is short for masked and blocked. |
 | `GET /shadow/activity/summary?window=1h\|24h\|7d\|30d\|today` | Totals, a timeline, and breakdowns by data type (`kinds`), destination (`providers`), app (`clients`), endpoint and block reason. |
-| `GET /shadow/activity/events/<id>` | One event, plus its incident `detail` (prompt parts, values caught, model, process) while still in memory, or `null`. |
+| `GET /shadow/activity/events/<id>` | One event, plus its incident `detail` (prompt parts, values caught, model, process) while still kept, or `null`. |
 | `GET /shadow/activity/stream` | Server-Sent Events: one `activity` event per new request. |
 | `GET /shadow/ui` | The dashboard. |
 
@@ -187,8 +187,9 @@ persist = true          # keep history in <data_dir>/activity/activity.jsonl
 retention_days = 30     # drop older events
 max_file_mb = 16        # rotate the log past this size (one previous file is kept)
 allow_remote = false    # serve the dashboard and API to non-loopback clients
-details = true          # keep prompt text and values of recent incidents, in memory only
+details = true          # keep prompt text and values of recent incidents
 details_limit = 200     # how many incidents keep their details
+persist_details = true  # save them encrypted (vault key) so they survive restarts
 ```
 
 Recording adds one short in-memory update per request; the file is written from a background thread. With `persist = false` the dashboard still works but starts empty after each restart. See the [configuration reference](/shadow/reference/configuration/) for every other option.

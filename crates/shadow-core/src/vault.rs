@@ -259,7 +259,7 @@ fn stamp(path: &Path) -> Option<(SystemTime, u64)> {
     Some((m.modified().ok()?, m.len()))
 }
 
-fn load_or_create_key(path: &Path) -> anyhow::Result<[u8; 32]> {
+pub(crate) fn load_or_create_key(path: &Path) -> anyhow::Result<[u8; 32]> {
     if path.exists() {
         let raw = std::fs::read_to_string(path)?;
         let bytes = hex::decode(raw.trim()).context("vault.key is not valid hex")?;

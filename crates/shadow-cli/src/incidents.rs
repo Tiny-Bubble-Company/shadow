@@ -143,7 +143,7 @@ fn show(addr: &str, id: u64, reveal: bool, json: bool) -> anyhow::Result<()> {
         if v["details_enabled"] == false {
             ui::warn("incident details are off; set [activity] details = true and restart Shadow");
         } else {
-            ui::warn("the prompt of this incident is no longer in memory (Shadow restarted, or newer incidents replaced it)");
+            ui::warn("the prompt of this incident is no longer kept (newer incidents replaced it, or it happened while details were off or before Shadow saved them across restarts)");
         }
         return Ok(());
     };

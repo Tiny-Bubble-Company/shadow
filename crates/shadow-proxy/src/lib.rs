@@ -82,7 +82,14 @@ impl Proxy {
         };
         let act = &shadow.config().activity;
         let activity = if act.enabled {
-            match ActivityLog::open(act, &shadow.config().activity_dir()) {
+            let opened = ActivityLog::open(act, &shadow.config().activity_dir()).and_then(|log| {
+                if act.persist_details {
+                    log.with_saved_details(&shadow.config().key_path())
+                } else {
+                    Ok(log)
+                }
+            });
+            match opened {
                 Ok(log) => Some(Arc::new(log)),
                 Err(e) => {
                     tracing::warn!("activity log unavailable, keeping it in memory: {e:#}");

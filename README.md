@@ -91,7 +91,7 @@ The dashboard runs on your machine at `http://127.0.0.1:8877/shadow/ui`: traffic
   </tr>
 </table>
 
-The log on disk holds counts only. Prompt text and caught values are kept in memory for the last 200 incidents, never written to disk, and blurred in the dashboard until you choose to show them.
+The log on disk holds counts only. Prompt text and caught values are kept for the last 200 incidents, encrypted on disk with your vault key, and blurred in the dashboard until you choose to show them.
 
 ## Features
 
@@ -108,7 +108,7 @@ The log on disk holds counts only. Prompt text and caught values are kept in mem
 | **Minimal interception** | Only known AI hosts are decrypted; all other traffic is tunnelled byte for byte and never recorded |
 | **AI chat apps in the browser** | With the system proxy on, prompts sent in ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok are masked, and answers and history are restored |
 | **Identity scrubbing** | OpenAI `user`, Anthropic `metadata.user_id`, org and OS headers replaced or stripped |
-| **Activity dashboard** | Counts by data type, destination and app on disk, plus each incident's prompt, caught values and sending process in memory: web UI on loopback, `shadow top`, `shadow incidents`, and a menu-bar / tray app |
+| **Activity dashboard** | Counts by data type, destination and app on disk, plus each incident's prompt, caught values and sending process (encrypted): web UI on loopback, `shadow top`, `shadow incidents`, and a menu-bar / tray app |
 
 ## Quick start
 
