@@ -720,7 +720,7 @@
         h("h2", { text: "Prompt not available" }),
         h("p", { text: data.details_enabled === false
           ? "Incident details are turned off. Set [activity] details = true in shadow.toml and restart Shadow to see the prompt and source of new incidents."
-          : "Shadow keeps the prompts of the last 200 incidents. This one has been replaced by newer incidents, happened while incident details were off, or before Shadow saved prompts across restarts." })
+          : "Shadow keeps every incident's prompt for as long as the incident (30 days by default). This one happened before Shadow saved prompts to disk, while incident details were off, or was dropped to stay under the size limit." })
       ]));
       return;
     }

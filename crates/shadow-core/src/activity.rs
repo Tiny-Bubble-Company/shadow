@@ -3,8 +3,9 @@
 //! The one exception is [`Detail`]: with `activity.details` on, the most recent incidents
 //! (masked or blocked requests) also keep their prompt text, the values found and the
 //! process that sent them, so you can see what caused each one. Details are never written
-//! to the log file. With `activity.persist_details` they are saved to `details.bin`,
-//! encrypted with the vault key, so they survive a restart; otherwise they live in memory.
+//! to the log file. With `activity.persist_details` every incident's details are saved to
+//! `details.log`, encrypted with the vault key, for as long as the incident is kept;
+//! otherwise the most recent ones live in memory.
 //!
 //! Every request that goes through the proxy can produce one [`Event`]: when it happened,
 //! which provider it went to, which app sent it, what kind of endpoint it hit, whether it
@@ -754,13 +755,16 @@ pub const RECENT_CAPACITY: usize = 5000;
 /// File name of the activity log inside [`crate::ShadowConfig::activity_dir`].
 pub const LOG_FILE: &str = "activity.jsonl";
 
-/// File name of the encrypted incident details inside the activity dir.
-pub const DETAILS_FILE: &str = "details.bin";
+pub use crate::details_store::DETAILS_LOG;
+
+/// Saved details of an earlier version (the last 200 incidents in one encrypted blob),
+/// moved into [`DETAILS_LOG`] on start.
+const OLD_DETAILS_FILE: &str = "details.bin";
 const DETAILS_MAGIC: &[u8; 4] = b"SHD1";
 const DETAILS_AAD: &[u8] = b"shadow-details-v1";
 
 enum DetailMsg {
-    Add(u64, std::sync::Arc<Detail>),
+    Add(u64, i64, std::sync::Arc<Detail>),
     Flush(mpsc::Sender<()>),
 }
 
@@ -782,6 +786,7 @@ pub struct ActivityLog {
     state: Mutex<State>,
     writer: Option<mpsc::Sender<Msg>>,
     detail_writer: Option<mpsc::Sender<DetailMsg>>,
+    store: Option<std::sync::Arc<crate::details_store::DetailStore>>,
     dir: Option<PathBuf>,
     retention: i64,
     since: i64,
@@ -808,6 +813,7 @@ impl ActivityLog {
             }),
             writer: None,
             detail_writer: None,
+            store: None,
             dir: None,
             retention: retention_days.max(1) as i64 * 86400,
             since: now_ms(),
@@ -845,38 +851,43 @@ impl ActivityLog {
         Ok(log)
     }
 
-    /// Keep incident details across restarts in `details.bin`, encrypted with the vault key
-    /// at `key_path`: load the saved ones whose event is still in the log, then save every
-    /// new one from a background thread. Needs a persisted log ([`ActivityLog::open`]).
-    pub fn with_saved_details(mut self, key_path: &Path) -> anyhow::Result<Self> {
+    /// Keep every incident's details in `details.log`, encrypted with the vault key at
+    /// `key_path`, for as long as its event is kept and up to `max_mb`; older ones are read
+    /// back from disk on demand. Needs a persisted log ([`ActivityLog::open`]).
+    pub fn with_saved_details(mut self, key_path: &Path, max_mb: u64) -> anyhow::Result<Self> {
         let Some(dir) = self.dir.clone().filter(|_| self.details_cap > 0) else {
             return Ok(self);
         };
         use chacha20poly1305::{ChaCha20Poly1305, Key, KeyInit};
         let key = crate::vault::load_or_create_key(key_path)?;
         let cipher = ChaCha20Poly1305::new(Key::from_slice(&key));
-        let path = dir.join(DETAILS_FILE);
-        let saved = match read_details(&path, &cipher) {
-            Ok(v) => v,
-            Err(e) => {
-                tracing::warn!("could not read saved incident details: {e:#}");
-                vec![]
-            }
-        };
-        let kept: Vec<(u64, std::sync::Arc<Detail>)> = {
+        let kept: std::collections::HashMap<u64, i64> = {
             let st = self.state.get_mut().unwrap_or_else(|e| e.into_inner());
-            for (id, d) in saved {
-                if st.recent.binary_search_by_key(&id, |e| e.id).is_ok() {
-                    st.details.push_back((id, std::sync::Arc::new(d)));
-                }
-            }
-            st.details.make_contiguous().sort_by_key(|(id, _)| *id);
-            while st.details.len() > self.details_cap {
-                st.details.pop_front();
-            }
-            st.details.iter().cloned().collect()
+            st.recent.iter().map(|e| (e.id, e.ts)).collect()
         };
-        self.detail_writer = Some(spawn_detail_writer(path, cipher, self.details_cap, kept));
+        let store = crate::details_store::DetailStore::open(
+            &dir,
+            cipher.clone(),
+            max_mb.saturating_mul(1024 * 1024),
+            self.retention * 1000,
+            |id| kept.contains_key(&id),
+        )?;
+        let old = dir.join(OLD_DETAILS_FILE);
+        if old.exists() {
+            match read_details(&old, &cipher) {
+                Ok(saved) => {
+                    for (id, d) in saved {
+                        if let (Some(ts), false) = (kept.get(&id), store.contains(id)) {
+                            store.append(id, *ts, &d)?;
+                        }
+                    }
+                    let _ = std::fs::remove_file(&old);
+                }
+                Err(e) => tracing::warn!("could not read {}: {e:#}", old.display()),
+            }
+        }
+        self.detail_writer = Some(spawn_detail_writer(store.clone()));
+        self.store = Some(store);
         Ok(self)
     }
 
@@ -954,7 +965,7 @@ impl ActivityLog {
                 }
                 let d = std::sync::Arc::new(*d);
                 if let Some(w) = &self.detail_writer {
-                    let _ = w.send(DetailMsg::Add(e.id, d.clone()));
+                    let _ = w.send(DetailMsg::Add(e.id, e.ts, d.clone()));
                 }
                 st.details.push_back((e.id, d));
             }
@@ -1010,19 +1021,23 @@ impl ActivityLog {
         st.recent.get(i).cloned()
     }
 
-    /// Details of incident `id`, if still held in memory.
+    /// Details of incident `id`: recent ones from memory, older ones from `details.log`.
     pub fn detail(&self, id: u64) -> Option<std::sync::Arc<Detail>> {
-        let st = self.lock();
-        st.details
-            .iter()
-            .rev()
-            .find(|(i, _)| *i == id)
-            .map(|(_, d)| d.clone())
+        let cached = {
+            let st = self.lock();
+            st.details
+                .iter()
+                .rev()
+                .find(|(i, _)| *i == id)
+                .map(|(_, d)| d.clone())
+        };
+        cached.or_else(|| self.store.as_ref()?.get(id).map(std::sync::Arc::new))
     }
 
-    /// Whether incident `id` still has details in memory.
+    /// Whether incident `id` still has details.
     pub fn has_detail(&self, id: u64) -> bool {
         self.lock().details.iter().any(|(i, _)| *i == id)
+            || self.store.as_ref().is_some_and(|s| s.contains(id))
     }
 
     /// Id of the newest event (0 if none).
@@ -1127,68 +1142,24 @@ fn read_details(
     Ok(serde_json::from_slice(&plain)?)
 }
 
-fn write_details(
-    path: &Path,
-    cipher: &chacha20poly1305::ChaCha20Poly1305,
-    details: &VecDeque<(u64, std::sync::Arc<Detail>)>,
-) -> anyhow::Result<()> {
-    use chacha20poly1305::aead::{Aead, Payload};
-    use rand::RngCore;
-    let list: Vec<(u64, &Detail)> = details.iter().map(|(id, d)| (*id, d.as_ref())).collect();
-    let plain = serde_json::to_vec(&list)?;
-    let mut nonce = [0u8; 12];
-    rand::thread_rng().fill_bytes(&mut nonce);
-    let ct = cipher
-        .encrypt(
-            chacha20poly1305::Nonce::from_slice(&nonce),
-            Payload {
-                msg: &plain,
-                aad: DETAILS_AAD,
-            },
-        )
-        .map_err(|_| anyhow::anyhow!("details encryption failed"))?;
-    let mut out = Vec::with_capacity(16 + ct.len());
-    out.extend_from_slice(DETAILS_MAGIC);
-    out.extend_from_slice(&nonce);
-    out.extend_from_slice(&ct);
-    crate::vault::write_atomic(path, &out, true)
-}
-
-/// Rewrites `details.bin` with the latest `cap` details after each new one (several queued
-/// ones are written together).
+/// Appends each new incident's details to `details.log` off the request path.
 fn spawn_detail_writer(
-    path: PathBuf,
-    cipher: chacha20poly1305::ChaCha20Poly1305,
-    cap: usize,
-    initial: Vec<(u64, std::sync::Arc<Detail>)>,
+    store: std::sync::Arc<crate::details_store::DetailStore>,
 ) -> mpsc::Sender<DetailMsg> {
     let (tx, rx) = mpsc::channel::<DetailMsg>();
     let spawned = std::thread::Builder::new()
         .name("shadow-details".into())
         .spawn(move || {
-            let mut details: VecDeque<_> = initial.into();
-            while let Ok(first) = rx.recv() {
-                let mut waiting = vec![];
-                let mut changed = false;
-                for msg in std::iter::once(first).chain(rx.try_iter()) {
-                    match msg {
-                        DetailMsg::Add(id, d) => {
-                            while details.len() >= cap {
-                                details.pop_front();
-                            }
-                            details.push_back((id, d));
-                            changed = true;
+            for msg in rx {
+                match msg {
+                    DetailMsg::Add(id, ts, d) => {
+                        if let Err(e) = store.append(id, ts, &d) {
+                            tracing::warn!("could not save incident details: {e:#}");
                         }
-                        DetailMsg::Flush(done) => waiting.push(done),
                     }
-                }
-                if changed {
-                    if let Err(e) = write_details(&path, &cipher, &details) {
-                        tracing::warn!("could not save incident details: {e:#}");
+                    DetailMsg::Flush(done) => {
+                        let _ = done.send(());
                     }
-                }
-                for done in waiting {
-                    let _ = done.send(());
                 }
             }
         });
@@ -1544,69 +1515,88 @@ mod tests {
     }
 
     #[test]
-    fn saved_details_survive_a_restart_encrypted() {
+    fn saved_details_are_kept_for_audit_encrypted() {
         let dir = tempfile::tempdir().unwrap();
         let key = dir.path().join("vault.key");
         let adir = dir.path().join("activity");
+        // Two in memory; everything on disk.
         let cfg = ActivityConfig {
             details_limit: 2,
             ..ActivityConfig::default()
         };
-        let record = |log: &ActivityLog, i: usize| {
-            let mut e = ev(0, "anthropic", "Chrome", Action::Masked, &[("email", 1)]);
+        let record = |log: &ActivityLog, ts: i64, text: String| {
+            let mut e = ev(ts, "anthropic", "Chrome", Action::Masked, &[("email", 1)]);
             e.detail = Some(Box::new(Detail {
                 parts: vec![TextPart {
-                    original: format!("mail jane{i}@example.org"),
+                    original: text,
                     ..TextPart::default()
                 }],
                 ..Detail::default()
             }));
             log.record(e)
         };
-        let log = ActivityLog::open(&cfg, &adir)
-            .unwrap()
-            .with_saved_details(&key)
-            .unwrap();
-        let ids: Vec<u64> = (0..3).map(|i| record(&log, i)).collect();
+        let open = |key: &Path, mb: u64| {
+            ActivityLog::open(&cfg, &adir)
+                .unwrap()
+                .with_saved_details(key, mb)
+                .unwrap()
+        };
+        let log = open(&key, 512);
+        let expired = record(
+            &log,
+            now_ms() - 40 * 86_400_000,
+            "old jane@example.org".into(),
+        );
+        let ids: Vec<u64> = (0..5)
+            .map(|i| record(&log, 0, format!("mail jane{i}@example.org")))
+            .collect();
+        log.flush();
+        // The oldest are no longer in memory but still readable from disk.
+        assert_eq!(
+            log.detail(ids[0]).unwrap().parts[0].original,
+            "mail jane0@example.org"
+        );
+        assert!(log.has_detail(ids[0]));
         log.flush();
         drop(log);
-        let disk = std::fs::read(adir.join(DETAILS_FILE)).unwrap();
+        let disk = std::fs::read(adir.join(DETAILS_LOG)).unwrap();
         assert!(
             !String::from_utf8_lossy(&disk).contains("jane"),
             "encrypted at rest"
         );
 
-        // After a restart the latest two are back; new ones keep being saved.
-        let log = ActivityLog::open(&cfg, &adir)
-            .unwrap()
-            .with_saved_details(&key)
-            .unwrap();
-        assert!(log.detail(ids[0]).is_none());
-        assert_eq!(
-            log.detail(ids[2]).unwrap().parts[0].original,
-            "mail jane2@example.org"
-        );
-        let next = record(&log, 3);
-        log.flush();
+        // After a restart every incident within retention is back; expired ones are gone.
+        let log = open(&key, 512);
+        for (i, id) in ids.iter().enumerate() {
+            assert_eq!(
+                log.detail(*id).unwrap().parts[0].original,
+                format!("mail jane{i}@example.org")
+            );
+        }
+        assert!(log.detail(expired).is_none() && !log.has_detail(expired));
         drop(log);
-        let log = ActivityLog::open(&cfg, &adir)
-            .unwrap()
-            .with_saved_details(&key)
-            .unwrap();
-        assert!(log.detail(ids[1]).is_none());
-        assert!(log.detail(ids[2]).is_some() && log.detail(next).is_some());
 
-        // Another key cannot read them, and memory-only mode never writes the file.
-        let other = ActivityLog::open(&cfg, &adir)
-            .unwrap()
-            .with_saved_details(&dir.path().join("other.key"))
-            .unwrap();
-        assert!(other.detail(next).is_none());
+        // Another key cannot read them.
+        let other = open(&dir.path().join("other.key"), 512);
+        assert!(other.detail(ids[0]).is_none());
+        drop(other);
+
+        // Past the size cap the oldest lose their details first.
+        let log = open(&key, 1);
+        let big: Vec<u64> = (0..12)
+            .map(|i| record(&log, 0, format!("{i} {}", "x".repeat(200_000))))
+            .collect();
+        log.flush();
+        assert!(std::fs::metadata(adir.join(DETAILS_LOG)).unwrap().len() <= 1024 * 1024 * 5 / 4);
+        assert!(log.detail(ids[0]).is_none(), "oldest dropped");
+        assert!(log.detail(*big.last().unwrap()).is_some(), "newest kept");
+
+        // Memory-only mode never writes the file.
         let mem_dir = dir.path().join("mem");
         let mem = ActivityLog::open(&cfg, &mem_dir).unwrap();
-        record(&mem, 9);
+        record(&mem, 0, "mail".into());
         mem.flush();
-        assert!(!mem_dir.join(DETAILS_FILE).exists());
+        assert!(!mem_dir.join(DETAILS_LOG).exists());
     }
 
     #[test]

@@ -62,15 +62,17 @@ pub struct ActivityConfig {
     /// Serve `/shadow/activity*` and `/shadow/ui` to non-loopback peers. Off by default;
     /// only turn it on behind your own access control (e.g. a Docker port bound to localhost).
     pub allow_remote: bool,
-    /// Keep the prompt text, the values found and the sending process of recent masked
-    /// or blocked requests, so the dashboard can show what caused each incident.
+    /// Keep the prompt text, the values found and the sending process of masked or blocked
+    /// requests, so the dashboard can show what caused each incident.
     pub details: bool,
-    /// How many incidents keep their details.
+    /// With `persist_details` off: how many recent incidents keep their details in memory.
     pub details_limit: usize,
-    /// Save those details to `<data_dir>/activity/details.bin`, encrypted with the vault key
-    /// like the vault itself (0600), so they survive restarts. Off = memory only, cleared
-    /// when Shadow restarts.
+    /// Save every incident's details to `<data_dir>/activity/details.log`, encrypted with
+    /// the vault key (0600), for as long as the incident is kept (`retention_days`), so they
+    /// can be audited and survive restarts. Off = the last `details_limit` in memory only.
     pub persist_details: bool,
+    /// Upper bound for `details.log`; past it the oldest incidents lose their details first.
+    pub details_max_mb: u64,
 }
 
 impl Default for ActivityConfig {
@@ -84,6 +86,7 @@ impl Default for ActivityConfig {
             details: true,
             details_limit: 200,
             persist_details: true,
+            details_max_mb: 512,
         }
     }
 }

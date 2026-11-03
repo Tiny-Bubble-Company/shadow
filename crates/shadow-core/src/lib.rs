@@ -18,6 +18,7 @@
 pub mod activity;
 pub mod catalog;
 pub mod config;
+mod details_store;
 pub mod detect;
 mod fake;
 pub mod files;

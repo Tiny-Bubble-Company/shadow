@@ -15,7 +15,7 @@ faq:
   - q: Can I see which prompt caused an incident?
     a: Yes. Open an incident in the dashboard, the menu-bar app or shadow incidents <ID> to see the prompt as written and as the AI received it, each value caught and what replaced it, the model, and the app and process that sent it.
   - q: Does Shadow store my prompts or the values it masked?
-    a: "Only encrypted. The activity log on disk holds counts and categories only. The prompt text and values of the most recent incidents (200 by default) are saved in details.bin, encrypted with your vault key like the vault itself, so you can review them after a restart. Set activity.persist_details = false to keep them in memory only, or activity.details = false to keep none."
+    a: "Only encrypted. The activity log on disk holds counts and categories only. The prompt text and values of every incident are saved in details.log, encrypted with your vault key like the vault itself, for as long as the incident is kept (retention_days, 30 by default), so you can audit them. Set activity.persist_details = false to keep only the latest 200 in memory, or activity.details = false to keep none."
   - q: Can someone else on my network see the dashboard?
     a: No. The dashboard and the activity API only answer connections from the same machine, and only when the Host header names a loopback address. You can opt in to remote access with activity.allow_remote.
   - q: How do I turn activity recording off?
@@ -70,7 +70,7 @@ So you can see what caused an incident, Shadow also keeps these for the most rec
 | Conversation | session, conversation or thread ids the app sent as headers |
 | Block message | `image blocked by policy` |
 
-Details are kept for the last 200 incidents (`details_limit`) and are never written to the log file. They are saved to `<data_dir>/activity/details.bin` (mode 0600), encrypted with ChaCha20-Poly1305 under your `vault.key`, so they survive a restart; set `persist_details = false` to keep them in memory only. Clean requests keep nothing. The process is found from the connection's local port (`lsof` on macOS and Linux, `netstat` on Windows), so it is shown for apps on the same machine only. Tool and function definitions, images and file payloads are left out of the prompt view. Set `details = false` to keep counts only.
+Details are never written to the log file. Every incident's details are saved to `<data_dir>/activity/details.log` (mode 0600), encrypted with ChaCha20-Poly1305 under your `vault.key`, and kept as long as the incident itself (`retention_days`, 30 by default), so you can audit them after a restart. If the file passes `details_max_mb` (512 by default), the oldest incidents lose their details first. Set `persist_details = false` to keep only the latest `details_limit` (200) in memory. Clean requests keep nothing. The process is found from the connection's local port (`lsof` on macOS and Linux, `netstat` on Windows), so it is shown for apps on the same machine only. Tool and function definitions, images and file payloads are left out of the prompt view. Set `details = false` to keep counts only.
 
 Blind tunnels to hosts that Shadow does not intercept are not recorded at all: Shadow cannot see inside them.
 
@@ -187,9 +187,10 @@ persist = true          # keep history in <data_dir>/activity/activity.jsonl
 retention_days = 30     # drop older events
 max_file_mb = 16        # rotate the log past this size (one previous file is kept)
 allow_remote = false    # serve the dashboard and API to non-loopback clients
-details = true          # keep prompt text and values of recent incidents
-details_limit = 200     # how many incidents keep their details
-persist_details = true  # save them encrypted (vault key) so they survive restarts
+details = true          # keep prompt text and values of incidents
+persist_details = true  # save them encrypted (vault key) for as long as the incident
+details_max_mb = 512    # size cap for saved details; the oldest go first
+details_limit = 200     # with persist_details = false: how many stay in memory
 ```
 
 Recording adds one short in-memory update per request; the file is written from a background thread. With `persist = false` the dashboard still works but starts empty after each restart. See the [configuration reference](/shadow/reference/configuration/) for every other option.

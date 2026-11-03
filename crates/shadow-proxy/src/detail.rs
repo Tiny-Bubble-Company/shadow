@@ -1,7 +1,7 @@
 //! Incident details for the local dashboard: the request text as written and as sent, the
 //! model, conversation headers and the local process that sent it. Built only for masked
-//! or blocked requests, only when `activity.details` is on; saved encrypted across restarts
-//! with `activity.persist_details`.
+//! or blocked requests, only when `activity.details` is on; saved encrypted for as long as
+//! the incident with `activity.persist_details`.
 
 use std::net::SocketAddr;
 use std::process::Command;

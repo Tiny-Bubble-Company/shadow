@@ -169,9 +169,10 @@ The [activity dashboard](/shadow/concepts/activity-dashboard/) feed. The log on 
 | `retention_days` | integer | `30` | Drop events older than this |
 | `max_file_mb` | integer | `16` | Rotate the log past this size; one previous file is kept |
 | `allow_remote` | bool | `false` | Serve the dashboard and activity API to non-loopback clients |
-| `details` | bool | `true` | Keep the prompt text, values caught and sending process of recent incidents (never in the log file) |
-| `details_limit` | integer | `200` | How many incidents keep their details |
-| `persist_details` | bool | `true` | Save those details to `details.bin`, encrypted with `vault.key` (mode 0600), so they survive restarts; `false` keeps them in memory only |
+| `details` | bool | `true` | Keep the prompt text, values caught and sending process of incidents (never in the log file) |
+| `persist_details` | bool | `true` | Save every incident's details to `details.log`, encrypted with `vault.key` (mode 0600), for as long as the incident is kept (`retention_days`) |
+| `details_max_mb` | integer | `512` | Size cap for `details.log`; the oldest incidents lose their details first |
+| `details_limit` | integer | `200` | With `persist_details = false`: how many recent incidents keep their details in memory |
 
 ## `[proxy]`
 

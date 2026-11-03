@@ -84,7 +84,7 @@ impl Proxy {
         let activity = if act.enabled {
             let opened = ActivityLog::open(act, &shadow.config().activity_dir()).and_then(|log| {
                 if act.persist_details {
-                    log.with_saved_details(&shadow.config().key_path())
+                    log.with_saved_details(&shadow.config().key_path(), act.details_max_mb)
                 } else {
                     Ok(log)
                 }

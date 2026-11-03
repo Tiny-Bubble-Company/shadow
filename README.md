@@ -91,7 +91,7 @@ The dashboard runs on your machine at `http://127.0.0.1:8877/shadow/ui`: traffic
   </tr>
 </table>
 
-The log on disk holds counts only. Prompt text and caught values are kept for the last 200 incidents, encrypted on disk with your vault key, and blurred in the dashboard until you choose to show them.
+The log on disk holds counts only. Prompt text and caught values of every incident are kept for the retention period (30 days by default), encrypted on disk with your vault key, and blurred in the dashboard until you choose to show them.
 
 ## Features
 
