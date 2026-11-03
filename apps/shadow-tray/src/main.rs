@@ -315,20 +315,17 @@ impl Items {
 }
 
 fn offline_html() -> String {
-    r#"<!doctype html><html><head><meta charset="utf-8"><meta name="color-scheme" content="light dark">
+    r#"<!doctype html><html><head><meta charset="utf-8"><meta name="color-scheme" content="dark">
 <style>
 body{margin:0;height:100vh;display:grid;place-items:center;text-align:center;
 font:13px/1.5 "Inter Variable","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-.003em;
-font-feature-settings:"cv01","ss03";-webkit-font-smoothing:antialiased;background:#fff;color:#0f1011}
-@media (prefers-color-scheme:dark){body{background:#08090a;color:#f7f8f8}
-.card{background:#0f1011;border-color:rgba(255,255,255,.08)}p{color:#8a8f98}
-code{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08);color:#d0d6e0}}
-.card{max-width:300px;margin:16px;padding:24px 22px 22px;border:1px solid #e6e6e9;border-radius:8px}
+font-feature-settings:"cv01","ss03";-webkit-font-smoothing:antialiased;background:#08090a;color:#f7f8f8}
+.card{max-width:300px;margin:16px;padding:24px 22px 22px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:#0f1011}
 .dot{width:40px;height:40px;border-radius:50%;margin:0 auto 16px;
 background:radial-gradient(circle at 70% 30%,transparent 46%,#7c6cff 47%)}
 h1{font-size:15px;font-weight:590;letter-spacing:-.012em;margin:0 0 6px}
-p{color:#62666d;margin:0 0 16px}
-code{display:inline-block;background:#f7f8f9;border:1px solid #e6e6e9;color:#3c3f44;padding:4px 10px;border-radius:6px;
+p{color:#8a8f98;margin:0 0 16px}
+code{display:inline-block;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#d0d6e0;padding:4px 10px;border-radius:6px;
 font:12px "JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
 </style></head><body><div class="card"><div class="dot"></div><h1>Shadow isn't running</h1>
 <p>Your AI traffic is not being protected right now. Start Shadow and this view will connect on its own.</p>

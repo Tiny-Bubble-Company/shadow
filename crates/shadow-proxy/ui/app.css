@@ -19,78 +19,17 @@
   --accent: #7c6cff;
   --accent-hover: #8b7dff;
   --accent-2: #a99dff;
-  --accent-soft: rgba(124, 108, 255, 0.12);
-  --accent-line: rgba(124, 108, 255, 0.32);
+  --accent-soft: rgba(124, 108, 255, 0.14);
+  --accent-line: rgba(124, 108, 255, 0.36);
   --danger: #ef4f6b;
-  --danger-soft: rgba(239, 79, 107, 0.12);
+  --danger-soft: rgba(239, 79, 107, 0.13);
   --danger-line: rgba(239, 79, 107, 0.3);
   --ok: #1fae8a;
   --ok-soft: rgba(31, 174, 138, 0.14);
   --warn: #d48a1e;
-  --warn-soft: rgba(212, 138, 30, 0.12);
+  --warn-soft: rgba(212, 138, 30, 0.14);
   --warn-line: rgba(212, 138, 30, 0.32);
 
-  --bg: #ffffff;
-  --sidebar: #f7f8f9;
-  --card: #ffffff;
-  --card-2: #f7f8f9;
-  --popover: #ffffff;
-  --text: #0f1011;
-  --text-2: #3c3f44;
-  --muted: #62666d;
-  --faint: #8a8f98;
-  --line: #e6e6e9;
-  --line-strong: #d6d7db;
-  --clean: #dcdde1;
-  --track: #f1f2f4;
-  --hover: rgba(0, 0, 0, 0.04);
-  --hover-row: rgba(0, 0, 0, 0.025);
-  --active: rgba(0, 0, 0, 0.06);
-  --header-bg: rgba(255, 255, 255, 0.82);
-  --shadow-pop: 0 8px 30px rgba(0, 0, 0, 0.12);
-  --ring: 0 0 0 2px rgba(124, 108, 255, 0.45);
-
-  --r-ctl: 6px;
-  --r-card: 8px;
-  --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --font: "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --accent-soft: rgba(124, 108, 255, 0.14);
-    --accent-line: rgba(124, 108, 255, 0.36);
-    --danger-soft: rgba(239, 79, 107, 0.13);
-    --ok-soft: rgba(31, 174, 138, 0.14);
-    --warn-soft: rgba(212, 138, 30, 0.14);
-    --bg: #08090a;
-    --sidebar: #0b0c0d;
-    --card: #0f1011;
-    --card-2: #141516;
-    --popover: #1a1b1d;
-    --text: #f7f8f8;
-    --text-2: #d0d6e0;
-    --muted: #8a8f98;
-    --faint: #62666d;
-    --line: rgba(255, 255, 255, 0.08);
-    --line-strong: rgba(255, 255, 255, 0.12);
-    --clean: #2e3035;
-    --track: rgba(255, 255, 255, 0.06);
-    --hover: rgba(255, 255, 255, 0.05);
-    --hover-row: rgba(255, 255, 255, 0.025);
-    --active: rgba(255, 255, 255, 0.07);
-    --header-bg: rgba(8, 9, 10, 0.8);
-    --shadow-pop: 0 8px 30px rgba(0, 0, 0, 0.35);
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --accent-soft: rgba(124, 108, 255, 0.14);
-  --accent-line: rgba(124, 108, 255, 0.36);
-  --danger-soft: rgba(239, 79, 107, 0.13);
-  --ok-soft: rgba(31, 174, 138, 0.14);
-  --warn-soft: rgba(212, 138, 30, 0.14);
   --bg: #08090a;
   --sidebar: #0b0c0d;
   --card: #0f1011;
@@ -109,7 +48,41 @@
   --active: rgba(255, 255, 255, 0.07);
   --header-bg: rgba(8, 9, 10, 0.8);
   --shadow-pop: 0 8px 30px rgba(0, 0, 0, 0.35);
+  --ring: 0 0 0 2px rgba(124, 108, 255, 0.45);
+
+  --r-ctl: 6px;
+  --r-card: 8px;
+  --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --font: "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   color-scheme: dark;
+}
+/* Dark first. A light theme is kept only for `?theme=light` (docs screenshots). */
+:root[data-theme="light"] {
+  --accent-soft: rgba(124, 108, 255, 0.12);
+  --accent-line: rgba(124, 108, 255, 0.32);
+  --danger-soft: rgba(239, 79, 107, 0.12);
+  --ok-soft: rgba(31, 174, 138, 0.14);
+  --warn-soft: rgba(212, 138, 30, 0.12);
+  --bg: #ffffff;
+  --sidebar: #f7f8f9;
+  --card: #ffffff;
+  --card-2: #f7f8f9;
+  --popover: #ffffff;
+  --text: #0f1011;
+  --text-2: #3c3f44;
+  --muted: #62666d;
+  --faint: #8a8f98;
+  --line: #e6e6e9;
+  --line-strong: #d6d7db;
+  --clean: #dcdde1;
+  --track: #f1f2f4;
+  --hover: rgba(0, 0, 0, 0.04);
+  --hover-row: rgba(0, 0, 0, 0.025);
+  --active: rgba(0, 0, 0, 0.06);
+  --header-bg: rgba(255, 255, 255, 0.82);
+  --shadow-pop: 0 8px 30px rgba(0, 0, 0, 0.12);
+  color-scheme: light;
 }
 
 /* ------------------------------------------------------------------ base */
