@@ -1,6 +1,5 @@
 // Shadow pricing: the only place prices live. Components, JSON-LD and llms.txt read it.
-// PLACEHOLDER: every Hub price, seat band and inclusion below is a hypothesis until
-// confirmed; Core is free and open source (Apache-2.0) for good.
+// Core is free and open source (Apache-2.0) for good.
 
 export type Billing = 'annual' | 'monthly';
 export type CtaAction = 'install' | 'hub' | 'demo';
@@ -104,5 +103,5 @@ export function tierForSeats(seats: number): Tier {
 	return HUB_TIERS.find((t) => seats >= t.seats.min && (t.seats.max === null || seats <= t.seats.max)) ?? HUB_TIERS[HUB_TIERS.length - 1]!;
 }
 
-/** "From $8/user/mo" for the cheapest paid Hub tier. */
+/** "From $3/user/mo" for the cheapest paid Hub tier. */
 export const HUB_FROM = `From $${Math.min(...HUB_TIERS.map((t) => t.price.annual ?? Infinity).filter((p) => p > 0))}/user/mo`;

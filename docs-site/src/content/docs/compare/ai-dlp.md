@@ -42,7 +42,7 @@ The three approaches below are categories. The vendor examples in each column co
 | **Masking vs blocking** | Mostly warn and block; some vendors also redact | Warn, coach, block; some vendors also redact | Masks PII and secrets with realistic fakes; blocks file uploads by policy | Same as Core, plus a view of what was masked or blocked per person, machine, app and AI service |
 | **Reversible pseudonymisation** | Not described by the vendors cited | Not described by the vendors cited | Yes, real values restored in answers | Yes, through Core |
 | **Open source** | No, for the vendors cited | No, for the vendors cited | Yes, Apache-2.0 | No, commercial hosted service |
-| **Published pricing** | Varies; Nightfall's amounts are not published (as of 2 Nov 2026) | Varies; Harmonic and LayerX: not published (as of 2 Nov 2026) | Free | Provisional: free for 1-3 users, then $3 per user per month |
+| **Published pricing** | Varies; Nightfall's amounts are not published (as of 2 Nov 2026) | Varies; Harmonic and LayerX: not published (as of 2 Nov 2026) | Free | Free for 1-3 users, then $3 per user per month |
 | **Best for** | One DLP policy across files, SaaS and AI on managed devices | Employees using AI and SaaS apps in the browser | Developers, coding agents and scripts calling AI services | Teams that want a view of what Core masked or blocked, without collecting real values unless they choose to |
 
 ## Three things a tool can do with sensitive data
