@@ -48,6 +48,9 @@ export default defineConfig({
 				// Docs pages: plain H1. Hub, Pricing, Trust: marketing hero.
 				PageTitle: './src/components/PageTitle.astro',
 				PageFrame: './src/components/PageFrame.astro',
+				// Dark only: no theme picker, no light theme.
+				ThemeProvider: './src/components/ThemeProvider.astro',
+				ThemeSelect: './src/components/Empty.astro',
 			},
 			head: [
 				{ tag: 'meta', attrs: { name: 'theme-color', content: '#7C6CFF' } },

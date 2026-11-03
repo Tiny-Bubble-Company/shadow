@@ -1,12 +1,11 @@
 ---
 // Site header for the home page and every docs page (overrides Starlight's Header).
 // 56px translucent bar: logo · menu (Docs, Hub, Compare, Solutions, Pricing, Trust) · search ·
-// GitHub · the buyer CTA · "Install Core free" · theme. Also mounts the funnel tracking and the waitlist/demo form once. Menus are <details>; a small script only closes them on Escape,
+// GitHub · the buyer CTA · "Install Core free". Also mounts the funnel tracking and the waitlist/demo form once. Menus are <details>; a small script only closes them on Escape,
 // outside click or when another one opens. Below 75rem the groups move into one "Menu"
 // panel (on docs pages under 50rem Starlight's own sidebar menu takes over).
 import Search from '@astrojs/starlight/components/Search.astro';
 import SiteTitle from '@astrojs/starlight/components/SiteTitle.astro';
-import ThemeSelect from '@astrojs/starlight/components/ThemeSelect.astro';
 import { Icon } from '@astrojs/starlight/components';
 import { REPO_URL } from '../site.mjs';
 import { CORE_CTA } from '../data/hub';
@@ -92,7 +91,6 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 	</div>
 
 	<div class="sh-header__right print:hidden">
-		<ThemeSelect />
 		<a class="sh-gh" href={REPO_URL} rel="noopener">
 			<Icon name="github" size="1rem" />
 			<span>GitHub</span>
@@ -141,7 +139,6 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 					<Icon name="github" size="1.1rem" /> <span>GitHub</span>
 					<span class="sh-gh__badge">Apache-2.0</span>
 				</a>
-				<ThemeSelect />
 			</div>
 		</div>
 	</details>

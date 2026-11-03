@@ -1,0 +1,10 @@
+---
+// The site is dark only: set the theme before first paint and ignore any saved choice.
+---
+
+<script is:inline>
+	document.documentElement.dataset.theme = 'dark';
+	try {
+		localStorage.setItem('starlight-theme', 'dark');
+	} catch {}
+</script>
