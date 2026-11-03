@@ -22,7 +22,7 @@ faq:
   - q: "Does LayerX redact data before it reaches AI apps?"
     a: "Akamai's page says Workforce Protector applies adaptive controls that warn, redact, block or guide user actions, and protects sensitive data before it reaches AI applications. It does not describe restoring the original values in answers; Shadow does."
   - q: "How much does LayerX cost?"
-    a: "Not published (as of 2 Nov 2026). Akamai's product page offers contact sales. Shadow Core is free. Shadow Hub's planned pricing is free for 1-3 users, then $3 per user per month; these prices are provisional."
+    a: "Not published (as of 2 Nov 2026). Akamai's product page offers contact sales. Shadow Core is free. Shadow Hub is free for 1-3 users, then $3 per user per month."
   - q: "Is Shadow Hub available now?"
     a: "Yes. Shadow Hub has a 14-day free trial with no card, then stays free for up to 3 users. Shadow Core is free and open source."
   - q: "Can LayerX and Shadow run together?"
@@ -42,7 +42,7 @@ faq:
 | **Masking vs blocking** | Warn, redact, block or guide; DLP for text input, copy and paste, uploads and downloads | Masks PII and secrets with realistic fakes; blocks file uploads by policy | Same as Core, plus a view of what was masked or blocked per person, machine, app and AI service |
 | **Reversible pseudonymisation** | Not described on its public pages | Yes, real values restored in answers | Yes, through Core |
 | **Open source** | No | Yes, Apache-2.0 | No, commercial hosted service |
-| **Published pricing** | No, not published (as of 2 Nov 2026) | Free | Provisional: free for 1-3 users, then $3 per user per month |
+| **Published pricing** | No, not published (as of 2 Nov 2026) | Free | Free for 1-3 users, then $3 per user per month |
 | **Best for** | Organisations that want browser-level control of AI, SaaS and web apps, including on BYOD and contractor devices | Developers and engineers using model APIs and coding agents | Teams that want to see what Core masked or blocked across members, without collecting real values unless they choose to |
 
 ## When to choose LayerX
