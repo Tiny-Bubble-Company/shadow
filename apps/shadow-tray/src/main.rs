@@ -1,8 +1,9 @@
 //! Shadow menu-bar (macOS) / system-tray (Windows) app.
 //!
-//! Shows whether the local Shadow proxy is protecting this machine, today's counts, and a
-//! popover with the activity dashboard (`/shadow/ui?embed=1`) in a native webview. It only
-//! ever talks to the proxy on loopback; it holds no data of its own.
+//! Shows whether the local Shadow proxy is protecting this machine, the last 24 hours' counts
+//! (the same window the dashboard opens on), and a popover with the activity dashboard
+//! (`/shadow/ui?embed=1`) in a native webview. It only ever talks to the proxy on loopback;
+//! it holds no data of its own.
 //!
 //! Options: `--url http://127.0.0.1:8877` (or `SHADOW_URL`) to point at another port;
 //! `--open` shows the dashboard popover right away.
@@ -95,7 +96,7 @@ fn http_get(addr: &str, path: &str) -> Option<String> {
 }
 
 fn poll(addr: &str) -> Status {
-    let Some(body) = http_get(addr, "/shadow/activity/summary?window=today") else {
+    let Some(body) = http_get(addr, "/shadow/activity/summary?window=24h") else {
         // Old proxies without the activity API still count as "up".
         return Status {
             online: http_get(addr, "/healthz").is_some(),
@@ -248,7 +249,7 @@ impl Items {
         Self {
             status: MenuItem::new("Checking Shadow…", true, None),
             coverage: MenuItem::new("Checking which apps are covered…", true, None),
-            requests: MenuItem::new("Today: no requests yet", true, None),
+            requests: MenuItem::new("Last 24 hours: no requests yet", true, None),
             values: MenuItem::new("No values protected yet", true, None),
             blocked: MenuItem::new("Nothing blocked", true, None),
             dashboard: MenuItem::new("Open dashboard", true, None),
@@ -307,7 +308,7 @@ impl Items {
                     .set_text(format!("Protect all apps and browsers on {machine}…"));
             }
             self.requests.set_text(format!(
-                "Today: {} request{} monitored",
+                "Last 24 hours: {} request{} monitored",
                 fmt_n(s.requests),
                 if s.requests == 1 { "" } else { "s" }
             ));
@@ -453,7 +454,8 @@ fn main() {
     let base = base_url();
     let open_now = std::env::args().any(|a| a == "--open");
     let dashboard = format!("{base}/shadow/ui?embed=1&w=24h");
-    let browser_url = format!("{base}/shadow/ui");
+    // Same window as the menu counts, so the numbers match.
+    let browser_url = format!("{base}/shadow/ui?w=24h");
 
     #[allow(unused_mut)]
     let mut event_loop = EventLoopBuilder::<UserEvent>::with_user_event().build();

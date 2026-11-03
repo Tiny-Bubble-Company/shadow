@@ -219,6 +219,7 @@ pub(crate) fn phone_shape(v: &str) -> bool {
             .all(|c| c.is_ascii_digit() || " +-./()\u{a0}".contains(c))
         && !looks_like_date(core)
         && !ip_like(core)
+        && !(core.matches('/').count() >= 2 && core.chars().all(|c| c.is_ascii_digit() || c == '/'))
 }
 
 fn strip_extension(s: &str) -> &str {
@@ -333,7 +334,10 @@ impl Detector for PhoneDetector {
             let dated = core.rsplit_once('/').is_some_and(|(_, y)| {
                 (y.len() == 4 || y.len() == 8) && (y.starts_with("19") || y.starts_with("20"))
             });
-            if decimal || amounts || dated || core.starts_with("000") {
+            // "10/100/1000" (link speeds), "1/2/4/8": slash-separated groups only.
+            let ratios = core.matches('/').count() >= 2
+                && core.chars().all(|c| c.is_ascii_digit() || c == '/');
+            if decimal || amounts || dated || ratios || core.starts_with("000") {
                 continue;
             }
             let opens = core.matches('(').count();
@@ -1114,9 +1118,16 @@ fn entropy(s: &str) -> f64 {
 }
 
 /// True if an unquoted value is a code reference (`os.getenv(..)`, `config.password`,
-/// `secret_var`, `$VAR`) rather than a literal.
+/// `secret_var`, `$VAR`, `&self.client`) rather than a literal.
 fn code_reference(v: &str) -> bool {
     v.starts_with('$')
+        // Rust and C references: `&self.client`, `&[String]`, `*ptr` (a password such as
+        // "&H3EDLNgsk2n" has digits).
+        || (v.starts_with(['&', '*'])
+            && (v[1..].starts_with('[')
+                || v[1..]
+                    .chars()
+                    .all(|c| c.is_ascii_alphabetic() || matches!(c, '_' | '.' | ':' | ' '))))
         || v.contains('(')
         || v.contains("::")
         || (v.contains('.')
@@ -1135,6 +1146,50 @@ impl SecretDetector {
             let m = c.get(3).unwrap();
             let v = m.as_str().trim_end_matches(['.', ']', '}']);
             if v.is_empty() || placeholder(v) || (!quoted && code_reference(v)) {
+                continue;
+            }
+            // "bypass: &[String]", "compass = north": English words that end in "pass".
+            const PASS_WORDS: &[&str] = &[
+                "bypass",
+                "compass",
+                "overpass",
+                "underpass",
+                "trespass",
+                "surpass",
+                "encompass",
+            ];
+            if PASS_WORDS.iter().any(|w| key.ends_with(w)) {
+                continue;
+            }
+            // Settings, not credentials: `secret = "redact"`, `token: "mask"`.
+            const SETTING_WORDS: &[&str] = &[
+                "redact",
+                "mask",
+                "keep",
+                "block",
+                "surrogate",
+                "token",
+                "tokens",
+                "allow",
+                "deny",
+                "true",
+                "false",
+                "none",
+                "null",
+                "required",
+                "optional",
+                "enabled",
+                "disabled",
+                "default",
+                "env",
+                "inherit",
+            ];
+            if SETTING_WORDS.contains(&v.to_ascii_lowercase().as_str()) {
+                continue;
+            }
+            // Inline code naming a key, then prose: "`password=`-style assignments".
+            let open_tick = text[..c.get(1).unwrap().start()].ends_with('`');
+            if open_tick && c.get(2).unwrap().as_str() == "`" {
                 continue;
             }
             let password_like = ["passw", "pwd", "pass", "passphrase", "secret"]
@@ -1443,7 +1498,12 @@ impl Detector for UsernameDetector {
                     continue;
                 }
                 user(u, &mut out);
-                if host.parse::<std::net::IpAddr>().is_err() && self.hosts.sensitive(&host) {
+                // `ssh user@host` in documentation names no real machine.
+                let placeholder_host = matches!(host.as_str(), "host" | "hostname" | "server");
+                if !placeholder_host
+                    && host.parse::<std::net::IpAddr>().is_err()
+                    && self.hosts.sensitive(&host)
+                {
                     out.push(Finding::new(h.start(), h.end(), Kind::Hostname, "username"));
                 }
             }
@@ -1453,6 +1513,36 @@ impl Detector for UsernameDetector {
         }
         for c in USER_ASSIGN.captures_iter(text) {
             let v = c.get(5).unwrap();
+            // Code, not an account: `uid = std::env::var(..)`, `user = Command::new(..)`.
+            let after = &text[v.end()..];
+            if after.starts_with("::") || after.starts_with('(') {
+                continue;
+            }
+            // `systemctl --user enable`: a subcommand after a flag that takes no value.
+            const SUBCOMMANDS: &[&str] = &[
+                "enable",
+                "disable",
+                "start",
+                "stop",
+                "restart",
+                "reload",
+                "status",
+                "show",
+                "list-units",
+                "list-unit-files",
+                "daemon-reload",
+                "is-active",
+                "is-enabled",
+                "cat",
+                "edit",
+                "mask",
+                "unmask",
+                "kill",
+                "import-environment",
+            ];
+            if c.get(1).is_none() && SUBCOMMANDS.contains(&v.as_str()) {
+                continue;
+            }
             if let Some(label) = c.get(1) {
                 let sep = c.get(3).map_or("", |m| m.as_str());
                 let quoted = !c.get(4).map_or("", |m| m.as_str()).is_empty();
@@ -1526,6 +1616,15 @@ impl Detector for PathDetector {
     fn detect(&self, text: &str) -> Vec<Finding> {
         PATH_USER
             .captures_iter(text)
+            // A home directory starts the path: "src/components/home/Hero.astro" and
+            // "example.com/home/about" are not one.
+            .filter(|c| {
+                let start = c.get(0).unwrap().start();
+                !text[..start]
+                    .chars()
+                    .next_back()
+                    .is_some_and(|ch| ch.is_alphanumeric() || matches!(ch, '_' | '.' | '-' | '/'))
+            })
             .filter_map(|c| c.get(1))
             .filter(|m| {
                 !matches!(

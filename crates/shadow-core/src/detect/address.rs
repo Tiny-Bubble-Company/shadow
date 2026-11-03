@@ -219,6 +219,34 @@ impl Detector for AddressDetector {
             });
         };
         for m in EN.find_iter(text) {
+            // English streets are written in title case with a real name: "221 Baker Street".
+            // A lowercase street word ("401 Invalid API key", "31030 CI green") or a name made
+            // only of acronyms is ordinary text unless a postcode, city or unit follows.
+            let words: Vec<&str> = m.as_str().split_whitespace().skip(1).collect();
+            let lowercase_type = words.iter().any(|w| {
+                let w = w.trim_end_matches([',', '.']);
+                w.len() > 2
+                    && w.chars().all(|c| c.is_ascii_lowercase())
+                    && !matches!(w, "apt" | "suite" | "unit" | "ste" | "flat")
+            });
+            let names: Vec<&str> = words
+                .iter()
+                .take(words.len().saturating_sub(1))
+                .copied()
+                .collect();
+            let acronyms = !names.is_empty()
+                && names.iter().all(|w| {
+                    w.len() <= 5
+                        && w.chars()
+                            .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit())
+                });
+            let unit = words.iter().any(|w| {
+                let w = w.trim_end_matches([',', '.']).to_lowercase();
+                matches!(w.as_str(), "apt" | "suite" | "unit" | "ste") || w.starts_with('#')
+            });
+            if (lowercase_type || acronyms) && !unit && extend(text, m.end()) == m.end() {
+                continue;
+            }
             push(&mut out, m.start(), m.end());
         }
         for m in COMPOUND.find_iter(text) {
@@ -543,6 +571,62 @@ const ORG_HEADS: &[&str] = &[
 /// that is not among these (a surname, an invented brand, an acronym): "Torricelli Group",
 /// "ABC Insurance Company", but not "Emergency Relief Fund" or "Investment Banking Group".
 const GENERIC_ORG_WORDS: &[&str] = &[
+    // Software and interface words: "Desktop Sidebar Group", "Settings Panel Group".
+    "Desktop",
+    "Sidebar",
+    "Toolbar",
+    "Menu",
+    "Panel",
+    "Window",
+    "Tab",
+    "Tabs",
+    "Button",
+    "Dialog",
+    "Modal",
+    "Settings",
+    "Session",
+    "Sessions",
+    "Chat",
+    "Thread",
+    "Workspace",
+    "Folder",
+    "File",
+    "Files",
+    "Layout",
+    "Widget",
+    "Component",
+    "Components",
+    "Feature",
+    "Features",
+    "Navigation",
+    "Dashboard",
+    "Filter",
+    "Filters",
+    "Header",
+    "Footer",
+    "Pane",
+    "Field",
+    "Fields",
+    "Column",
+    "Columns",
+    "Row",
+    "Rows",
+    "Node",
+    "Nodes",
+    "Cluster",
+    "Pod",
+    "Container",
+    "Resource",
+    "Resources",
+    "Security",
+    "Permission",
+    "Permissions",
+    "Role",
+    "Roles",
+    "Test",
+    "Tests",
+    "Build",
+    "Release",
     "The",
     "Global",
     "International",
@@ -565,7 +649,6 @@ const GENERIC_ORG_WORDS: &[&str] = &[
     "Customer",
     "Marketing",
     "Human",
-    "Resources",
     "Health",
     "Risk",
     "Management",
@@ -603,7 +686,6 @@ const GENERIC_ORG_WORDS: &[&str] = &[
     "Innovation",
     "Innovations",
     "Banking",
-    "Security",
     "Exchange",
     "Trading",
     "Market",
@@ -681,7 +763,6 @@ const GENERIC_ORG_WORDS: &[&str] = &[
     "This",
     "That",
     "Name",
-    "Global",
     "Royal",
     "Federal",
     "State",
@@ -837,7 +918,6 @@ const GENERIC_ORG_WORDS: &[&str] = &[
     "Future",
     "Power",
     "Bank",
-    "Banking",
     "Insurance",
     "Company",
     "Corporation",
@@ -878,7 +958,6 @@ const GENERIC_ORG_WORDS: &[&str] = &[
     "Interest",
     "Dividend",
     "Dividends",
-    "Tax",
     "Taxes",
     "Rules",
     "Regulations",
@@ -894,7 +973,6 @@ const GENERIC_ORG_WORDS: &[&str] = &[
     "Objectives",
     "Goals",
     "Mission",
-    "Vision",
     "Values",
     "Principles",
     "Framework",
@@ -943,7 +1021,6 @@ const GENERIC_ORG_WORDS: &[&str] = &[
     "Short",
     "Long",
     "Term",
-    "Medium",
     "Annuity",
     "Insurers",
     "Brokerage",
@@ -963,7 +1040,6 @@ const GENERIC_ORG_WORDS: &[&str] = &[
     "Institution",
     "Institutions",
     "Reference",
-    "Resource",
     "Cryptocurrency",
     "Money",
     "Reverse",
@@ -975,7 +1051,6 @@ const GENERIC_ORG_WORDS: &[&str] = &[
     "Ransom",
     "Kidnap",
     "Universal",
-    "Pet",
     "Homeowners",
     "Landlord",
     "Marine",
@@ -1002,13 +1077,8 @@ const GENERIC_ORG_WORDS: &[&str] = &[
     "Employer's",
     "Officers",
     "Stock",
-    "Total",
     "Diversified",
     "Balanced",
-    "Bond",
-    "Equity",
-    "Income",
-    "Dividend",
     "Treasury",
     "Municipal",
     "Sector",
@@ -1428,6 +1498,32 @@ mod tests {
             .iter()
             .map(|f| t[f.start..f.end].to_string())
             .collect()
+    }
+
+    #[test]
+    fn status_lines_are_not_streets() {
+        let d = AddressDetector;
+        assert!(found(&d, "The proxy answered 401 Invalid API key twice.").is_empty());
+        assert!(found(&d, "Run 31030 CI green, merging now.").is_empty());
+        // Real streets still match, in title case or with a unit, postcode or city.
+        assert_eq!(
+            found(&d, "I live at 221 Baker Street."),
+            vec!["221 Baker Street"]
+        );
+        assert_eq!(
+            found(&d, "Ship to 12 Elm green, Apt. 4"),
+            vec!["12 Elm green, Apt. 4"]
+        );
+    }
+
+    #[test]
+    fn interface_words_are_not_companies() {
+        assert!(found(&OrgDetector, "Drag it into the Desktop Sidebar Group.").is_empty());
+        assert!(found(&OrgDetector, "Open the Settings Panel Group to edit it.").is_empty());
+        assert_eq!(
+            found(&OrgDetector, "She works at Torricelli Group in Milan."),
+            vec!["Torricelli Group"]
+        );
     }
 
     #[test]

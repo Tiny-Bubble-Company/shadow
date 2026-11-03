@@ -673,7 +673,16 @@ fn field_value_kind(fk: FieldKind, v: &str, strong: bool, surname: bool) -> Opti
             .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || matches!(c, '.' | '_' | '-'))
         && v.chars().any(|c| c.is_ascii_digit() || c == '_');
     match fk {
-        FieldKind::Person | FieldKind::Name | FieldKind::Party | FieldKind::NameOnly if handle => {
+        // Only a field that is clearly about a person: in "service_name", "event_name" or
+        // "Product Name" a handle-shaped value is an identifier ("claude_browser_extension").
+        FieldKind::Person | FieldKind::Party if handle => Some(Kind::Username),
+        // A bare "name" also names tools, events and services (`"name": "send_email"`): a
+        // handle there needs a digit or an initial ("ryan_488", "j_smith").
+        FieldKind::Name
+            if handle
+                && (v.chars().any(|c| c.is_ascii_digit())
+                    || v.split(['_', '.', '-']).any(|p| p.len() <= 2)) =>
+        {
             Some(Kind::Username)
         }
         FieldKind::Person | FieldKind::Name | FieldKind::Party if org_like() => Some(Kind::Org),
@@ -1097,6 +1106,27 @@ mod tests {
             .iter()
             .map(|f| (t[f.start..f.end].to_string(), f.kind))
             .collect()
+    }
+
+    #[test]
+    fn identifiers_in_name_fields_are_not_usernames() {
+        let d = FieldDetector::new(&DetectorToggles::default());
+        // Telemetry from a browser extension: the service's name, not a person's handle.
+        let t = r#"{"code":1006,"anonymous_id":"9f044cde","service_name":"claude_browser_extension","extension_version":"1.0.104"}"#;
+        assert!(
+            found(&d, t).iter().all(|(_, k)| *k != Kind::Username),
+            "{:?}",
+            found(&d, t)
+        );
+        assert!(found(&d, "event_name: page_view_v2\nmodel_name: gpt_4o_mini").is_empty());
+        let tool = r#"{"name": "send_email", "description": "Send an email"}"#;
+        assert!(
+            found(&d, tool).iter().all(|(_, k)| *k != Kind::Username),
+            "{:?}",
+            found(&d, tool)
+        );
+        // A field about a person still takes a handle.
+        assert!(found(&d, "Payee: ryan_488").contains(&("ryan_488".into(), Kind::Username)));
     }
 
     #[test]

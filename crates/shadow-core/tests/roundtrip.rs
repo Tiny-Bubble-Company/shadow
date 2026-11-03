@@ -241,3 +241,40 @@ fn national_ids_next_to_each_other_are_all_found() {
     }
     assert!(s.scan(t).iter().all(|f| f.kind != Kind::Address));
 }
+
+/// Ordinary technical text that earlier versions masked: telemetry, tool definitions, config
+/// examples, code and shell commands. None of it is about a person.
+#[test]
+fn technical_text_is_left_alone() {
+    let dir = tempfile::tempdir().unwrap();
+    let s = Shadow::open(config(dir.path())).unwrap();
+    let clean = [
+        r#"{"code":1006,"reason":"","service_name":"claude_browser_extension","extension_version":"1.0.104"}"#,
+        r#"{"name": "send_email", "description": "Send an email to a contact"}"#,
+        "The proxy answered 401 Invalid API key twice.",
+        "Run 31030 CI green, merging now.",
+        "Drag the chat into the Desktop Sidebar Group.",
+        "[policy.always]\nsecret = \"redact\"",
+        "Use `password=`-style assignments instead.",
+        "pub fn new(extra: &[String], bypass: &[String]) -> Self {",
+        "Mode::Api | Mode::Pass => &self.client,",
+        "let uid = std::env::var(\"UID\").ok();",
+        "Check it with `systemctl --user status shadow` on Linux.",
+        "# Rendered by src/components/home/Hero.astro",
+        "net_services: vec![\"USB 10/100/1000 LAN\".into()],",
+    ];
+    for t in clean {
+        let found: Vec<String> = s
+            .scan(t)
+            .iter()
+            .map(|f| format!("{:?} {:?}", f.kind, &t[f.start..f.end]))
+            .collect();
+        assert!(found.is_empty(), "{t:?} -> {found:?}");
+    }
+    // The same shapes still catch real data.
+    let real = "Payee: ryan_488. password = \"Hunter2-Winter!\". Path /home/jdoe/notes. Call +44 20 7946 0958.";
+    let kinds: Vec<Kind> = s.scan(real).iter().map(|f| f.kind).collect();
+    for k in [Kind::Username, Kind::Secret, Kind::Phone] {
+        assert!(kinds.contains(&k), "{k:?} missing in {kinds:?}");
+    }
+}
