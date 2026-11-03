@@ -148,6 +148,7 @@ button { font: inherit; color: inherit; letter-spacing: inherit; }
   border-radius: 999px; font-size: 12px; font-weight: 510; white-space: nowrap;
   border: 1px solid var(--line); background: transparent; color: var(--muted);
 }
+.pill.feedback:hover { color: var(--text); border-color: var(--line-strong); }
 .pill.demo { color: var(--warn); background: var(--warn-soft); border-color: var(--warn-line); }
 .status .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); flex: none; }
 .status[data-state="on"] { color: var(--text-2); }

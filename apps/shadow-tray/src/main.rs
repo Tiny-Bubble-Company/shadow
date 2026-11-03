@@ -23,7 +23,8 @@ use tray_icon::menu::{Menu, MenuEvent, MenuId, MenuItem, PredefinedMenuItem};
 use tray_icon::{MouseButton, MouseButtonState, Rect, TrayIcon, TrayIconBuilder, TrayIconEvent};
 use wry::{WebView, WebViewBuilder};
 
-const DOCS_URL: &str = "https://tiny-bubble-company.github.io/shadow/concepts/activity-dashboard/";
+const DOCS_URL: &str = "https://getshadow.dev/concepts/activity-dashboard/";
+const SUPPORT_EMAIL: &str = "support@getshadow.dev";
 const POPOVER: (f64, f64) = (420.0, 640.0);
 const POLL: Duration = Duration::from_secs(5);
 
@@ -196,6 +197,24 @@ fn open_external(url: &str) {
     }
 }
 
+/// A mail to support with the version and platform in the subject. One query parameter
+/// only: `&` would end the command line on Windows (`cmd /C start`).
+fn feedback_url() -> String {
+    let subject = format!(
+        "Shadow feedback (Core {}, {})",
+        env!("CARGO_PKG_VERSION"),
+        std::env::consts::OS
+    );
+    let encoded: String = subject
+        .bytes()
+        .map(|b| match b {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'.' | b'-' | b'_' => (b as char).to_string(),
+            _ => format!("%{b:02X}"),
+        })
+        .collect();
+    format!("mailto:{SUPPORT_EMAIL}?subject={encoded}")
+}
+
 fn fmt_n(n: u64) -> String {
     let s = n.to_string();
     let mut out = String::new();
@@ -218,6 +237,7 @@ struct Items {
     incidents: MenuItem,
     browser: MenuItem,
     docs: MenuItem,
+    feedback: MenuItem,
     quit: MenuItem,
 }
 
@@ -235,6 +255,7 @@ impl Items {
             incidents: MenuItem::new("Incidents and prompts", true, None),
             browser: MenuItem::new("Open in browser", true, None),
             docs: MenuItem::new("Docs", true, None),
+            feedback: MenuItem::new("Help & feedback…", true, None),
             quit: MenuItem::new("Quit Shadow menu", true, None),
         }
     }
@@ -254,6 +275,7 @@ impl Items {
             &self.incidents,
             &self.browser,
             &self.docs,
+            &self.feedback,
             &sep(),
             &self.quit,
         ]);
@@ -459,11 +481,12 @@ fn main() {
     let mut popover: Option<Popover> = None;
     let mut anchor: Option<Rect> = None;
     let mut status = Status::default();
-    let ids: [MenuId; 4] = [
+    let ids: [MenuId; 5] = [
         items.dashboard.id().clone(),
         items.browser.id().clone(),
         items.docs.id().clone(),
         items.quit.id().clone(),
+        items.feedback.id().clone(),
     ];
 
     let coverage_id = items.coverage.id().clone();
@@ -598,6 +621,8 @@ fn main() {
                     open_external(&browser_url);
                 } else if e.id == ids[2] {
                     open_external(DOCS_URL);
+                } else if e.id == ids[4] {
+                    open_external(&feedback_url());
                 } else if e.id == ids[3] {
                     tray.take();
                     *control_flow = ControlFlow::Exit;

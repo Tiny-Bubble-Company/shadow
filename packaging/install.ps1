@@ -34,11 +34,21 @@ $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
 if ($userPath -notlike "*$Dest*") { [Environment]::SetEnvironmentVariable("Path", "$userPath;$Dest", "User") }
 & "$Dest\shadow.exe" init
 
+# Printed last, so it is the first thing people see when the install finishes.
+function Show-Feedback {
+  Write-Host ""
+  Write-Host "  Tell us what you think." -ForegroundColor White
+  Write-Host "  Found a bug, missing a feature, or need a hand setting up?"
+  Write-Host "  Email " -NoNewline; Write-Host "support@getshadow.dev" -ForegroundColor Cyan -NoNewline; Write-Host ". The people who build Shadow read"
+  Write-Host "  every message and reply."
+}
+
 if ($env:SHADOW_ENROLL) {
   & "$Dest\shadow.exe" hub connect --yes $env:SHADOW_ENROLL
   & "$Dest\shadow.exe" install --apply --system-proxy
   Write-Host ""
   Write-Host "Done. This machine is protected by Shadow and reports to your organisation."
+  Show-Feedback
   return
 }
 Write-Host ""
@@ -46,3 +56,4 @@ Write-Host "Installed to $Dest\shadow.exe. Next:"
 Write-Host "  shadow install          # dry run"
 Write-Host "  shadow install --apply --system-proxy  # scheduled tasks (proxy and tray), trust the local CA (current user),"
 Write-Host "                                        # and route browsers and desktop apps (ChatGPT, Claude) through Shadow"
+Show-Feedback

@@ -9,6 +9,9 @@
 	"workers_dev": false,
 	// First-party funnel events from POST /api/e (see worker/README.md).
 	"analytics_engine_datasets": [{ "binding": "EVENTS", "dataset": "shadow_funnel" }],
+	// Help and feedback from Shadow Hub, emailed through Email Routing. SUPPORT_INBOX must be a
+	// verified destination address; SUPPORT_RELAY_TOKEN is a secret shared with the Hub server.
+	"send_email": [{ "name": "SUPPORT_MAIL" }],
 	// Forms: add the KV namespace once created (see worker/README.md):
 	// "kv_namespaces": [{ "binding": "FORMS", "id": "<namespace id>" }],
 	"assets": {

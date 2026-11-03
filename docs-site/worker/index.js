@@ -4,9 +4,12 @@
 //
 //   POST /api/e     first-party funnel events -> Analytics Engine (see worker/README.md)
 //   POST /api/form  waitlist and demo forms, verified with Turnstile, stored in KV
+//   POST /api/support  help and feedback from Shadow Hub, emailed to the support inbox
 //
 // No cookies are set anywhere, no IP address or full user agent is stored, and only the
 // coarse country from Cloudflare's header is kept with an event.
+import { EmailMessage } from 'cloudflare:email';
+
 const APEX = 'getshadow.dev';
 
 // Moved pages: old path -> new path (both with trailing slash).
@@ -25,6 +28,8 @@ const EVENTS = {
 	compare_cta: ['competitor'],
 };
 const FORM_TYPES = ['waitlist', 'demo'];
+const SUPPORT_KINDS = { bug: 'Bug', feature: 'Feature request', question: 'Question', billing: 'Billing' };
+const SUPPORT_FROM = `hub@${APEX}`;
 
 // Requests per minute per event type, per Cloudflare location (isolates are per location).
 const RATE_PER_MINUTE = 600;
@@ -127,6 +132,91 @@ async function handleForm(request, env) {
 	return json(200, { ok: true });
 }
 
+/** Header-safe text: one line, no control characters. */
+const oneLine = (v, max) =>
+	String(v ?? '')
+		.replace(/[\u0000-\u001f\u007f]+/g, ' ')
+		.trim()
+		.slice(0, max);
+
+const b64 = (text) => {
+	const bytes = new TextEncoder().encode(text);
+	let bin = '';
+	for (const b of bytes) bin += String.fromCharCode(b);
+	return btoa(bin);
+};
+
+/** RFC 2047 encoded header value for non-ASCII text. */
+const encodeWord = (text) => (/^[\x20-\x7e]*$/.test(text) ? text : `=?UTF-8?B?${b64(text)}?=`);
+
+async function sameToken(a, b) {
+	const enc = new TextEncoder();
+	const [x, y] = [enc.encode(a), enc.encode(b)];
+	return x.byteLength === y.byteLength && crypto.subtle.timingSafeEqual(x, y);
+}
+
+// Help and feedback sent from inside Shadow Hub. Only the Hub server may call this (shared
+// SUPPORT_RELAY_TOKEN); the message is emailed to SUPPORT_INBOX through Email Routing with the
+// customer as Reply-To, so the team answers by replying.
+async function handleSupport(request, env) {
+	if (!env.SUPPORT_MAIL || !env.SUPPORT_INBOX || !env.SUPPORT_RELAY_TOKEN) {
+		return json(503, { error: 'support relay is not configured' });
+	}
+	const auth = request.headers.get('authorization') || '';
+	if (!auth.startsWith('Bearer ') || !(await sameToken(auth.slice(7), env.SUPPORT_RELAY_TOKEN))) {
+		return json(401, { error: 'unauthorized' });
+	}
+	if (limited('support')) return json(429, { error: 'too many requests' });
+	const body = await readJson(request, 32768);
+	if (!body || !Object.hasOwn(SUPPORT_KINDS, body.kind)) return json(400, { error: 'bad message' });
+	const email = oneLine(body.email, 200).toLowerCase();
+	if (!/^[^\s@<>",]+@[^\s@<>",]+\.[^\s@<>",]+$/.test(email)) return json(400, { error: 'bad sender' });
+	const name = oneLine(body.name, 120).replace(/["\\]/g, '');
+	const subject = oneLine(body.subject, 200);
+	const message = String(body.message ?? '').slice(0, 5000);
+	const ctx = body.context && typeof body.context === 'object' ? body.context : {};
+	const workspace = oneLine(ctx.workspace, 120);
+	const kind = SUPPORT_KINDS[body.kind];
+	const created = Number(ctx.workspace_created_at);
+	const lines = [
+		message,
+		'',
+		'-- ',
+		`${kind} from Shadow Hub`,
+		`From:        ${name} <${email}> (${oneLine(ctx.role, 20)})`,
+		`Workspace:   ${workspace} (${oneLine(ctx.workspace_id, 64)})`,
+		`Plan:        ${oneLine(ctx.plan, 80)}`,
+		`People:      ${Number(ctx.people) || 0} connected, ${Number(ctx.devices) || 0} devices`,
+		`Core:        ${oneLine(ctx.core_versions, 200) || 'no devices yet'}`,
+		`Hub:         ${oneLine(ctx.hub_url, 120)} (version ${oneLine(ctx.hub_version, 20)})`,
+		`Created:     ${created ? new Date(created).toISOString().slice(0, 10) : 'unknown'}`,
+		`Browser:     ${oneLine(ctx.browser, 300)}`,
+		`Message ID:  ${oneLine(body.id, 64)}`,
+		'',
+		'Reply to this email to answer the customer.',
+	];
+	const raw = [
+		`From: ${encodeWord('Shadow Hub')} <${SUPPORT_FROM}>`,
+		`To: <${env.SUPPORT_INBOX}>`,
+		`Reply-To: ${name ? (encodeWord(name) === name ? `"${name}" ` : `${encodeWord(name)} `) : ''}<${email}>`,
+		`Subject: ${encodeWord(`[${kind}] ${subject}${workspace ? ` (${workspace})` : ''}`)}`,
+		`Message-ID: <${crypto.randomUUID()}@${APEX}>`,
+		`Date: ${new Date().toUTCString()}`,
+		'MIME-Version: 1.0',
+		'Content-Type: text/plain; charset=utf-8',
+		'Content-Transfer-Encoding: base64',
+		'',
+		b64(lines.join('\r\n')).replace(/.{76}/g, '$&\r\n'),
+	].join('\r\n');
+	try {
+		await env.SUPPORT_MAIL.send(new EmailMessage(SUPPORT_FROM, env.SUPPORT_INBOX, raw));
+	} catch (e) {
+		console.error('support email failed', e && e.message);
+		return json(502, { error: 'could not send email' });
+	}
+	return json(200, { ok: true });
+}
+
 export default {
 	async fetch(request, env) {
 		const url = new URL(request.url);
@@ -137,6 +227,9 @@ export default {
 		}
 		if (url.pathname === '/api/e') {
 			return request.method === 'POST' ? handleEvent(request, env) : empty(405);
+		}
+		if (url.pathname === '/api/support') {
+			return request.method === 'POST' ? handleSupport(request, env) : empty(405);
 		}
 		if (url.pathname === '/api/form') {
 			return request.method === 'POST' ? handleForm(request, env) : empty(405);

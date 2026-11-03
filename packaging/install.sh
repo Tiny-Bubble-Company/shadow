@@ -52,6 +52,18 @@ fi
 
 "$BIN_DIR/shadow" init
 
+# Printed last, so it is the first thing people see when the install finishes.
+feedback() {
+  if [ -t 1 ]; then b=$(printf '\033[1m'); r=$(printf '\033[0m'); else b=; r=; fi
+  echo
+  echo "  ┌──────────────────────────────────────────────────────────────────┐"
+  echo "  │ ${b}Tell us what you think.${r}                                          │"
+  echo "  │ Found a bug, missing a feature, or need a hand setting up?       │"
+  echo "  │ Email ${b}support@getshadow.dev${r}. The people who build Shadow read    │"
+  echo "  │ every message and reply.                                         │"
+  echo "  └──────────────────────────────────────────────────────────────────┘"
+}
+
 if [ -n "${SHADOW_ENROLL:-}" ]; then
   echo
   "$BIN_DIR/shadow" hub connect --yes "$SHADOW_ENROLL"
@@ -60,6 +72,7 @@ if [ -n "${SHADOW_ENROLL:-}" ]; then
   echo
   echo "Done. This machine is protected by Shadow and reports to your organisation."
   case ":$PATH:" in *":$BIN_DIR:"*) ;; *) echo "  (add $BIN_DIR to your PATH)";; esac
+  feedback
   exit 0
 fi
 echo
@@ -68,3 +81,4 @@ echo "  shadow install          # dry run: shows exactly what will change"
 echo "  shadow install --apply --system-proxy  # background service, menu-bar app, trust the local CA,"
 echo "                                        # and route browsers and desktop apps (ChatGPT, Claude) through Shadow"
 case ":$PATH:" in *":$BIN_DIR:"*) ;; *) echo "  (add $BIN_DIR to your PATH)";; esac
+feedback
