@@ -2,7 +2,8 @@
 // third-party code. `?demo=1` renders synthetic data, `?theme=dark|light` forces a theme,
 // `?embed=1` trims chrome for the tray popover, `?w=1h|24h|7d|30d` picks the window,
 // `?reveal=1` shows caught values unblurred.
-// Pages: `#` overview, `#/incidents` every incident, `#/incidents/<id>` one incident.
+// Pages: `#` overview, `#/incidents` every incident (`?kind=email`, `?app=Cursor` filter it),
+// `#/incidents/<id>` one incident.
 (function () {
   "use strict";
 
@@ -255,9 +256,12 @@
 
   // ---------------------------------------------------------------- pages
   function route() {
-    var m = /^#\/incidents(?:\/(\d+))?\/?$/.exec(location.hash);
+    var m = /^#\/incidents(?:\/(\d+))?\/?(?:\?(.*))?$/.exec(location.hash);
     state.view = m ? (m[1] ? "detail" : "incidents") : "overview";
     state.id = m && m[1] ? Number(m[1]) : 0;
+    var q = new URLSearchParams(m && !m[1] && m[2] || "");
+    state.kindFilter = q.has("kind") ? q.get("kind") : null;
+    state.appFilter = q.has("app") ? q.get("app") : null;
     $("view-overview").hidden = state.view !== "overview";
     $("view-incidents").hidden = state.view !== "incidents";
     $("view-detail").hidden = state.view !== "detail";
@@ -432,13 +436,15 @@
       null, true);
   }
 
-  function barRows(el, rows, valueOf, labelOf, sub, icon, danger) {
+  // `href(r)`, when given, makes each row a link (to its incidents).
+  function barRows(el, rows, valueOf, labelOf, sub, icon, danger, href) {
     clear(el);
     if (!rows.length) { el.appendChild(h("div", { class: "empty", text: "Nothing yet in this window" })); return; }
     var max = Math.max.apply(null, rows.map(valueOf)) || 1;
     rows.forEach(function (r) {
       var fill = h("div", { class: "bar-fill" + (danger ? " danger" : "") });
-      el.appendChild(h("div", { class: "bar-row" }, [
+      var link = href ? href(r) : null;
+      el.appendChild(h(link ? "a" : "div", link ? { class: "bar-row link", href: link, title: "See these incidents" } : { class: "bar-row" }, [
         h("div", { class: "bar-name", title: labelOf(r) }, [icon ? icon(r) : null, h("span", { text: labelOf(r) })]),
         h("div", { class: "bar-num" }, [h("b", { text: fmt(valueOf(r)) }), sub ? " " + sub(r) : null]),
         h("div", { class: "bar-track" }, fill)
@@ -453,7 +459,8 @@
     barRows($("kinds"), rows, function (r) { return r.values; },
       function (r) { return KIND_LABELS[r.key] || r.label || r.key; },
       function (r) { return "in " + fmt(r.requests); },
-      function (r) { return kindIcon(r.key); });
+      function (r) { return kindIcon(r.key); }, false,
+      function (r) { return incidentsHref("kind", r.key); });
   }
 
   function renderClients(sum) {
@@ -462,7 +469,8 @@
     barRows($("clients"), rows, function (r) { return r.requests; },
       function (r) { return r.label || r.key; },
       function (r) { return r.values ? "· " + fmt(r.values) + " protected" : "· clean"; },
-      null);
+      null, false,
+      function (r) { return incidentsHref("app", r.key); });
   }
 
   function arc(cx, cy, r, a0, a1) {
@@ -523,6 +531,7 @@
     return h("span", { class: "badge " + action, text: t });
   }
   function openIncident(e) { location.hash = "#/incidents/" + e.id; }
+  function incidentsHref(param, value) { return "#/incidents?" + param + "=" + encodeURIComponent(value); }
 
   function incidentTable(el, list, opts) {
     clear(el);
@@ -568,6 +577,8 @@
     var list = state.all.filter(function (e) {
       if (e.ts < since) return false;
       if (state.actionFilter && e.action !== state.actionFilter) return false;
+      if (state.kindFilter !== null && !(e.kinds && e.kinds[state.kindFilter])) return false;
+      if (state.appFilter !== null && (e.client || "") !== state.appFilter) return false;
       if (!q) return true;
       var hay = [e.client, e.provider, providerName(e.provider, e.provider), e.host, e.intent, REASON_LABELS[e.block_reason] || "",
         CATEGORY_LABELS[category(e.provider)]]
@@ -575,8 +586,31 @@
         .join(" ").toLowerCase();
       return hay.indexOf(q) >= 0;
     });
+    renderActiveFilters();
     incidentTable($("inc-all"), list.slice(0, 500), { full: true,
       emptyText: state.all.length ? "No incidents match this filter in the selected time window." : null });
+  }
+
+  // The data type or app picked on the overview, each removable.
+  function renderActiveFilters() {
+    var el = clear($("inc-active"));
+    var chips = [];
+    if (state.kindFilter !== null) chips.push(["kind", "Data type", KIND_LABELS[state.kindFilter] || state.kindFilter]);
+    if (state.appFilter !== null) chips.push(["app", "App", state.appFilter || "Unknown"]);
+    el.hidden = !chips.length;
+    chips.forEach(function (c) {
+      el.appendChild(h("span", { class: "filter-chip" }, [
+        h("span", { class: "dim", text: c[1] + " " }), h("b", { text: c[2] }),
+        h("button", { type: "button", "aria-label": "Remove " + c[1].toLowerCase() + " filter", text: "×",
+          onclick: function () { clearFilter(c[0]); } })
+      ]));
+    });
+  }
+  function clearFilter(param) {
+    var q = new URLSearchParams();
+    if (param !== "kind" && state.kindFilter !== null) q.set("kind", state.kindFilter);
+    if (param !== "app" && state.appFilter !== null) q.set("app", state.appFilter);
+    location.hash = "#/incidents" + (q.toString() ? "?" + q.toString() : "");
   }
 
   // ---------------------------------------------------------------- incident detail
