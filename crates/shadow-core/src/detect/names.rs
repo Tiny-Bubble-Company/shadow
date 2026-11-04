@@ -3266,6 +3266,16 @@ static ROLE_BEFORE: LazyLock<Regex> = LazyLock::new(|| {
     .expect("valid regex")
 });
 
+/// A relation right before a name, optionally with "called"/"named": "my friend Subin",
+/// "a colleague named Arjun", "his daughter called Meera". The relation word must be lower
+/// case ("Patient Name" is a heading). Strong enough for a given name Shadow doesn't know.
+static KIN_BEFORE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        r"(?:^|[^\p{L}])(?:friend|best friend|colleague|coworker|co-worker|classmate|roommate|flatmate|neighbou?r|boss|manager|cousin|brother|sister|son|daughter|wife|husband|partner|mother|father|mom|mum|dad|uncle|aunt|nephew|niece|grandson|granddaughter|grandmother|grandfather|grandma|grandpa|boyfriend|girlfriend|fianc[ée]e?|relative|guy|girl|boy|man|woman|lady|person|kid|child|baby|patient|student|teacher|tutor|landlord|tenant)s?(?:[^\S\n]+(?:called|named|by the name(?: of)?))?[,:]?[^\S\n]+$",
+    )
+    .expect("valid regex")
+});
+
 /// Phrases right after a name that describe a person: "Jane Roe, a resident of …",
 /// "…, residing at", "…, con domicilio en", "…, wohnhaft in", "…, demeurant".
 static DESCRIBED_AFTER: LazyLock<Regex> = LazyLock::new(|| {
@@ -3340,6 +3350,9 @@ fn judge_run(text: &str, tokens: &[(usize, &str)]) -> Option<Finding> {
         && prev_word.starts_with(char::is_uppercase)
         && is_title(prev_word);
     let cued = CUE_BEFORE.is_match(before);
+    let kin = KIN_BEFORE.is_match(before)
+        && tokens.len() <= 3
+        && !super::public::is_public(&text[start..end]);
     let role = ROLE_BEFORE.captures(before).map(|c| {
         let w = c.get(1).map_or("", |m| m.as_str());
         let lower = w.starts_with(char::is_lowercase) || w.chars().all(|c| !c.is_lowercase());
@@ -3429,6 +3442,7 @@ fn judge_run(text: &str, tokens: &[(usize, &str)]) -> Option<Finding> {
         || (pronoun && (multi || known_first))
         || (edi_field && multi && tokens.len() <= 4)
         || (cued && (multi || is_first_name(first)))
+        || kin
         || (role.is_some() && is_first_name(first))
         || (role == Some(true) && multi)
         || (multi && (emailed || payee || known_first));

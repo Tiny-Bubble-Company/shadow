@@ -291,6 +291,8 @@
     st.setAttribute("data-state", on ? "on" : "off");
     $("status-text").textContent = on ? "Protected" : "Offline";
     $("offline").hidden = on;
+    $("inc-live").setAttribute("data-state", on ? "on" : "off");
+    $("inc-live").lastChild.textContent = on ? "Live" : "Offline";
   }
 
   function emptySummary(w) {
@@ -542,7 +544,7 @@
     }
     var tbody = h("tbody");
     list.forEach(function (e) {
-      tbody.appendChild(h("tr", { class: "row", tabindex: "0", onclick: function () { openIncident(e); },
+      tbody.appendChild(h("tr", { class: "row" + (opts.freshAfter && e.id > opts.freshAfter ? " fresh" : ""), tabindex: "0", onclick: function () { openIncident(e); },
         onkeydown: function (ev) { if (ev.key === "Enter") openIncident(e); } }, [
         h("td", { class: "when", title: new Date(e.ts).toLocaleString(), text: opts.full ? clock(e.ts, true) : ago(e.ts) }),
         h("td", null, incidentRoute(e)),
@@ -587,7 +589,11 @@
       return hay.indexOf(q) >= 0;
     });
     renderActiveFilters();
-    incidentTable($("inc-all"), list.slice(0, 500), { full: true,
+    // Rows that arrived since the last refresh are highlighted for a moment.
+    var newest = state.all.reduce(function (m, e) { return Math.max(m, e.id || 0); }, 0);
+    var freshAfter = state.seenId || newest;
+    state.seenId = newest;
+    incidentTable($("inc-all"), list.slice(0, 500), { full: true, freshAfter: freshAfter,
       emptyText: state.all.length ? "No incidents match this filter in the selected time window." : null });
   }
 

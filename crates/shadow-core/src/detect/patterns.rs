@@ -1813,6 +1813,24 @@ mod tests {
     }
 
     #[test]
+    fn names_after_a_relation_word() {
+        let p = |t: &str| kinds(&PersonDetector, t);
+        // A given name Shadow doesn't know, cued by "friend called".
+        assert_eq!(
+            p("One of my friend called Subin is detected with Cancer in India"),
+            vec!["Subin"]
+        );
+        assert_eq!(
+            p("My colleague Arjun Menon needs help"),
+            vec!["Arjun Menon"]
+        );
+        assert_eq!(p("my sister Meera has diabetes"), vec!["Meera"]);
+        assert!(p("my friend Google told me").is_empty());
+        assert!(p("a tool called Cursor").is_empty());
+        assert!(p("Patient Name: Unknown").is_empty());
+    }
+
+    #[test]
     fn national_ids_by_country() {
         let d = NationalIdDetector;
         // US SSN: dashed form alone; bare/spaced need context; invalid areas rejected.
