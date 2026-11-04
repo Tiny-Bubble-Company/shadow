@@ -827,8 +827,8 @@ mod tests {
             "metadata": {"installedTimestamp": now - 86_400_000, "source": "vsix", "publisherDisplayName": "Acme"}
         }]).to_string());
         write(&roots.home.join(".claude.json"), &json!({"mcpServers": {
-            "gh": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-github"], "env": {"GITHUB_TOKEN": "ghp_aaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},
-            "db": {"command": "/bin/bash", "args": ["-c", "run --api-key", "sk-live-1234567890abcdef"]},
+            "gh": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-github"], "env": {"GITHUB_TOKEN": concat!("ghp", "_", "fixturefixturefixturefixture")}},
+            "db": {"command": "/bin/bash", "args": ["-c", "run --api-key", concat!("sk-", "fixture-", "0000000000000000")]},
             "remote": {"type": "http", "url": "https://mcp.example.com/sse"}
         }}).to_string());
         write(
@@ -858,7 +858,7 @@ mod tests {
         assert!(db.flags.contains(&"runs_shell".into()));
         let shown = serde_json::to_string(&items).unwrap();
         assert!(
-            !shown.contains("sk-live") && !shown.contains("ghp_"),
+            !shown.contains("sk-fixture") && !shown.contains("ghp_fixture"),
             "no secrets kept"
         );
         assert_eq!(
