@@ -17,9 +17,9 @@ A receipt never contains your text or the values Shadow caught. It holds hashes,
 
 ## Where to see them
 
-- **Dashboard**: open any incident. The **Evidence receipt** card shows the result of checking it on this machine: the signature, the link to the previous receipt and whether the prompt shown matches what was signed. **Copy receipt** and **Download** give you the receipt and the public key as JSON. The overview has an **Evidence receipts** card that checks every receipt in the selected period.
+- **Dashboard**: the **All requests** tab lists every request Shadow scanned, clean ones included, and marks the ones with a signed receipt. Open any request or incident. The **Evidence receipt** card shows the result of checking it on this machine: the signature, the link to the previous receipt and whether the prompt shown matches what was signed. **Copy receipt** and **Download** give you the receipt and the public key as JSON. The overview has an **Evidence receipts** card that checks every receipt in the selected period.
 - **Terminal**: `shadow receipts` checks the whole chain, `shadow receipts show <ID>` shows one and `shadow receipts verify <file>` checks a downloaded receipt without Shadow running.
-- **Shadow Hub**: receipts are sent with each event. Hub checks each one against the machine's key when it arrives, keeps the chain per machine and has a verifier for receipts from any source.
+- **Shadow Hub**: **All requests** lists every request from every machine with its receipt status. Receipts are sent with each event. Hub checks each one against the machine's key when it arrives, keeps the chain per machine and has a verifier for receipts from any source.
 
 ## What a receipt says
 

@@ -315,6 +315,10 @@ a.bar-row:hover .bar-name { color: var(--text); }
 .badge.masked { background: var(--accent-soft); color: var(--accent); }
 .badge.blocked { background: var(--danger-soft); color: var(--danger); }
 .badge.clean { background: var(--track); color: var(--muted); }
+.badge.passed { background: var(--warn-soft); color: var(--warn); }
+.receipt-mark { color: var(--ok); font-size: 12px; font-weight: 600; }
+#inc-actions button[data-scope="requests"] { display: none; }
+.scope-requests #inc-actions button[data-scope="requests"] { display: inline-flex; }
 .restored { color: var(--ok); font-weight: 510; white-space: nowrap; }
 .dim { color: var(--faint); }
 .inc-list { display: none; }

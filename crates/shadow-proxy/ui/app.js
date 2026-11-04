@@ -3,7 +3,7 @@
 // `?embed=1` trims chrome for the tray popover, `?w=1h|24h|7d|30d` picks the window,
 // `?reveal=1` shows caught values unblurred.
 // Pages: `#` overview, `#/incidents` every incident (`?kind=email`, `?app=Cursor` filter it),
-// `#/incidents/<id>` one incident.
+// `#/incidents/<id>` one incident, `#/requests` every scanned request (`#/requests/<id>` one).
 (function () {
   "use strict";
 
@@ -244,7 +244,9 @@
       renderIncidentList();
       return;
     }
-    fetchJSON("/shadow/activity?action=incidents&limit=2000").then(function (r) {
+    var scope = state.scope;
+    fetchJSON("/shadow/activity?limit=2000" + (scope === "requests" ? "" : "&action=incidents")).then(function (r) {
+      if (scope !== state.scope) return;
       setOnline(true);
       state.all = r.events || [];
       renderIncidentList();
@@ -256,7 +258,11 @@
 
   // ---------------------------------------------------------------- pages
   function route() {
-    var m = /^#\/incidents(?:\/(\d+))?\/?(?:\?(.*))?$/.exec(location.hash);
+    var m = /^#\/(incidents|requests)(?:\/(\d+))?\/?(?:\?(.*))?$/.exec(location.hash);
+    var scope = m ? m[1] : "incidents";
+    if (scope !== state.scope) { state.all = []; state.seenId = 0; state.actionFilter = ""; }
+    state.scope = scope;
+    if (m) m.splice(1, 1);
     state.view = m ? (m[1] ? "detail" : "incidents") : "overview";
     state.id = m && m[1] ? Number(m[1]) : 0;
     var q = new URLSearchParams(m && !m[1] && m[2] || "");
@@ -267,8 +273,21 @@
     $("view-detail").hidden = state.view !== "detail";
     $("windows").hidden = state.view === "detail";
     $("tab-overview").setAttribute("aria-current", state.view === "overview" ? "page" : "false");
-    $("tab-incidents").setAttribute("aria-current", state.view === "overview" ? "false" : "page");
-    var name = state.view === "overview" ? "Activity" : state.view === "incidents" ? "Incidents" : "Incident #" + state.id;
+    var all = state.scope === "requests";
+    $("tab-incidents").setAttribute("aria-current", state.view !== "overview" && !all ? "page" : "false");
+    $("tab-requests").setAttribute("aria-current", state.view !== "overview" && all ? "page" : "false");
+    document.body.classList.toggle("scope-requests", all);
+    $("inc-title").textContent = all ? "All requests" : "Incidents";
+    $("inc-hint").textContent = all
+      ? "Every request Shadow scanned, clean ones included, each with its signed evidence receipt. Open one to see what happened."
+      : "Requests where Shadow masked or blocked data. Open one to see the prompt and where it came from.";
+    $("inc-search").setAttribute("placeholder", all ? "Filter by app, AI, data type or action" : "Filter by app, AI or data type");
+    Array.prototype.forEach.call(document.querySelectorAll("#inc-actions button"), function (x) {
+      x.setAttribute("aria-pressed", x.getAttribute("data-a") === (state.actionFilter || "") ? "true" : "false");
+    });
+    $("back").setAttribute("href", all ? "#/requests" : "#/incidents");
+    $("back").textContent = all ? "← All requests" : "← All incidents";
+    var name = state.view === "overview" ? "Activity" : state.view === "incidents" ? (all ? "All requests" : "Incidents") : "Request #" + state.id;
     document.title = "Shadow · " + name + (DEMO ? " (demo)" : "");
     window.scrollTo(0, 0);
     if (state.view === "detail") {
@@ -529,10 +548,10 @@
     return kindTags(e.kinds, 3);
   }
   function badge(action) {
-    var t = { masked: "Masked", blocked: "Blocked", clean: "Clean" }[action] || action;
+    var t = { masked: "Masked", blocked: "Blocked", clean: "Clean", passed: "Passed through" }[action] || action;
     return h("span", { class: "badge " + action, text: t });
   }
-  function openIncident(e) { location.hash = "#/incidents/" + e.id; }
+  function openIncident(e) { location.hash = "#/" + (state.view === "incidents" && state.scope === "requests" ? "requests" : "incidents") + "/" + e.id; }
   function incidentsHref(param, value) { return "#/incidents?" + param + "=" + encodeURIComponent(value); }
 
   function incidentTable(el, list, opts) {
@@ -550,11 +569,12 @@
         h("td", null, incidentRoute(e)),
         h("td", null, h("div", { class: "tags" }, incidentWhat(e))),
         h("td", null, badge(e.action)),
+        opts.receipts ? h("td", null, e.has_receipt ? h("span", { class: "receipt-mark", title: "Signed evidence receipt", text: "✓ Signed" }) : h("span", { class: "dim", text: "—" })) : null,
         h("td", { class: "open" }, e.has_detail ? h("span", { class: "has-prompt", text: "Prompt ›" }) : h("span", { class: "dim", text: "›" }))
       ]));
     });
     el.appendChild(h("table", null, [
-      h("thead", null, h("tr", null, ["When", "Source → destination", "What", "Action", ""].map(function (c) { return h("th", { text: c }); }))),
+      h("thead", null, h("tr", null, ["When", "Source → destination", "What", "Action"].concat(opts.receipts ? ["Receipt"] : []).concat([""]).map(function (c) { return h("th", { text: c }); }))),
       tbody
     ]));
     var compact = h("div", { class: "inc-list" });
@@ -582,7 +602,7 @@
       if (state.kindFilter !== null && !(e.kinds && e.kinds[state.kindFilter])) return false;
       if (state.appFilter !== null && (e.client || "") !== state.appFilter) return false;
       if (!q) return true;
-      var hay = [e.client, e.provider, providerName(e.provider, e.provider), e.host, e.intent, REASON_LABELS[e.block_reason] || "",
+      var hay = [e.client, e.action, e.provider, providerName(e.provider, e.provider), e.host, e.intent, REASON_LABELS[e.block_reason] || "",
         CATEGORY_LABELS[category(e.provider)]]
         .concat(Object.keys(e.kinds || {}).map(function (k) { return (KIND_LABELS[k] || k) + " " + (KIND_SHORT[k] || ""); }))
         .join(" ").toLowerCase();
@@ -593,8 +613,10 @@
     var newest = state.all.reduce(function (m, e) { return Math.max(m, e.id || 0); }, 0);
     var freshAfter = state.seenId || newest;
     state.seenId = newest;
-    incidentTable($("inc-all"), list.slice(0, 500), { full: true, freshAfter: freshAfter,
-      emptyText: state.all.length ? "No incidents match this filter in the selected time window." : null });
+    var all = state.scope === "requests";
+    incidentTable($("inc-all"), list.slice(0, 500), { full: true, freshAfter: freshAfter, receipts: all,
+      emptyText: state.all.length ? "Nothing matches this filter in the selected time window."
+        : all ? "No requests yet. Every request Shadow scans shows up here." : null });
   }
 
   // The data type or app picked on the overview, each removable.
@@ -616,7 +638,7 @@
     var q = new URLSearchParams();
     if (param !== "kind" && state.kindFilter !== null) q.set("kind", state.kindFilter);
     if (param !== "app" && state.appFilter !== null) q.set("app", state.appFilter);
-    location.hash = "#/incidents" + (q.toString() ? "?" + q.toString() : "");
+    location.hash = "#/" + state.scope + (q.toString() ? "?" + q.toString() : "");
   }
 
   // ---------------------------------------------------------------- incident detail
@@ -709,10 +731,12 @@
   function renderDetail(data) {
     var el = clear($("detail"));
     var e = data.event, d = data.detail;
-    var title = (e.action === "blocked" ? "Blocked request" : "Masked request");
+    var title = { blocked: "Blocked request", masked: "Masked request", clean: "Clean request", passed: "Passed-through request" }[e.action] || "Request";
     var values = Object.keys(e.kinds || {}).reduce(function (a, k) { return a + e.kinds[k]; }, 0);
     var headline = e.action === "blocked"
       ? "Shadow stopped this request before it left your machine."
+      : e.action === "clean" ? "Shadow scanned this request and found nothing sensitive, so it was sent unchanged."
+      : e.action === "passed" ? "A known AI service Shadow can't mask yet: the request was passed through unchanged and recorded."
       : "Shadow replaced " + plural(values, "value") + " before this request left your machine" + (e.restored ? ", and put " + plural(e.restored, "value") + " back in the answer." : ".");
     var reveal = h("button", { type: "button", class: "btn", id: "reveal", onclick: function () { setReveal(!state.reveal); } },
       state.reveal ? "Hide values" : "Show values");
@@ -758,8 +782,10 @@
 
     if (!d) {
       el.appendChild(h("section", { class: "card notice" }, [
-        h("h2", { text: "Prompt not available" }),
-        h("p", { text: data.details_enabled === false
+        h("h2", { text: e.action === "clean" || e.action === "passed" ? "Prompt not stored" : "Prompt not available" }),
+        h("p", { text: e.action === "clean" || e.action === "passed"
+          ? "Shadow only keeps the prompt of masked or blocked requests. For this one, the evidence receipt below records hashes of exactly what was sent and received, so the content can still be matched later."
+          : data.details_enabled === false
           ? "Incident details are turned off. Set [activity] details = true in shadow.toml and restart Shadow to see the prompt and source of new incidents."
           : "Shadow keeps every incident's prompt for as long as the incident (30 days by default). This one happened before Shadow saved prompts to disk, while incident details were off, or was dropped to stay under the size limit." })
       ]));
@@ -948,7 +974,7 @@
   }
   function renderMissing() {
     clear($("detail")).appendChild(h("section", { class: "card notice" }, [
-      h("h2", { text: "Incident not found" }),
+      h("h2", { text: "Request not found" }),
       h("p", { text: "It may be older than the activity Shadow keeps. Go back to the list to pick another." })
     ]));
   }
@@ -1176,7 +1202,7 @@
     });
     document.addEventListener("keydown", function (e) {
       if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
-      if (e.key === "Escape" && state.view === "detail") location.hash = "#/incidents";
+      if (e.key === "Escape" && state.view === "detail") location.hash = "#/" + state.scope;
       var idx = ["1", "2", "3", "4"].indexOf(e.key);
       if (idx >= 0 && !e.metaKey && !e.ctrlKey && !e.altKey) setWindow(WINDOWS[idx]);
     });

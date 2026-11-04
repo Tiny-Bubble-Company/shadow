@@ -414,6 +414,7 @@ impl Proxy {
                 "masked" => actions.push(Action::Masked),
                 "blocked" => actions.push(Action::Blocked),
                 "clean" => actions.push(Action::Clean),
+                "passed" => actions.push(Action::Passed),
                 "incidents" => actions.extend([Action::Masked, Action::Blocked]),
                 _ => {}
             }
@@ -423,9 +424,13 @@ impl Proxy {
             .into_iter()
             .map(|e| {
                 let has = log.has_detail(e.id);
+                let signed = log.has_receipt(e.id);
                 let mut v = serde_json::to_value(e).unwrap_or_default();
                 if has {
                     v["has_detail"] = true.into();
+                }
+                if signed {
+                    v["has_receipt"] = true.into();
                 }
                 v
             })

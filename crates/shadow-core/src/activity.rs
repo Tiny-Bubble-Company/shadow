@@ -1037,6 +1037,15 @@ impl ActivityLog {
         })
     }
 
+    /// Whether event `id` has a scan receipt (without reading it).
+    pub fn has_receipt(&self, id: u64) -> bool {
+        let Some(r) = &self.receipts else {
+            return false;
+        };
+        self.lock().receipts.iter().rev().any(|(i, _)| *i == id)
+            || r.store.as_ref().is_some_and(|s| s.contains(id))
+    }
+
     /// Verify the receipt of event `id`: signature and claims, the link to the previous
     /// receipt, and the incident text against the signed hashes.
     pub fn check_receipt(&self, id: u64) -> Option<ReceiptCheck> {
