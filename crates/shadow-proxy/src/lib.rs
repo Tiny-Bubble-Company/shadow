@@ -19,8 +19,10 @@ mod apps;
 pub mod ca;
 mod detail;
 mod forward;
+mod guard;
 pub mod hosts;
 pub mod hub;
+pub mod inventory;
 pub mod sse;
 
 use std::collections::{BTreeMap, HashMap};
@@ -166,6 +168,10 @@ impl Proxy {
 
     /// Serve connections from an already-bound listener.
     pub async fn serve(self: Arc<Self>, listener: TcpListener) -> anyhow::Result<()> {
+        let c = self.shadow.config();
+        if c.guard.inventory {
+            tokio::spawn(inventory::run(c.data_dir.clone(), c.inventory_path()));
+        }
         if let Some(log) = &self.activity {
             tokio::spawn(hub::run_uploader(
                 log.clone(),

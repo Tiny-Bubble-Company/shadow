@@ -110,7 +110,24 @@
   };
   var REASON_LABELS = {
     image_blocked: "Image blocked by policy", pdf_blocked: "PDF blocked by policy",
-    unreadable_pdf: "PDF could not be read", file_too_large: "File over size limit", file_policy: "File policy"
+    unreadable_pdf: "PDF could not be read", file_too_large: "File over size limit", file_policy: "File policy",
+    dangerous_tool_call: "Dangerous command stopped"
+  };
+  var THREAT_LABELS = {
+    reverse_shell: "Reverse shell", ssh_reverse_tunnel: "SSH reverse tunnel", ssh_key_write: "Adds an SSH login key",
+    credential_exfil: "Sends credentials off the machine", obfuscated_exec: "Runs obfuscated code", disable_shadow: "Turns off Shadow",
+    keychain_dump: "Dumps saved passwords", pipe_to_shell: "Pipes a download into a shell", persistence: "Sets something to run at startup",
+    tunnel_tool: "Opens a public tunnel", download_exec: "Downloads and runs a program", defense_evasion: "Hides its tracks"
+  };
+  var FLAG_LABELS = {
+    recent: ["New this week", "Installed in the last 7 days", false],
+    sideloaded: ["Sideloaded", "Installed from a file, not the marketplace", true],
+    pre_release: ["Pre-release", "A pre-release version", false],
+    unpinned: ["Unpinned", "Runs whatever version is newest when it starts, so a compromised release reaches you automatically", true],
+    remote: ["Remote", "Runs on someone else's server", false],
+    runs_shell: ["Starts a shell", "Its command is a shell", true],
+    secret_in_args: ["Credential in config", "A credential is written into its configuration (Shadow does not keep it)", true],
+    modified: ["Code changed", "Its code changed on disk without a new version: possible tampering", true]
   };
   var PROVIDERS = {
     openai: ["OpenAI", "#10a37f", "AI"], chatgpt: ["ChatGPT", "#0f8f6e", "GP"], anthropic: ["Anthropic", "#d97757", "A\\"],
@@ -217,6 +234,7 @@
   function load() {
     if (state.view === "detail") return;
     if (state.view === "incidents") return loadAll();
+    if (state.view === "extensions") return loadExtensions();
     if (DEMO) {
       var d = demoData(state.window);
       setOnline(true);
@@ -259,11 +277,12 @@
   // ---------------------------------------------------------------- pages
   function route() {
     var m = /^#\/(incidents|requests)(?:\/(\d+))?\/?(?:\?(.*))?$/.exec(location.hash);
+    var ext = /^#\/extensions\/?$/.test(location.hash);
     var scope = m ? m[1] : "incidents";
     if (scope !== state.scope) { state.all = []; state.seenId = 0; state.actionFilter = ""; }
     state.scope = scope;
     if (m) m.splice(1, 1);
-    state.view = m ? (m[1] ? "detail" : "incidents") : "overview";
+    state.view = m ? (m[1] ? "detail" : "incidents") : ext ? "extensions" : "overview";
     state.id = m && m[1] ? Number(m[1]) : 0;
     var q = new URLSearchParams(m && !m[1] && m[2] || "");
     state.kindFilter = q.has("kind") ? q.get("kind") : null;
@@ -271,11 +290,14 @@
     $("view-overview").hidden = state.view !== "overview";
     $("view-incidents").hidden = state.view !== "incidents";
     $("view-detail").hidden = state.view !== "detail";
-    $("windows").hidden = state.view === "detail";
+    $("view-extensions").hidden = state.view !== "extensions";
+    $("windows").hidden = state.view === "detail" || state.view === "extensions";
+    $("tab-extensions").setAttribute("aria-current", state.view === "extensions" ? "page" : "false");
     $("tab-overview").setAttribute("aria-current", state.view === "overview" ? "page" : "false");
     var all = state.scope === "requests";
-    $("tab-incidents").setAttribute("aria-current", state.view !== "overview" && !all ? "page" : "false");
-    $("tab-requests").setAttribute("aria-current", state.view !== "overview" && all ? "page" : "false");
+    var listy = state.view === "incidents" || state.view === "detail";
+    $("tab-incidents").setAttribute("aria-current", listy && !all ? "page" : "false");
+    $("tab-requests").setAttribute("aria-current", listy && all ? "page" : "false");
     document.body.classList.toggle("scope-requests", all);
     $("inc-title").textContent = all ? "All requests" : "Incidents";
     $("inc-hint").textContent = all
@@ -287,13 +309,15 @@
     });
     $("back").setAttribute("href", all ? "#/requests" : "#/incidents");
     $("back").textContent = all ? "← All requests" : "← All incidents";
-    var name = state.view === "overview" ? "Activity" : state.view === "incidents" ? (all ? "All requests" : "Incidents") : "Request #" + state.id;
+    var name = state.view === "extensions" ? "Extensions" : state.view === "overview" ? "Activity" : state.view === "incidents" ? (all ? "All requests" : "Incidents") : "Request #" + state.id;
     document.title = "Shadow · " + name + (DEMO ? " (demo)" : "");
     window.scrollTo(0, 0);
     if (state.view === "detail") {
       state.promptMode = "orig";
       clear($("detail"));
       loadDetail(state.id);
+    } else if (state.view === "extensions") {
+      loadExtensions();
     } else {
       load();
     }
@@ -333,8 +357,9 @@
     renderStat("stat-values", t.values_protected, t.values_protected
       ? fmt(t.values_restored) + " restored in responses" : "Nothing sensitive yet",
       sum.timeline.map(function (p) { return p.values; }));
-    renderStat("stat-blocked", t.blocked, t.blocked && sum.block_reasons.length
-      ? sum.block_reasons[0].label : "Nothing blocked",
+    renderStat("stat-blocked", t.blocked, t.threats
+      ? plural(t.threats, "dangerous command") + " from AI agents"
+      : t.blocked && sum.block_reasons.length ? sum.block_reasons[0].label : "Nothing blocked",
       sum.timeline.map(function (p) { return p.blocked; }));
     var top = sum.providers[0];
     renderStat("stat-dest", t.providers, t.providers
@@ -544,8 +569,10 @@
     ]);
   }
   function incidentWhat(e) {
+    var threats = (e.threats || []).map(function (t) { return h("span", { class: "tag threat", text: THREAT_LABELS[t] || t }); });
+    if (e.action === "blocked" && e.block_reason === "dangerous_tool_call") return threats;
     if (e.action === "blocked") return [h("span", { class: "tag reason", text: REASON_LABELS[e.block_reason] || "Blocked by policy" })];
-    return kindTags(e.kinds, 3);
+    return threats.concat(kindTags(e.kinds, 3));
   }
   function badge(action) {
     var t = { masked: "Masked", blocked: "Blocked", clean: "Clean", passed: "Passed through" }[action] || action;
@@ -733,7 +760,9 @@
     var e = data.event, d = data.detail;
     var title = { blocked: "Blocked request", masked: "Masked request", clean: "Clean request", passed: "Passed-through request" }[e.action] || "Request";
     var values = Object.keys(e.kinds || {}).reduce(function (a, k) { return a + e.kinds[k]; }, 0);
-    var headline = e.action === "blocked"
+    var headline = e.block_reason === "dangerous_tool_call"
+      ? "The AI asked your agent to run a dangerous command. Shadow stopped it before your agent saw it."
+      : e.action === "blocked"
       ? "Shadow stopped this request before it left your machine."
       : e.action === "clean" ? "Shadow scanned this request and found nothing sensitive, so it was sent unchanged."
       : e.action === "passed" ? "A known AI service Shadow can't mask yet: the request was passed through unchanged and recorded."
@@ -779,6 +808,8 @@
         e.detectors && e.detectors.length ? ["Found by", e.detectors.join(", ")] : null
       ]))
     ]));
+
+    if (d && d.guard && d.guard.length) el.appendChild(guardCard(d));
 
     if (!d) {
       el.appendChild(h("section", { class: "card notice" }, [
@@ -843,6 +874,105 @@
       draw();
     }
     if (!DEMO) el.appendChild(receiptSection(e.id));
+  }
+
+  // ---------------------------------------------------------------- extensions
+  function loadExtensions() {
+    if (DEMO) return;
+    fetchJSON("/shadow/activity/inventory").then(function (r) { state.inv = r; setOnline(true); renderExtensions(); },
+      function () { setOnline(false); });
+  }
+
+  function flagTags(flags) {
+    return (flags || []).map(function (f) {
+      var l = FLAG_LABELS[f] || [f, f, false];
+      return h("span", { class: "flag" + (l[2] ? " bad" : ""), title: l[1], text: l[0] });
+    });
+  }
+
+  function renderExtensions() {
+    var r = state.inv || { items: [], changes: [], blocked: [], policy: [] };
+    var kindF = state.extKind || "", q = ($("ext-search").value || "").trim().toLowerCase();
+    var blockedKeys = {};
+    (r.blocked || []).forEach(function (b) { blockedKeys[b.key] = b.note || ""; });
+    var banner = clear($("ext-blocked"));
+    banner.hidden = !(r.blocked || []).length;
+    if ((r.blocked || []).length) {
+      banner.appendChild(h("strong", { text: plural(r.blocked.length, "item") + " blocked by your organisation " + (r.blocked.length === 1 ? "is" : "are") + " installed." }));
+      banner.appendChild(h("span", { text: " Remove " + (r.blocked.length === 1 ? "it" : "them") + " from the app listed below." }));
+    }
+    var items = (r.items || []).filter(function (i) {
+      if (kindF === "flagged") { if (!(i.flags || []).length && !(i.key in blockedKeys)) return false; }
+      else if (kindF && i.kind !== kindF) return false;
+      return !q || [i.name, i.id, i.app, i.publisher, i.command, i.url_host].join(" ").toLowerCase().indexOf(q) >= 0;
+    });
+    var kinds = { extension: "Extension", mcp: "MCP server", plugin: "Plugin" };
+    var el = clear($("ext-list"));
+    $("ext-hint").textContent = plural((r.items || []).length, "item") + " on this machine" + (r.scanned_at ? ", checked " + ago(r.scanned_at) : "") +
+      ". A compromised extension runs with your rights, so Shadow tracks what is installed and tells you what changes.";
+    if (r.enabled === false) {
+      el.appendChild(h("div", { class: "empty", text: "The inventory is off. Set inventory = true under [guard] in shadow.toml." }));
+    } else if (!items.length) {
+      el.appendChild(h("div", { class: "empty", text: (r.items || []).length ? "Nothing matches this filter." : "Nothing found yet. Shadow checks every ten minutes." }));
+    } else {
+      var rows = items.map(function (i) {
+        var pol = (r.policy || []).filter(function (p) { return p.kind === i.kind && p.id.toLowerCase() === i.id.toLowerCase() && (!p.version || p.version === i.version); })[0];
+        var detail = i.command || (i.url_host ? "https://" + i.url_host : null) || i.id;
+        var notes = flagTags(i.flags);
+        if (i.key in blockedKeys) notes.push(h("span", { class: "flag bad", title: blockedKeys[i.key], text: "Blocked by your organisation" }));
+        else if (pol && pol.decision === "approved") notes.push(h("span", { class: "badge clean", text: "Approved" }));
+        return h("tr", null, [
+          h("td", null, [h("div", { text: i.name }), h("div", { class: "sub mono", text: detail })]),
+          h("td", null, [h("div", { text: kinds[i.kind] || i.kind }), h("div", { class: "sub", text: i.app })]),
+          h("td", { class: "mono small", text: i.version || "—" }),
+          h("td", null, h("div", { class: "tags" }, notes))
+        ]);
+      });
+      el.appendChild(h("div", { class: "table-wrap" }, h("table", { class: "ext-table" }, [
+        h("thead", null, h("tr", null, ["Name", "Kind", "Version", "Notes"].map(function (c) { return h("th", { text: c }); }))),
+        h("tbody", null, rows)
+      ])));
+    }
+    var ch = clear($("ext-changes"));
+    var verbs = { added: "Installed", removed: "Removed", updated: "Updated", modified: "Code changed without a new version" };
+    if (!(r.changes || []).length) ch.appendChild(h("div", { class: "empty", text: "No changes since Shadow started watching." }));
+    else ch.appendChild(h("div", { class: "table-wrap" }, h("table", null, [
+      h("thead", null, h("tr", null, ["When", "Change", "Item", "Version"].map(function (c) { return h("th", { text: c }); }))),
+      h("tbody", null, r.changes.slice(0, 100).map(function (c) {
+        var v = c.from_version && c.to_version && c.from_version !== c.to_version ? c.from_version + " → " + c.to_version : (c.to_version || c.from_version || "");
+        return h("tr", null, [
+          h("td", { class: "when", text: clock(c.ts, true) }),
+          h("td", null, h("span", { class: c.change === "modified" ? "flag bad" : c.change === "added" ? "flag" : "badge clean", text: verbs[c.change] || c.change })),
+          h("td", null, [h("div", { text: c.name }), h("div", { class: "sub", text: (kinds[c.kind] || c.kind) + " · " + c.app })]),
+          h("td", { class: "mono small", text: v })
+        ]);
+      }))
+    ])));
+    var g = clear($("ext-guard")), gc = r.guard || {};
+    var mode = { critical: "Critical commands are blocked; others are recorded.", high: "Every match is blocked.", none: "Matches are recorded, nothing is blocked." }[gc.block] || "";
+    g.appendChild(h("p", { class: "note", text: gc.enabled ? "On. " + mode + (gc.allow && gc.allow.length ? " Allowed: " + gc.allow.join(", ") + "." : "") : "Off. Set enabled = true under [guard] in shadow.toml." }));
+    g.appendChild(h("div", { class: "tags" }, (gc.rules || []).map(function (ru) {
+      return h("span", { class: "flag" + (ru.severity === "critical" ? " bad" : ""), title: ru.severity === "critical" ? "Critical: blocked by default" : "High: recorded by default", text: ru.label });
+    })));
+  }
+
+  function guardCard(d) {
+    var anyBlocked = d.guard.some(function (x) { return x.blocked; });
+    return h("section", { class: "card" }, [
+      h("div", { class: "card-head" }, [h("div", null, [h("h2", { text: "Dangerous tool call" }),
+        h("span", { class: "hint", text: anyBlocked
+          ? "The AI asked your agent to run this. Shadow withheld it: your agent received an error instead."
+          : "The AI asked your agent to run this. Shadow recorded it and let it through (only critical commands are blocked)." })])]),
+      h("div", null, d.guard.map(function (x) {
+        return h("div", { class: "guard-hit" }, [
+          h("div", { class: "head" }, [h("span", { text: THREAT_LABELS[x.rule] || x.label }),
+            h("span", { class: "flag bad", text: x.severity === "critical" ? "Critical" : "High" }),
+            h("span", { class: "badge " + (x.blocked ? "blocked" : "clean"), text: x.blocked ? "Blocked" : "Allowed" }),
+            h("span", { class: "dim small", text: (x.tool || "tool") + (x.field ? " · " + x.field : "") })]),
+          x.snippet ? h("pre", { class: "mono" }, sv(x.snippet)) : null
+        ]);
+      }))
+    ]);
   }
 
   // ---------------------------------------------------------------- evidence receipts
@@ -1191,6 +1321,14 @@
     setReveal(state.reveal);
     window.addEventListener("hashchange", route);
     $("inc-search").addEventListener("input", renderIncidentList);
+    $("ext-search").addEventListener("input", renderExtensions);
+    Array.prototype.forEach.call(document.querySelectorAll("#ext-kinds button"), function (b) {
+      b.addEventListener("click", function () {
+        state.extKind = b.getAttribute("data-k");
+        Array.prototype.forEach.call(document.querySelectorAll("#ext-kinds button"), function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+        renderExtensions();
+      });
+    });
     Array.prototype.forEach.call(document.querySelectorAll("#inc-actions button"), function (b) {
       b.addEventListener("click", function () {
         state.actionFilter = b.getAttribute("data-a");

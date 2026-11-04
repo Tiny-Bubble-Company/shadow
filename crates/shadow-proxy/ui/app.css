@@ -308,6 +308,15 @@ a.bar-row:hover .bar-name { color: var(--text); }
 }
 .tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
 .tag.reason::before { background: var(--danger); }
+.tag.threat { color: var(--danger); border-color: var(--danger-line); }
+.tag.threat::before { background: var(--danger); }
+.guard-hit { border-left: 3px solid var(--danger); padding: 8px 12px; margin: 10px 0; background: var(--danger-soft); border-radius: 6px; }
+.guard-hit .head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-weight: 600; }
+.guard-hit pre { white-space: pre-wrap; word-break: break-all; margin: 6px 0 0; font-size: 12px; }
+.flag { font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--warn-soft); color: var(--warn); white-space: nowrap; }
+.flag.bad { background: var(--danger-soft); color: var(--danger); }
+.ext-table td { vertical-align: top; }
+.ext-table .sub { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
 .badge {
   display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 7px; border-radius: 4px;
   font-size: 12px; font-weight: 510; white-space: nowrap; line-height: 1;

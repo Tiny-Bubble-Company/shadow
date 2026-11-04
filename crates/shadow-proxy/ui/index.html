@@ -23,6 +23,7 @@
     <a href="#" id="tab-overview"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="5" height="5" rx="1.2"/><rect x="9" y="2" width="5" height="5" rx="1.2"/><rect x="2" y="9" width="5" height="5" rx="1.2"/><rect x="9" y="9" width="5" height="5" rx="1.2"/></svg>Overview</a>
     <a href="#/incidents" id="tab-incidents"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 2.8 3.9v3.6c0 3.1 2.2 5.6 5.2 6.7 3-1.1 5.2-3.6 5.2-6.7V3.9z"/><path d="M8 5.5v2.8"/><path d="M8 10.6v.1"/></svg>Incidents</a>
     <a href="#/requests" id="tab-requests"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4h10"/><path d="M3 8h10"/><path d="M3 12h10"/></svg>All requests</a>
+    <a href="#/extensions" id="tab-extensions"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5h4v3h3v4h-3v4H6v-4H3v-4h3z"/></svg>Extensions</a>
   </nav>
   <div class="top-right">
     <a class="pill feedback" href="mailto:support@getshadow.dev?subject=Shadow%20feedback" title="Bugs, feature requests or help: support@getshadow.dev">Feedback</a>
@@ -151,6 +152,35 @@
     </div>
     <div class="active-filters" id="inc-active" hidden></div>
     <div id="inc-all" class="incidents"></div>
+  </section>
+</main>
+
+<main id="view-extensions" hidden>
+  <div class="banner" id="ext-blocked" hidden></div>
+  <section class="card">
+    <div class="card-head">
+      <div><h2>Extensions, MCP servers and plugins</h2>
+        <span class="hint" id="ext-hint">Everything that extends your AI tools on this machine. A compromised extension runs with your rights, so Shadow tracks what is installed and tells you what changes.</span></div>
+      <div class="filters">
+        <input type="search" id="ext-search" placeholder="Filter by name, app or publisher" aria-label="Filter extensions">
+        <nav class="seg" id="ext-kinds" aria-label="Kind">
+          <button type="button" data-k="" aria-pressed="true">All</button>
+          <button type="button" data-k="extension">Extensions</button>
+          <button type="button" data-k="mcp">MCP servers</button>
+          <button type="button" data-k="plugin">Plugins</button>
+          <button type="button" data-k="flagged">Flagged</button>
+        </nav>
+      </div>
+    </div>
+    <div id="ext-list"></div>
+  </section>
+  <section class="card">
+    <div class="card-head"><div><h2>Recent changes</h2><span class="hint">Installs, removals, updates, and code that changed without a new version.</span></div></div>
+    <div id="ext-changes"></div>
+  </section>
+  <section class="card">
+    <div class="card-head"><div><h2>Tool-call guard</h2><span class="hint">Commands the AI asks your agents to run are checked before the agent sees them.</span></div></div>
+    <div id="ext-guard"></div>
   </section>
 </main>
 

@@ -118,6 +118,9 @@ pub struct Event {
     /// Why it was blocked: a fixed category such as `image_blocked`, never a message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub block_reason: Option<String>,
+    /// Dangerous tool calls the model asked for: rule ids from [`crate::guard`].
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub threats: Vec<String>,
     /// Incident details, moved into the in-memory detail store by [`ActivityLog::record`].
     #[serde(skip)]
     pub detail: Option<Box<Detail>>,
@@ -168,6 +171,9 @@ pub struct Detail {
     pub message: Option<String>,
     /// Some text was cut to keep memory bounded.
     pub truncated: bool,
+    /// Dangerous tool calls the model asked for ([`crate::guard`]).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub guard: Vec<crate::guard::Hit>,
     /// Hex salt of the receipt's commitment to the original text (see [`crate::receipt`]).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub receipt_salt: Option<String>,
@@ -400,6 +406,7 @@ pub fn block_reason_label(reason: &str) -> String {
         "unreadable_pdf" => "PDF could not be read",
         "file_too_large" => "File over size limit",
         "file_policy" => "File policy",
+        "dangerous_tool_call" => "Dangerous tool call",
         other => other,
     }
     .to_string()
@@ -519,6 +526,7 @@ struct Agg {
     /// Connections to known AI services that were passed through unprotected.
     passed: u64,
     unprotected: BTreeMap<String, Tally>,
+    threats: u64,
 }
 
 fn bump(map: &mut BTreeMap<String, Tally>, key: &str, t: &Tally) {
@@ -543,6 +551,7 @@ impl Agg {
         }
         let values = e.values();
         let blocked = (e.action == Action::Blocked) as u64;
+        self.threats += !e.threats.is_empty() as u64;
         self.requests += 1;
         self.masked += (e.action == Action::Masked) as u64;
         self.blocked += blocked;
@@ -575,6 +584,7 @@ impl Agg {
 
     fn merge(&mut self, o: &Agg) {
         self.passed += o.passed;
+        self.threats += o.threats;
         self.requests += o.requests;
         self.masked += o.masked;
         self.blocked += o.blocked;
@@ -624,6 +634,8 @@ pub struct Totals {
     pub avg_latency_ms: u64,
     /// Connections to known AI services Shadow could not protect (see [`Action::Passed`]).
     pub unprotected: u64,
+    /// Requests whose answer asked an agent to run a dangerous command ([`crate::guard`]).
+    pub threats: u64,
 }
 
 /// One timeline bucket.
@@ -1364,6 +1376,7 @@ impl ActivityLog {
                 clients: a.clients.len() as u64,
                 avg_latency_ms: a.latency_ms.checked_div(a.requests).unwrap_or(0),
                 unprotected: a.passed,
+                threats: a.threats,
             },
             timeline,
             kinds: rows(&a.kinds, kind_label, true),
@@ -1486,6 +1499,7 @@ fn sign_receipt(
         restored: e.restored as u64,
         block_reason: e.block_reason.as_deref().map(clip),
         intent: e.intent.as_deref().map(clip),
+        threats: e.threats.iter().take(16).map(|t| clip(t)).collect(),
         ..receipt::Claims::default()
     };
     let bytes = r.signer.sign(&mut claims);

@@ -41,6 +41,8 @@ pub struct ShadowConfig {
     pub presidio: PresidioConfig,
     /// The privacy-safe activity feed behind the dashboard, `shadow top` and the tray app.
     pub activity: ActivityConfig,
+    /// Checks the commands AI models ask agents to run (see [`crate::guard`]).
+    pub guard: GuardConfig,
     /// Show at most one local hint a week (in `shadow activity`) about Shadow Hub. Never
     /// makes a network call.
     pub hints: bool,
@@ -91,6 +93,33 @@ impl Default for ActivityConfig {
             persist_details: true,
             details_max_mb: 512,
             receipts: true,
+        }
+    }
+}
+
+/// Tool-call guard settings.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct GuardConfig {
+    /// Check tool calls in model answers at all.
+    pub enabled: bool,
+    /// Which matches are withheld from the agent: `critical` (default), `high` (all) or
+    /// `none` (record only).
+    pub block: crate::guard::BlockLevel,
+    /// Rule ids never to report, e.g. `["tunnel_tool"]` if your team uses ngrok.
+    pub allow: Vec<String>,
+    /// Keep an inventory of editor extensions, MCP servers and agent plugins, and report what
+    /// changes (see [`crate::inventory`]).
+    pub inventory: bool,
+}
+
+impl Default for GuardConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            block: crate::guard::BlockLevel::Critical,
+            allow: vec![],
+            inventory: true,
         }
     }
 }
@@ -423,6 +452,7 @@ impl ShadowConfig {
             files: FilesConfig::default(),
             presidio: PresidioConfig::default(),
             activity: ActivityConfig::default(),
+            guard: GuardConfig::default(),
             hints: true,
         }
     }
@@ -494,6 +524,10 @@ impl ShadowConfig {
     /// Path of the vault key (0600).
     pub fn key_path(&self) -> PathBuf {
         self.data_dir.join("vault.key")
+    }
+    /// Inventory of extensions, MCP servers and plugins, with recent changes.
+    pub fn inventory_path(&self) -> PathBuf {
+        self.data_dir.join("inventory.json")
     }
     /// Directory of the activity log.
     pub fn activity_dir(&self) -> PathBuf {

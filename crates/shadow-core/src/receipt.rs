@@ -65,6 +65,7 @@ const STATUS: i64 = -70019;
 const RESTORED: i64 = -70020;
 const BLOCK_REASON: i64 = -70021;
 const INTENT: i64 = -70022;
+const THREATS: i64 = -70023;
 
 const REQUIRED: &[i64] = &[
     ISS,
@@ -95,6 +96,7 @@ const OPTIONAL: &[i64] = &[
     ORIGINAL_TEXT_COMMITMENT,
     BLOCK_REASON,
     INTENT,
+    THREATS,
 ];
 const ACTIONS: &[&str] = &["clean", "masked", "blocked", "passed"];
 /// Longest text claim accepted (AIR recommends 1024 bytes).
@@ -171,6 +173,9 @@ pub struct Claims {
     pub block_reason: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub intent: Option<String>,
+    /// Dangerous tool calls the model asked for (rule ids from `crate::guard`).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub threats: Vec<String>,
 }
 
 fn ser_hex<S: serde::Serializer, const N: usize>(v: &[u8; N], s: S) -> Result<S::Ok, S::Error> {
@@ -332,6 +337,12 @@ fn claims_to_cbor(c: &Claims) -> Cbor {
         if let Some(s) = s {
             m.push((Cbor::int(k), text(s)));
         }
+    }
+    if !c.threats.is_empty() {
+        m.push((
+            Cbor::int(THREATS),
+            Cbor::Array(c.threats.iter().map(|t| text(t)).collect()),
+        ));
     }
     Cbor::Map(m)
 }
@@ -552,6 +563,17 @@ fn claims_from_map(m: &[(Cbor, Cbor)]) -> Result<Claims, VerifyError> {
         restored: uint(RESTORED)?,
         block_reason: opt_text(BLOCK_REASON)?,
         intent: opt_text(INTENT)?,
+        threats: match seen.contains(&THREATS).then(|| get(THREATS)) {
+            None => vec![],
+            Some(Cbor::Array(a)) if !a.is_empty() => a
+                .iter()
+                .map(|t| match t {
+                    Cbor::Text(s) if s.len() <= 64 => Ok(s.clone()),
+                    _ => fail(Layer::Claims, "threats must be short text"),
+                })
+                .collect::<Result<Vec<_>, _>>()?,
+            Some(_) => return fail(Layer::Claims, "threats must be a non-empty array"),
+        },
     };
     if c.iat == 0 || c.sequence == 0 || c.event_id == 0 {
         return fail(Layer::Claims, "iat, sequence and event id must be non-zero");

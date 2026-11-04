@@ -64,6 +64,19 @@ enum Cmd {
     /// Connect this machine to your organisation's Shadow Hub, or check or end the connection.
     #[command(subcommand)]
     Hub(HubCmd),
+    /// List the editor extensions, MCP servers and agent plugins on this machine, flag risky
+    /// ones and show what changed.
+    Inventory {
+        /// Show only flagged items (and the ones your organisation blocked).
+        #[arg(long)]
+        flagged: bool,
+        /// Show recent changes instead of the list.
+        #[arg(long)]
+        changes: bool,
+        /// Print JSON.
+        #[arg(long)]
+        json: bool,
+    },
     /// Check this machine's evidence receipts: every scanned request is signed and linked to
     /// the one before, so a removed or edited record shows up.
     Receipts {
@@ -344,6 +357,11 @@ fn real_main(cli: Cli) -> anyhow::Result<()> {
             Ok(())
         }
         Cmd::Hub(h) => hub_cmd(&cli, h),
+        Cmd::Inventory {
+            flagged,
+            changes,
+            json,
+        } => inventory_cmd(&load_config(&cli)?, *flagged, *changes, *json),
         Cmd::Receipts { cmd, window, json } => match cmd {
             None => receipts::chain(&load_config(&cli)?, window, *json),
             Some(ReceiptCmd::Show { id, json }) => receipts::show(&load_config(&cli)?, *id, *json),
@@ -509,6 +527,89 @@ fn svc_ctx(cli: &Cli, listen: Option<String>) -> anyhow::Result<(ShadowConfig, s
         ..ctx
     };
     Ok((cfg, ctx))
+}
+
+fn inventory_cmd(
+    cfg: &ShadowConfig,
+    flagged: bool,
+    changes: bool,
+    json: bool,
+) -> anyhow::Result<()> {
+    let st = shadow_proxy::inventory::rescan(&cfg.inventory_path())?;
+    if json {
+        let out = if changes {
+            serde_json::to_value(&st.changes)?
+        } else {
+            serde_json::Value::Array(shadow_proxy::inventory::public_items(&st))
+        };
+        println!("{}", serde_json::to_string_pretty(&out)?);
+        return Ok(());
+    }
+    if changes {
+        ui::header("Recent changes");
+        if st.changes.is_empty() {
+            println!("  {}", ui::dim("none since Shadow started watching"));
+        }
+        for c in st.changes.iter().rev().take(50) {
+            let when = chrono::DateTime::from_timestamp_millis(c.ts)
+                .map(|d| {
+                    d.with_timezone(&chrono::Local)
+                        .format("%b %d %H:%M")
+                        .to_string()
+                })
+                .unwrap_or_default();
+            let what = if c.change == "modified" {
+                ui::red("code changed, same version")
+            } else {
+                c.change.clone()
+            };
+            println!(
+                "  {}  {:<26} {} ({}, {})",
+                ui::dim(&when),
+                what,
+                c.name,
+                c.kind,
+                c.app
+            );
+        }
+        return Ok(());
+    }
+    let blocked: Vec<String> = st.blocked().iter().map(|(i, _)| i.key.clone()).collect();
+    ui::header("Extensions, MCP servers and plugins");
+    let mut rows = vec![];
+    for i in &st.items {
+        let bad = blocked.contains(&i.key);
+        if flagged && i.flags.is_empty() && !bad {
+            continue;
+        }
+        let mut notes = i.flags.join(", ");
+        if bad {
+            notes = format!("{} {notes}", ui::red("BLOCKED by your organisation"));
+        }
+        rows.push(vec![
+            i.name.clone(),
+            i.kind.clone(),
+            i.app.clone(),
+            i.version.clone().unwrap_or_default(),
+            notes,
+        ]);
+    }
+    ui::table(&["Name", "Kind", "App", "Version", "Notes"], &rows);
+    println!(
+        "  {}",
+        ui::dim(&format!(
+            "{} items, {} flagged. `shadow inventory --changes` shows what changed.",
+            st.items.len(),
+            st.items.iter().filter(|i| !i.flags.is_empty()).count()
+        ))
+    );
+    if !blocked.is_empty() {
+        anyhow::bail!(
+            "{} item(s) blocked by your organisation are installed",
+            blocked.len()
+        );
+    }
+    Ok(())
 }
 
 #[derive(Subcommand)]

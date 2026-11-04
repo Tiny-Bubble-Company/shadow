@@ -199,6 +199,16 @@ pub fn share_detail(d: &Detail, level: &str) -> Option<Value> {
                 o.remove("conversation");
                 // Only opens the commitment to the original text, which is not shared.
                 o.remove("receipt_salt");
+                // A dangerous command can hold real values.
+                for g in o
+                    .get_mut("guard")
+                    .and_then(Value::as_array_mut)
+                    .into_iter()
+                    .flatten()
+                    .filter_map(Value::as_object_mut)
+                {
+                    g.remove("snippet");
+                }
             }
             Some(v)
         }

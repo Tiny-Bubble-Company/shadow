@@ -475,7 +475,7 @@ impl Proxy {
             }
         };
         let data_only = matches!(mode, Mode::Restore | Mode::App(_));
-        self.translate_response(resp, translate, data_only, translator, pending)
+        self.translate_response(resp, translate, data_only, translator, pending, peer)
             .await
     }
 
@@ -486,7 +486,11 @@ impl Proxy {
         data_only: bool,
         translator: Translator,
         mut pending: Option<Pending>,
+        peer: Option<std::net::SocketAddr>,
     ) -> Response<Body> {
+        // Tool calls in API answers are checked before the agent sees them.
+        let guard_cfg = self.shadow.config().guard.clone();
+        let guard_on = guard_cfg.enabled && pending.is_some() && !data_only;
         let status = resp.status();
         if let Some(p) = pending.as_mut() {
             p.ev.status = status.as_u16();
@@ -535,17 +539,23 @@ impl Proxy {
         }
         if let Some(framing) = framing {
             let unmasker = EventStreamUnmasker::new(translator, framing);
+            let gate = guard_on.then(|| {
+                crate::guard::ToolGate::new(guard_cfg.clone(), matches!(framing, Framing::Lines))
+            });
             let upstream = resp.bytes_stream().boxed();
             let stream = futures_util::stream::unfold(
-                (upstream, unmasker, false, pending),
-                |(mut up, mut un, done, mut pending)| async move {
+                (upstream, unmasker, false, pending, gate),
+                move |(mut up, mut un, done, mut pending, mut gate)| async move {
                     if done {
                         return None;
                     }
                     loop {
                         match up.next().await {
                             Some(Ok(chunk)) => {
-                                let out = un.push(&chunk);
+                                let mut out = un.push(&chunk);
+                                if let Some(g) = gate.as_mut() {
+                                    out = g.push(&out);
+                                }
                                 if let Some(p) = pending.as_mut() {
                                     p.response_chunk(&chunk);
                                     p.delivered_chunk(&out);
@@ -555,18 +565,31 @@ impl Proxy {
                                 if !out.is_empty() {
                                     return Some((
                                         Ok(Frame::data(Bytes::from(out))),
-                                        (up, un, false, pending),
+                                        (up, un, false, pending, gate),
                                     ));
                                 }
                             }
                             Some(Err(e)) => {
                                 return Some((
                                     Err(std::io::Error::other(e)),
-                                    (up, un, true, pending),
+                                    (up, un, true, pending, gate),
                                 ))
                             }
                             None => {
-                                let out = un.finish();
+                                let mut out = un.finish();
+                                if let Some(g) = gate.as_mut() {
+                                    out = g.push(&out);
+                                    out.extend(g.finish());
+                                    if g.blocked() {
+                                        tracing::warn!(target: "shadow::guard", "blocked a dangerous tool call: {}", g.hits.iter().filter(|h| h.blocked).map(|h| h.rule.as_str()).collect::<Vec<_>>().join(", "));
+                                    }
+                                    if g.overflowed {
+                                        tracing::warn!(target: "shadow::guard", "tool call too large to hold; released unchecked");
+                                    }
+                                    if let Some(p) = pending.as_mut() {
+                                        p.guarded(&g.hits, peer);
+                                    }
+                                }
                                 if let Some(p) = pending.as_mut() {
                                     p.delivered_chunk(&out);
                                     p.ev.bytes_out += out.len() as u64;
@@ -574,7 +597,7 @@ impl Proxy {
                                 }
                                 return Some((
                                     Ok(Frame::data(Bytes::from(out))),
-                                    (up, un, true, pending),
+                                    (up, un, true, pending, gate),
                                 ));
                             }
                         }
@@ -621,6 +644,18 @@ impl Proxy {
             }
             _ => bytes,
         };
+        let mut out = out;
+        if guard_on && is_json(&ct, &out) {
+            let (hits, err) = crate::guard::check_body(&guard_cfg, &out);
+            if let Some(err) = err {
+                tracing::warn!(target: "shadow::guard", "blocked a dangerous tool call: {}", hits.iter().filter(|h| h.blocked).map(|h| h.rule.as_str()).collect::<Vec<_>>().join(", "));
+                out = Bytes::from(err.to_string());
+                builder = builder.status(StatusCode::FORBIDDEN);
+            }
+            if let Some(p) = pending.as_mut() {
+                p.guarded(&hits, peer);
+            }
+        }
         if let Some(mut p) = pending {
             p.ev.restored = restored as u32;
             p.ev.bytes_out = out.len() as u64;

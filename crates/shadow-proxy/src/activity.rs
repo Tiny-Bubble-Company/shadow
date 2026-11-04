@@ -51,6 +51,9 @@ pub(crate) struct Pending {
     /// Incident details, kept when the request turns out masked or blocked.
     pub detail: Option<Box<Detail>>,
     process: Option<mpsc::Receiver<Option<Process>>>,
+    /// Request path and `User-Agent`, for the detail of a dangerous tool call.
+    path: String,
+    user_agent: Option<String>,
     /// Hashes for the scan receipt.
     sent: Option<[u8; 32]>,
     response: Option<Sha256>,
@@ -106,9 +109,41 @@ impl Pending {
             start: Instant::now(),
             detail: None,
             process: None,
+            path: path.chars().take(300).collect(),
+            user_agent: ua.map(|u| u.chars().take(300).collect()),
             sent: None,
             response: None,
             delivered: None,
+        }
+    }
+
+    /// Record the tool-call guard's findings: the rule ids on the event, the matches in its
+    /// detail, and a block when a call was withheld from the agent.
+    pub fn guarded(&mut self, hits: &[shadow_core::guard::Hit], peer: Option<SocketAddr>) {
+        if hits.is_empty() {
+            return;
+        }
+        self.ev.threats = hits.iter().map(|h| h.rule.clone()).collect();
+        self.ev.threats.dedup();
+        if hits.iter().any(|h| h.blocked) {
+            self.ev.action = Action::Blocked;
+            self.ev.block_reason = Some("dangerous_tool_call".into());
+        }
+        if !self.log.keeps_details() {
+            return;
+        }
+        let d = self.detail.get_or_insert_with(|| {
+            Box::new(Detail {
+                path: self.path.clone(),
+                user_agent: self.user_agent.clone(),
+                ..Detail::default()
+            })
+        });
+        d.guard = hits.to_vec();
+        if self.process.is_none() {
+            if let Some(peer) = peer {
+                self.find_process(peer);
+            }
         }
     }
 
@@ -155,7 +190,7 @@ impl Drop for Pending {
             response: self.response.take().map(|h| h.finalize().into()),
             delivered: self.delivered.take().map(|h| h.finalize().into()),
         });
-        if self.ev.action != Action::Clean {
+        if self.ev.action != Action::Clean || !self.ev.threats.is_empty() {
             if let Some(mut d) = self.detail.take() {
                 if let Some(rx) = &self.process {
                     d.process = rx.recv_timeout(Duration::from_millis(150)).ok().flatten();
@@ -293,6 +328,7 @@ impl Proxy {
             "/shadow/activity/stream" => self.activity_stream(q),
             "/shadow/activity/providers" => providers_response(),
             "/shadow/activity/hub" => self.hub_status(),
+            "/shadow/activity/inventory" => self.inventory(),
             "/shadow/activity/receipts" | "/shadow/activity/receipts/" => self.receipt_chain(q),
             _ => match path
                 .strip_prefix("/shadow/activity/events/")
@@ -308,6 +344,31 @@ impl Proxy {
                 },
             },
         }
+    }
+
+    /// Extensions, MCP servers and plugins, recent changes and the organisation's policy.
+    fn inventory(&self) -> Response<Body> {
+        let c = self.shadow.config();
+        let st = shadow_core::inventory::State::load(&c.inventory_path()).unwrap_or_default();
+        let blocked: Vec<serde_json::Value> = st
+            .blocked()
+            .iter()
+            .map(|(i, p)| serde_json::json!({"key": i.key, "note": p.note}))
+            .collect();
+        let mut changes = st.changes.clone();
+        changes.reverse();
+        changes.truncate(300);
+        let body = serde_json::json!({
+            "enabled": c.guard.inventory,
+            "scanned_at": st.scanned_at,
+            "items": crate::inventory::public_items(&st),
+            "changes": changes,
+            "policy": st.policy,
+            "blocked": blocked,
+            "guard": {"enabled": c.guard.enabled, "block": c.guard.block, "allow": c.guard.allow,
+                      "rules": shadow_core::guard::rules().iter().map(|r| serde_json::json!({"id": r.id, "label": r.label, "severity": r.severity})).collect::<Vec<_>>()},
+        });
+        json_response(StatusCode::OK, body.to_string())
     }
 
     /// Whether this machine reports to an organisation's hub (never the device token).
@@ -409,18 +470,31 @@ impl Proxy {
             .unwrap_or(100usize)
             .clamp(1, activity::RECENT_CAPACITY);
         let mut actions = vec![];
+        let mut incidents = false;
         for a in query(q, "action").unwrap_or("").split(',') {
             match a.trim() {
                 "masked" => actions.push(Action::Masked),
                 "blocked" => actions.push(Action::Blocked),
                 "clean" => actions.push(Action::Clean),
                 "passed" => actions.push(Action::Passed),
-                "incidents" => actions.extend([Action::Masked, Action::Blocked]),
+                "incidents" => {
+                    incidents = true;
+                    actions.extend([Action::Masked, Action::Blocked]);
+                }
                 _ => {}
             }
         }
-        let events: Vec<serde_json::Value> = log
-            .recent(since, limit, &actions)
+        // Incidents also include clean requests whose answer held a dangerous tool call.
+        let picked = if incidents {
+            log.recent(since, activity::RECENT_CAPACITY, &[])
+                .into_iter()
+                .filter(|e| actions.contains(&e.action) || !e.threats.is_empty())
+                .take(limit)
+                .collect()
+        } else {
+            log.recent(since, limit, &actions)
+        };
+        let events: Vec<serde_json::Value> = picked
             .into_iter()
             .map(|e| {
                 let has = log.has_detail(e.id);
