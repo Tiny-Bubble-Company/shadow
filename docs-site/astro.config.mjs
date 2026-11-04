@@ -10,7 +10,7 @@ import { SITE, BASE, REPO_URL, SITE_DESCRIPTION, CF_BEACON_TOKEN } from './src/s
 // (see src/site.mjs). Default: served at the domain root (BASE=""); GitHub Pages uses BASE=/shadow.
 
 // Guides that are written and indexed; the rest are noindex stubs.
-const PUBLISHED_GUIDES = ['what-is-shadow-ai', 'ai-acceptable-use-policy-template'];
+const PUBLISHED_GUIDES = ['what-is-shadow-ai', 'ai-acceptable-use-policy-template', 'is-chatgpt-safe-for-company-data', 'what-is-an-llm-proxy'];
 
 // https://astro.build/config
 export default defineConfig({
