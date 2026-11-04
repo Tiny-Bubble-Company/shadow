@@ -197,6 +197,8 @@ pub fn share_detail(d: &Detail, level: &str) -> Option<Value> {
             }
             if let Some(o) = v.as_object_mut() {
                 o.remove("conversation");
+                // Only opens the commitment to the original text, which is not shared.
+                o.remove("receipt_salt");
             }
             Some(v)
         }
@@ -204,7 +206,10 @@ pub fn share_detail(d: &Detail, level: &str) -> Option<Value> {
     }
 }
 
+/// One upload: events (with their scan receipts) and the key that signed them.
 fn payload(log: &ActivityLog, events: &[Event], level: &str) -> Value {
+    use base64::Engine;
+    let b64 = base64::engine::general_purpose::STANDARD;
     let list: Vec<Value> = events
         .iter()
         .map(|e| {
@@ -215,11 +220,18 @@ fn payload(log: &ActivityLog, events: &[Event], level: &str) -> Value {
                 if let Some(d) = log.detail(e.id).and_then(|d| share_detail(&d, level)) {
                     o.insert("detail".into(), d);
                 }
+                if let Some(r) = log.receipt(e.id) {
+                    o.insert("receipt".into(), b64.encode(r.as_slice()).into());
+                }
             }
             v
         })
         .collect();
-    json!({ "events": list })
+    let mut body = json!({ "events": list });
+    if let Some(key) = log.receipt_key() {
+        body["receipt_key"] = b64.encode(key).into();
+    }
+    body
 }
 
 fn client() -> reqwest::Result<reqwest::Client> {

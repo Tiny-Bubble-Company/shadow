@@ -121,6 +121,21 @@ pub struct Event {
     /// Incident details, moved into the in-memory detail store by [`ActivityLog::record`].
     #[serde(skip)]
     pub detail: Option<Box<Detail>>,
+    /// Hashes for the scan receipt, consumed by [`ActivityLog::record`].
+    #[serde(skip)]
+    pub evidence: Option<Evidence>,
+}
+
+/// SHA-256 hashes of the bytes a request moved, for its scan receipt ([`crate::receipt`]).
+/// Never written to the log or sent anywhere except inside the signed receipt.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Evidence {
+    /// What was forwarded to the provider (`None` when nothing was sent).
+    pub sent_body: Option<crate::receipt::Hash>,
+    /// The provider's answer as received.
+    pub response: Option<crate::receipt::Hash>,
+    /// What was handed back to the app.
+    pub delivered: Option<crate::receipt::Hash>,
 }
 
 /// What caused an incident: prompt text, values found and where the request came from.
@@ -153,6 +168,9 @@ pub struct Detail {
     pub message: Option<String>,
     /// Some text was cut to keep memory bounded.
     pub truncated: bool,
+    /// Hex salt of the receipt's commitment to the original text (see [`crate::receipt`]).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub receipt_salt: Option<String>,
 }
 
 /// A local process.
@@ -765,6 +783,8 @@ const DETAILS_AAD: &[u8] = b"shadow-details-v1";
 
 enum DetailMsg {
     Add(u64, i64, std::sync::Arc<Detail>),
+    /// Bytes saved as they are (a scan receipt).
+    Raw(u64, i64, std::sync::Arc<Vec<u8>>),
     Flush(mpsc::Sender<()>),
 }
 
@@ -776,8 +796,65 @@ enum Msg {
 struct State {
     recent: VecDeque<Event>,
     details: VecDeque<(u64, std::sync::Arc<Detail>)>,
+    /// Recent scan receipts by event id.
+    receipts: VecDeque<(u64, std::sync::Arc<Vec<u8>>)>,
+    /// Sequence number and hash of the newest receipt.
+    chain: (u64, crate::receipt::Hash),
     rollup: Rollup,
     next_id: u64,
+}
+
+/// Signs a scan receipt for every recorded event.
+struct Receipts {
+    signer: crate::receipt::Signer,
+    policy_hash: crate::receipt::Hash,
+    store: Option<std::sync::Arc<crate::details_store::DetailStore>>,
+    writer: Option<mpsc::Sender<DetailMsg>>,
+}
+
+/// Result of checking every receipt of a period, in chain order.
+#[derive(Clone, Debug, Default, Serialize)]
+pub struct ChainReport {
+    /// Key id of this machine's receipt key.
+    pub key_id: String,
+    /// Receipts checked.
+    pub checked: u64,
+    /// Receipts whose signature and claims are valid.
+    pub valid: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub first_sequence: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_sequence: Option<u64>,
+    /// Receipts missing from the chain (gaps in the sequence).
+    pub missing: u64,
+    /// The first problems found (at most 50).
+    pub problems: Vec<ChainProblem>,
+    /// The period starts mid-chain: earlier receipts are outside it or have expired.
+    pub starts_mid_chain: bool,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct ChainProblem {
+    pub event_id: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sequence: Option<u64>,
+    pub error: crate::receipt::VerifyError,
+}
+
+/// Result of checking one receipt on this machine.
+#[derive(Clone, Debug, Serialize)]
+pub struct ReceiptCheck {
+    /// Signature and claims are valid (layers 1-3).
+    pub valid: bool,
+    /// The receipt links to the previous one (`None`: the previous one has expired).
+    pub chained: Option<bool>,
+    /// The incident text shown matches the signed hashes (`None`: no text to compare).
+    pub content: Option<crate::receipt::ContentCheck>,
+    /// The first check that failed, in words.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<crate::receipt::VerifyError>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub claims: Option<crate::receipt::Claims>,
 }
 
 /// In-memory activity store with optional JSONL persistence. Cheap to call from the hot
@@ -787,6 +864,7 @@ pub struct ActivityLog {
     writer: Option<mpsc::Sender<Msg>>,
     detail_writer: Option<mpsc::Sender<DetailMsg>>,
     store: Option<std::sync::Arc<crate::details_store::DetailStore>>,
+    receipts: Option<Receipts>,
     dir: Option<PathBuf>,
     retention: i64,
     since: i64,
@@ -808,12 +886,15 @@ impl ActivityLog {
             state: Mutex::new(State {
                 recent: VecDeque::new(),
                 details: VecDeque::new(),
+                receipts: VecDeque::new(),
+                chain: (0, [0; 32]),
                 rollup: Rollup::default(),
                 next_id: 1,
             }),
             writer: None,
             detail_writer: None,
             store: None,
+            receipts: None,
             dir: None,
             retention: retention_days.max(1) as i64 * 86400,
             since: now_ms(),
@@ -891,6 +972,190 @@ impl ActivityLog {
         Ok(self)
     }
 
+    /// Sign a scan receipt for every event with the key at `key_path` (created on first
+    /// use). `policy_hash` identifies the configuration in force. With a persisted log the
+    /// receipts are kept in `receipts.log` for as long as their events; the chain carries on
+    /// across restarts.
+    pub fn with_receipts(
+        mut self,
+        key_path: &Path,
+        policy_hash: crate::receipt::Hash,
+    ) -> anyhow::Result<Self> {
+        let signer = crate::receipt::Signer::load_or_create(key_path)?;
+        let mut receipts = Receipts {
+            signer,
+            policy_hash,
+            store: None,
+            writer: None,
+        };
+        if let Some(dir) = self.dir.clone() {
+            let kept: std::collections::HashSet<u64> = {
+                let st = self.state.get_mut().unwrap_or_else(|e| e.into_inner());
+                st.recent.iter().map(|e| e.id).collect()
+            };
+            let store = crate::details_store::DetailStore::open_file(
+                &dir,
+                crate::details_store::RECEIPTS_LOG,
+                None,
+                256 * 1024 * 1024,
+                self.retention * 1000,
+                true,
+                |id| kept.contains(&id),
+            )?;
+            if let Some((id, bytes)) = store.last() {
+                if let Some(c) = crate::receipt::peek(&bytes) {
+                    let st = self.state.get_mut().unwrap_or_else(|e| e.into_inner());
+                    st.chain = (c.sequence, crate::receipt::receipt_hash(&bytes));
+                    st.next_id = st.next_id.max(id + 1);
+                }
+            }
+            receipts.writer = Some(spawn_detail_writer(store.clone()));
+            receipts.store = Some(store);
+        }
+        self.receipts = Some(receipts);
+        Ok(self)
+    }
+
+    /// Public key that signs this machine's receipts.
+    pub fn receipt_key(&self) -> Option<[u8; 32]> {
+        Some(self.receipts.as_ref()?.signer.public_key())
+    }
+
+    /// The scan receipt of event `id` (COSE_Sign1 bytes).
+    pub fn receipt(&self, id: u64) -> Option<std::sync::Arc<Vec<u8>>> {
+        let cached = {
+            let st = self.lock();
+            st.receipts
+                .iter()
+                .rev()
+                .find(|(i, _)| *i == id)
+                .map(|(_, r)| r.clone())
+        };
+        cached.or_else(|| {
+            let r = self.receipts.as_ref()?;
+            r.store.as_ref()?.get_bytes(id).map(std::sync::Arc::new)
+        })
+    }
+
+    /// Verify the receipt of event `id`: signature and claims, the link to the previous
+    /// receipt, and the incident text against the signed hashes.
+    pub fn check_receipt(&self, id: u64) -> Option<ReceiptCheck> {
+        use crate::receipt;
+        let key = self.receipt_key()?;
+        let bytes = self.receipt(id)?;
+        let mut out = ReceiptCheck {
+            valid: false,
+            chained: None,
+            content: None,
+            error: None,
+            claims: receipt::peek(&bytes),
+        };
+        let claims = match receipt::verify(&bytes, &key) {
+            Ok(c) => c,
+            Err(e) => {
+                out.error = Some(e);
+                return Some(out);
+            }
+        };
+        out.valid = true;
+        if claims.sequence == 1 {
+            out.chained = Some(true);
+        } else if let Some(prev) = (1..=5)
+            .filter_map(|back| self.receipt(id.checked_sub(back)?))
+            .find(|p| receipt::peek(p).is_some_and(|c| c.sequence + 1 == claims.sequence))
+        {
+            let pc = receipt::peek(&prev).expect("peeked above");
+            let r = receipt::check_chain(&pc, &receipt::receipt_hash(&prev), &claims);
+            out.chained = Some(r.is_ok());
+            out.error = r.err();
+        }
+        if out.error.is_none() {
+            if let Some(d) = self.detail(id).filter(|d| !d.parts.is_empty()) {
+                let parts: Vec<_> = d
+                    .parts
+                    .iter()
+                    .map(|p| (p.field.clone(), Some(p.original.clone()), p.sent.clone()))
+                    .collect();
+                let salt = d.receipt_salt.as_deref().and_then(|s| hex::decode(s).ok());
+                match receipt::check_content(&claims, &parts, salt.as_deref()) {
+                    Ok(c) => out.content = Some(c),
+                    Err(e) => out.error = Some(e),
+                }
+            }
+        }
+        out.claims = Some(claims);
+        Some(out)
+    }
+
+    /// Check every receipt signed at or after `since` (unix ms): each signature, and that
+    /// each one links to the one before, so a removed or edited receipt is reported.
+    pub fn verify_chain(&self, since: i64) -> Option<ChainReport> {
+        use crate::receipt;
+        let key = self.receipt_key()?;
+        let r = self.receipts.as_ref()?;
+        let ids: Vec<u64> = match &r.store {
+            Some(store) => {
+                self.flush();
+                store.ids_since(since)
+            }
+            None => {
+                let st = self.lock();
+                let floor: std::collections::HashSet<u64> = st
+                    .recent
+                    .iter()
+                    .filter(|e| e.ts >= since)
+                    .map(|e| e.id)
+                    .collect();
+                st.receipts
+                    .iter()
+                    .map(|(id, _)| *id)
+                    .filter(|id| floor.contains(id))
+                    .collect()
+            }
+        };
+        let mut out = ChainReport {
+            key_id: receipt::key_id(&key),
+            ..ChainReport::default()
+        };
+        let mut prev: Option<(receipt::Claims, receipt::Hash)> = None;
+        for id in ids {
+            let Some(bytes) = self.receipt(id) else {
+                continue;
+            };
+            out.checked += 1;
+            let mut problem = |sequence, error| {
+                if out.problems.len() < 50 {
+                    out.problems.push(ChainProblem {
+                        event_id: id,
+                        sequence,
+                        error,
+                    });
+                }
+            };
+            match receipt::verify(&bytes, &key) {
+                Ok(c) => {
+                    out.valid += 1;
+                    match &prev {
+                        Some((p, h)) => {
+                            if let Err(e) = receipt::check_chain(p, h, &c) {
+                                if c.sequence > p.sequence {
+                                    out.missing += c.sequence - p.sequence - 1;
+                                }
+                                problem(Some(c.sequence), e);
+                            }
+                        }
+                        None => out.starts_mid_chain = c.sequence > 1,
+                    }
+                    out.first_sequence.get_or_insert(c.sequence);
+                    out.last_sequence = Some(c.sequence);
+                    prev = Some((c, receipt::receipt_hash(&bytes)));
+                }
+                Err(e) => problem(receipt::peek(&bytes).map(|c| c.sequence), e),
+            }
+        }
+        Some(out)
+    }
+
     /// Load the persisted log without writing anything (for offline `shadow activity`).
     pub fn read_only(cfg: &ActivityConfig, dir: &Path) -> Self {
         let mut log = Self::in_memory(cfg.retention_days);
@@ -954,12 +1219,23 @@ impl ActivityLog {
             e.ts = now_ms();
         }
         let now_s = now_ms() / 1000;
-        let detail = e.detail.take();
+        let mut detail = e.detail.take().filter(|_| self.details_cap > 0);
+        let evidence = e.evidence.take().unwrap_or_default();
         let id = {
             let mut st = self.lock();
             e.id = st.next_id;
             st.next_id += 1;
-            if let Some(d) = detail.filter(|_| self.details_cap > 0) {
+            if let Some(r) = &self.receipts {
+                let signed = sign_receipt(r, &mut st, &e, &evidence, detail.as_deref_mut());
+                if let Some(w) = &r.writer {
+                    let _ = w.send(DetailMsg::Raw(e.id, e.ts, signed.clone()));
+                }
+                if st.receipts.len() >= RECENT_CAPACITY {
+                    st.receipts.pop_front();
+                }
+                st.receipts.push_back((e.id, signed));
+            }
+            if let Some(d) = detail {
                 while st.details.len() >= self.details_cap {
                     st.details.pop_front();
                 }
@@ -992,7 +1268,8 @@ impl ActivityLog {
                 let _ = rx.recv_timeout(Duration::from_secs(5));
             }
         }
-        if let Some(w) = &self.detail_writer {
+        let receipt_writer = self.receipts.as_ref().and_then(|r| r.writer.as_ref());
+        for w in self.detail_writer.iter().chain(receipt_writer) {
             let (tx, rx) = mpsc::channel();
             if w.send(DetailMsg::Flush(tx)).is_ok() {
                 let _ = rx.recv_timeout(Duration::from_secs(5));
@@ -1143,6 +1420,70 @@ fn read_details(
 }
 
 /// Appends each new incident's details to `details.log` off the request path.
+/// Sign the receipt of `e` as the next link of the chain in `st`. When the incident has
+/// text, its hashes are signed too and a fresh salt is stored in `detail`.
+fn sign_receipt(
+    r: &Receipts,
+    st: &mut State,
+    e: &Event,
+    ev: &Evidence,
+    detail: Option<&mut Detail>,
+) -> std::sync::Arc<Vec<u8>> {
+    use crate::receipt;
+    use rand::RngCore;
+    let mut cti = [0u8; 16];
+    rand::thread_rng().fill_bytes(&mut cti);
+    let (mut sent_text, mut original) = (None, None);
+    if let Some(d) = detail.filter(|d| !d.parts.is_empty()) {
+        let mut salt = [0u8; 16];
+        rand::thread_rng().fill_bytes(&mut salt);
+        sent_text = Some(receipt::sent_text_hash(
+            d.parts
+                .iter()
+                .map(|p| (p.field.as_str(), p.sent.as_deref())),
+        ));
+        original = Some(receipt::original_text_commitment(
+            &salt,
+            d.parts
+                .iter()
+                .map(|p| (p.field.as_str(), p.original.as_str())),
+        ));
+        d.receipt_salt = Some(hex::encode(salt));
+    }
+    let blocked = e.action == Action::Blocked;
+    let clip = |s: &str| s.chars().take(200).collect::<String>();
+    let mut claims = receipt::Claims {
+        iat: (now_ms() / 1000).max(1) as u64,
+        cti,
+        event_id: e.id,
+        event_ts_ms: e.ts.max(0) as u64,
+        sequence: st.chain.0 + 1,
+        prev_receipt: st.chain.1,
+        action: e.action.as_str().into(),
+        provider: clip(&e.provider),
+        host: clip(&e.host),
+        client: clip(&e.client),
+        endpoint: e.endpoint.as_str().into(),
+        findings: e.kinds.iter().map(|(k, v)| (clip(k), *v as u64)).collect(),
+        detectors: e.detectors.iter().map(|d| clip(d)).collect(),
+        sent_body_hash: ev.sent_body.filter(|_| !blocked),
+        response_hash: ev.response.filter(|_| !blocked),
+        delivered_hash: ev.delivered,
+        sent_text_hash: sent_text,
+        original_text_commitment: original,
+        policy_hash: r.policy_hash,
+        shadow_version: env!("CARGO_PKG_VERSION").into(),
+        status: e.status as u64,
+        restored: e.restored as u64,
+        block_reason: e.block_reason.as_deref().map(clip),
+        intent: e.intent.as_deref().map(clip),
+        ..receipt::Claims::default()
+    };
+    let bytes = r.signer.sign(&mut claims);
+    st.chain = (claims.sequence, receipt::receipt_hash(&bytes));
+    std::sync::Arc::new(bytes)
+}
+
 fn spawn_detail_writer(
     store: std::sync::Arc<crate::details_store::DetailStore>,
 ) -> mpsc::Sender<DetailMsg> {
@@ -1155,6 +1496,11 @@ fn spawn_detail_writer(
                     DetailMsg::Add(id, ts, d) => {
                         if let Err(e) = store.append(id, ts, &d) {
                             tracing::warn!("could not save incident details: {e:#}");
+                        }
+                    }
+                    DetailMsg::Raw(id, ts, bytes) => {
+                        if let Err(e) = store.append_bytes(id, ts, &bytes) {
+                            tracing::warn!("could not save a scan receipt: {e:#}");
                         }
                     }
                     DetailMsg::Flush(done) => {
@@ -1512,6 +1858,90 @@ mod tests {
         e.detail = Some(Box::default());
         let id = off.record(e);
         assert!(!off.keeps_details() && off.detail(id).is_none());
+    }
+
+    #[test]
+    fn every_event_gets_a_chained_receipt_across_restarts() {
+        let dir = tempfile::tempdir().unwrap();
+        let adir = dir.path().join("activity");
+        let keys = (dir.path().join("vault.key"), dir.path().join("receipt.key"));
+        let cfg = ActivityConfig::default();
+        let open = || {
+            ActivityLog::open(&cfg, &adir)
+                .unwrap()
+                .with_saved_details(&keys.0, 512)
+                .unwrap()
+                .with_receipts(&keys.1, crate::receipt::sha256(b"config"))
+                .unwrap()
+        };
+        let log = open();
+        let clean = log.record(ev(0, "openai", "curl", Action::Clean, &[]));
+        let mut e = ev(0, "openai", "curl", Action::Masked, &[("email", 1)]);
+        e.evidence = Some(Evidence {
+            sent_body: Some(crate::receipt::sha256(b"{}")),
+            ..Evidence::default()
+        });
+        e.detail = Some(Box::new(Detail {
+            parts: vec![TextPart {
+                field: "messages[0].content".into(),
+                original: "mail ann@acme.com".into(),
+                sent: Some("mail bo@x.cn".into()),
+                ..TextPart::default()
+            }],
+            ..Detail::default()
+        }));
+        let masked = log.record(e);
+        let key = log.receipt_key().unwrap();
+        let first = log.check_receipt(clean).unwrap();
+        assert!(first.valid && first.chained == Some(true), "{first:?}");
+        let second = log.check_receipt(masked).unwrap();
+        assert!(second.valid && second.chained == Some(true), "{second:?}");
+        let content = second.content.unwrap();
+        assert!(content.sent_text && content.original_text);
+        assert_eq!(second.claims.as_ref().unwrap().sequence, 2);
+        log.flush();
+        drop(log);
+
+        // After a restart: same key, receipts read back from disk, the chain continues.
+        let log = open();
+        assert_eq!(log.receipt_key(), Some(key));
+        assert!(
+            log.check_receipt(masked)
+                .unwrap()
+                .content
+                .unwrap()
+                .original_text
+        );
+        let next = log.record(ev(0, "openai", "curl", Action::Clean, &[]));
+        let third = log.check_receipt(next).unwrap();
+        assert!(third.valid && third.chained == Some(true), "{third:?}");
+        assert_eq!(third.claims.unwrap().sequence, 3);
+        log.flush();
+        let disk = std::fs::read_to_string(adir.join(crate::details_store::RECEIPTS_LOG)).unwrap();
+        assert_eq!(disk.lines().count(), 3);
+        assert!(!disk.contains("ann@acme.com"), "receipts hold no text");
+        let report = log.verify_chain(0).unwrap();
+        assert_eq!((report.checked, report.valid, report.missing), (3, 3, 0));
+        assert!(report.problems.is_empty() && !report.starts_mid_chain);
+        drop(log);
+
+        // Deleting a receipt from the file breaks the chain where it was.
+        let kept: Vec<&str> = disk
+            .lines()
+            .filter(|l| !l.starts_with(&format!("{masked} ")))
+            .collect();
+        std::fs::write(
+            adir.join(crate::details_store::RECEIPTS_LOG),
+            kept.join("\n") + "\n",
+        )
+        .unwrap();
+        let report = open().verify_chain(0).unwrap();
+        assert_eq!((report.checked, report.valid, report.missing), (2, 2, 1));
+        assert_eq!(report.problems.len(), 1);
+        assert!(
+            report.problems[0].error.message.contains("missing"),
+            "{report:?}"
+        );
     }
 
     #[test]

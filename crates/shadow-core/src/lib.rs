@@ -25,6 +25,7 @@ pub mod files;
 pub mod intent;
 pub mod local;
 pub mod persona;
+pub mod receipt;
 pub mod translate;
 pub mod vault;
 

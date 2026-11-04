@@ -481,3 +481,17 @@ body:not(.reveal) .sv:hover { filter: blur(3px); }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* Evidence receipt */
+.receipt .verdict { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+.receipt .verdict.ok { color: var(--ok); background: var(--ok-soft); }
+.receipt .verdict.bad { color: var(--danger); background: var(--danger-soft); }
+.checks { list-style: none; margin: 4px 0 8px; padding: 0; display: grid; gap: 6px; font-size: 13px; }
+.checks li { display: flex; gap: 8px; align-items: baseline; }
+.checks .mark { width: 16px; flex: none; text-align: center; font-weight: 700; }
+.checks .ok .mark { color: var(--ok); }
+.checks .bad { color: var(--danger); }
+.checks .skip { color: var(--muted); }
+.receipt .actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.verdict:empty { display: none; }
+.problems { margin: 4px 0 0; padding-left: 18px; font-size: 13px; color: var(--danger); }

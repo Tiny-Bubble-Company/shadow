@@ -127,6 +127,7 @@ export default defineConfig({
 						'concepts/file-masking',
 						'concepts/tool-calls',
 						'concepts/activity-dashboard',
+						'concepts/evidence-receipts',
 					],
 				},
 				{ label: 'Benchmarks', collapsed: true, items: [{ autogenerate: { directory: 'benchmarks' } }] },

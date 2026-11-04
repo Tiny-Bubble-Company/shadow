@@ -2,6 +2,7 @@
 
 mod activity;
 mod incidents;
+mod receipts;
 mod service;
 mod top;
 mod ui;
@@ -63,6 +64,18 @@ enum Cmd {
     /// Connect this machine to your organisation's Shadow Hub, or check or end the connection.
     #[command(subcommand)]
     Hub(HubCmd),
+    /// Check this machine's evidence receipts: every scanned request is signed and linked to
+    /// the one before, so a removed or edited record shows up.
+    Receipts {
+        #[command(subcommand)]
+        cmd: Option<ReceiptCmd>,
+        /// 1h, 24h, 7d, 30d, today or all.
+        #[arg(long, short, default_value = "all")]
+        window: String,
+        /// Print the result as JSON.
+        #[arg(long)]
+        json: bool,
+    },
     /// Same as `shadow hub connect <link> --yes` (used by the installer).
     #[command(hide = true)]
     Enroll {
@@ -331,6 +344,11 @@ fn real_main(cli: Cli) -> anyhow::Result<()> {
             Ok(())
         }
         Cmd::Hub(h) => hub_cmd(&cli, h),
+        Cmd::Receipts { cmd, window, json } => match cmd {
+            None => receipts::chain(&load_config(&cli)?, window, *json),
+            Some(ReceiptCmd::Show { id, json }) => receipts::show(&load_config(&cli)?, *id, *json),
+            Some(ReceiptCmd::Verify { file }) => receipts::verify_file(file),
+        },
         Cmd::Incidents {
             id,
             limit,
@@ -491,6 +509,22 @@ fn svc_ctx(cli: &Cli, listen: Option<String>) -> anyhow::Result<(ShadowConfig, s
         ..ctx
     };
     Ok((cfg, ctx))
+}
+
+#[derive(Subcommand)]
+enum ReceiptCmd {
+    /// Show the receipt of one request (the ID from `shadow incidents`).
+    Show {
+        id: u64,
+        /// Print the receipt and public key as JSON (the same as the dashboard's Download).
+        #[arg(long)]
+        json: bool,
+    },
+    /// Check a receipt file downloaded from the dashboard or Shadow Hub, without the proxy.
+    Verify {
+        /// JSON file with `receipt` and `public_key` (base64).
+        file: std::path::PathBuf,
+    },
 }
 
 #[derive(Subcommand)]

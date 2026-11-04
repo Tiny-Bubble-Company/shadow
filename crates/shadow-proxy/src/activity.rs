@@ -10,9 +10,10 @@ use futures_util::StreamExt;
 use http::{header, HeaderMap, Response, StatusCode};
 use http_body_util::{BodyExt, StreamBody};
 use hyper::body::Frame;
+use sha2::{Digest, Sha256};
 use shadow_core::activity::{
     self, client_from_user_agent, endpoint_for_path, provider_for_host, Action, ActivityLog,
-    Detail, Event, Process, Summary, Window,
+    Detail, Event, Evidence, Process, Summary, Window,
 };
 
 use crate::forward::{error_response, full};
@@ -50,6 +51,10 @@ pub(crate) struct Pending {
     /// Incident details, kept when the request turns out masked or blocked.
     pub detail: Option<Box<Detail>>,
     process: Option<mpsc::Receiver<Option<Process>>>,
+    /// Hashes for the scan receipt.
+    sent: Option<[u8; 32]>,
+    response: Option<Sha256>,
+    delivered: Option<Sha256>,
 }
 
 impl Pending {
@@ -101,7 +106,25 @@ impl Pending {
             start: Instant::now(),
             detail: None,
             process: None,
+            sent: None,
+            response: None,
+            delivered: None,
         }
+    }
+
+    /// The body forwarded to the provider.
+    pub fn sent(&mut self, body: &[u8]) {
+        self.sent = Some(Sha256::digest(body).into());
+    }
+
+    /// A piece of the provider's answer, as received.
+    pub fn response_chunk(&mut self, b: &[u8]) {
+        self.response.get_or_insert_with(Sha256::new).update(b);
+    }
+
+    /// A piece of what is handed back to the app.
+    pub fn delivered_chunk(&mut self, b: &[u8]) {
+        self.delivered.get_or_insert_with(Sha256::new).update(b);
     }
 
     /// Whether incident details should be collected for this request.
@@ -127,6 +150,11 @@ impl Pending {
 impl Drop for Pending {
     fn drop(&mut self) {
         self.ev.latency_ms = self.start.elapsed().as_millis() as u64;
+        self.ev.evidence = Some(Evidence {
+            sent_body: self.sent,
+            response: self.response.take().map(|h| h.finalize().into()),
+            delivered: self.delivered.take().map(|h| h.finalize().into()),
+        });
         if self.ev.action != Action::Clean {
             if let Some(mut d) = self.detail.take() {
                 if let Some(rx) = &self.process {
@@ -265,12 +293,19 @@ impl Proxy {
             "/shadow/activity/stream" => self.activity_stream(q),
             "/shadow/activity/providers" => providers_response(),
             "/shadow/activity/hub" => self.hub_status(),
+            "/shadow/activity/receipts" | "/shadow/activity/receipts/" => self.receipt_chain(q),
             _ => match path
                 .strip_prefix("/shadow/activity/events/")
                 .and_then(|id| id.trim_end_matches('/').parse().ok())
             {
                 Some(id) => self.activity_event(id),
-                None => error_response(StatusCode::NOT_FOUND, "unknown dashboard path"),
+                None => match path
+                    .strip_prefix("/shadow/activity/receipts/")
+                    .and_then(|id| id.trim_end_matches('/').parse().ok())
+                {
+                    Some(id) => self.activity_receipt(id),
+                    None => error_response(StatusCode::NOT_FOUND, "unknown dashboard path"),
+                },
             },
         }
     }
@@ -299,6 +334,64 @@ impl Proxy {
             "event": event,
             "details_enabled": log.keeps_details(),
             "detail": log.detail(id).as_deref(),
+        });
+        json_response(StatusCode::OK, body.to_string())
+    }
+
+    /// Every receipt of the window (`all` = everything kept) checked in chain order.
+    fn receipt_chain(&self, q: Option<&str>) -> Response<Body> {
+        let Some(log) = &self.activity else {
+            return error_response(StatusCode::NOT_FOUND, "activity recording is disabled");
+        };
+        let now = activity::now_ms();
+        let raw = query(q, "window").unwrap_or("24h");
+        let since = match raw {
+            "all" => 0,
+            _ => match Window::parse(raw) {
+                Some(Window::Today) => Window::Today.range(now / 1000).0 * 1000,
+                Some(Window::Hour) => now - 3_600_000,
+                Some(Window::Day) => now - 86_400_000,
+                Some(Window::Week) => now - 7 * 86_400_000,
+                Some(Window::Month) => now - 30 * 86_400_000,
+                None => {
+                    return error_response(
+                        StatusCode::BAD_REQUEST,
+                        "window must be one of 1h, 24h, 7d, 30d, today, all",
+                    )
+                }
+            },
+        };
+        match log.verify_chain(since) {
+            Some(report) => json_response(
+                StatusCode::OK,
+                serde_json::to_string(&report).unwrap_or_default(),
+            ),
+            None => error_response(StatusCode::NOT_FOUND, "scan receipts are turned off"),
+        }
+    }
+
+    /// The scan receipt of one event: its bytes (base64), the signing key and the result
+    /// of verifying it on this machine.
+    fn activity_receipt(&self, id: u64) -> Response<Body> {
+        let Some(log) = &self.activity else {
+            return error_response(StatusCode::NOT_FOUND, "activity recording is disabled");
+        };
+        let (Some(key), Some(bytes), Some(check)) =
+            (log.receipt_key(), log.receipt(id), log.check_receipt(id))
+        else {
+            return error_response(StatusCode::NOT_FOUND, "no receipt for this event");
+        };
+        use base64::Engine;
+        let b64 = base64::engine::general_purpose::STANDARD;
+        let body = serde_json::json!({
+            "event_id": id,
+            "receipt": b64.encode(bytes.as_slice()),
+            "hash": hex::encode(shadow_core::receipt::receipt_hash(&bytes)),
+            "public_key": b64.encode(key),
+            "key_id": shadow_core::receipt::key_id(&key),
+            "profile": shadow_core::receipt::PROFILE,
+            "size": bytes.len(),
+            "check": check,
         });
         json_response(StatusCode::OK, body.to_string())
     }

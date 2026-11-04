@@ -73,6 +73,9 @@ pub struct ActivityConfig {
     pub persist_details: bool,
     /// Upper bound for `details.log`; past it the oldest incidents lose their details first.
     pub details_max_mb: u64,
+    /// Sign a scan receipt for every request (see [`crate::receipt`]) with the machine key
+    /// `<data_dir>/receipt.key`, kept in `activity/receipts.log` and sent to Shadow Hub.
+    pub receipts: bool,
 }
 
 impl Default for ActivityConfig {
@@ -87,6 +90,7 @@ impl Default for ActivityConfig {
             details_limit: 200,
             persist_details: true,
             details_max_mb: 512,
+            receipts: true,
         }
     }
 }
@@ -473,6 +477,19 @@ impl ShadowConfig {
     /// Path of the encrypted vault.
     pub fn vault_path(&self) -> PathBuf {
         self.data_dir.join("vault.bin")
+    }
+    /// Path of the scan receipt signing key.
+    pub fn receipt_key_path(&self) -> PathBuf {
+        self.data_dir.join(crate::receipt::KEY_FILE)
+    }
+    /// SHA-256 of the effective configuration (without the machine-specific data dir), so a
+    /// receipt says which settings were in force.
+    pub fn policy_hash(&self) -> crate::receipt::Hash {
+        let mut v = serde_json::to_value(self).unwrap_or_default();
+        if let Some(o) = v.as_object_mut() {
+            o.remove("data_dir");
+        }
+        crate::receipt::sha256(v.to_string().as_bytes())
     }
     /// Path of the vault key (0600).
     pub fn key_path(&self) -> PathBuf {

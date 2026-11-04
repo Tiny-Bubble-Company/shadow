@@ -45,6 +45,7 @@ Logs go to stderr. `shadow run` logs at `info` by default, every other command a
 | [`top`](#shadow-top) | Live activity view in the terminal |
 | [`activity`](#shadow-activity) | Print an activity summary |
 | [`incidents`](#shadow-incidents) | List incidents, or show one with its prompt and source |
+| [`receipts`](#shadow-receipts) | Check the evidence receipt chain, show a receipt, or verify a downloaded one |
 | [`dashboard`](#shadow-dashboard) | Open the web activity dashboard |
 
 ## `shadow init`
@@ -242,7 +243,7 @@ The installer connects in one step when run with `SHADOW_ENROLL='<join link>'`. 
 
 ## `shadow incidents`
 
-List incidents (masked or blocked requests) with their IDs, or show one in full: the app, process and conversation that sent it, the AI and model it went to, each value caught and what replaced it, and the prompt as written and as sent. Details come from the running proxy's memory (the last 200 incidents by default).
+List incidents (masked or blocked requests) with their IDs, or show one in full: the app, process and conversation that sent it, the AI and model it went to, each value caught and what replaced it, and the prompt as written and as sent. Details come from the running proxy, which keeps each incident's prompt for as long as the incident (`retention_days`).
 
 ```sh
 shadow incidents [-n <N>] [--json]
@@ -254,6 +255,23 @@ shadow incidents <ID> [--reveal] [--json]
 | `-n`, `--limit <N>` | How many incidents to list (default 30) |
 | `--reveal` | Print caught values in full instead of shortened (`ma*******om`) |
 | `--json` | Print the raw JSON from the proxy, values in full |
+
+## `shadow receipts`
+
+Check this machine's [evidence receipts](/shadow/concepts/evidence-receipts/): every signature, and that each receipt links to the one before. Exits with an error when a receipt is invalid or missing.
+
+```sh
+shadow receipts [-w <WINDOW>] [--json]
+shadow receipts show <ID> [--json]
+shadow receipts verify <FILE>
+```
+
+| Flag | Description |
+|---|---|
+| `-w`, `--window <WINDOW>` | `1h`, `24h`, `7d`, `30d`, `today` or `all` (default) |
+| `--json` | Print the raw result; with `show`, the receipt and public key as a file `verify` accepts |
+
+`verify` checks a receipt downloaded from the dashboard or Shadow Hub without the proxy running.
 
 ## `shadow dashboard`
 

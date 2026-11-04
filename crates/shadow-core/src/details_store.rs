@@ -7,6 +7,9 @@
 //! ciphertext as associated data, so a line cannot be moved to another incident. Lines are
 //! read back on demand through an in-memory index of offsets. Expired incidents and, past
 //! `max_bytes`, the oldest ones are dropped by rewriting the file.
+//!
+//! `activity/receipts.log` uses the same layout without encryption for scan receipts
+//! ([`crate::receipt`]), which hold hashes and counts only.
 
 use std::collections::BTreeMap;
 use std::io::{BufRead, BufWriter, Read, Seek, SeekFrom, Write};
@@ -20,8 +23,9 @@ use rand::RngCore;
 
 use crate::activity::Detail;
 
-/// File name inside the activity dir.
+/// File names inside the activity dir.
 pub const DETAILS_LOG: &str = "details.log";
+pub const RECEIPTS_LOG: &str = "receipts.log";
 
 /// Where one incident's line is: byte offset, length (without the newline) and time.
 #[derive(Clone, Copy, Debug)]
@@ -33,9 +37,11 @@ struct Entry {
 
 pub(crate) struct DetailStore {
     path: PathBuf,
-    cipher: ChaCha20Poly1305,
+    /// `None` for files whose lines need no encryption (scan receipts).
+    cipher: Option<ChaCha20Poly1305>,
     max_bytes: u64,
     retention_ms: i64,
+    keep_last: bool,
     inner: Mutex<Inner>,
 }
 
@@ -58,12 +64,35 @@ impl DetailStore {
         retention_ms: i64,
         keep: impl Fn(u64) -> bool,
     ) -> anyhow::Result<Arc<Self>> {
-        let path = dir.join(DETAILS_LOG);
+        Self::open_file(
+            dir,
+            DETAILS_LOG,
+            Some(cipher),
+            max_bytes,
+            retention_ms,
+            false,
+            keep,
+        )
+    }
+
+    /// [`DetailStore::open`] for any file name, with or without encryption. With
+    /// `keep_last` the newest line survives expiry (a receipt chain continues from it).
+    pub(crate) fn open_file(
+        dir: &Path,
+        name: &str,
+        cipher: Option<ChaCha20Poly1305>,
+        max_bytes: u64,
+        retention_ms: i64,
+        keep_last: bool,
+        keep: impl Fn(u64) -> bool,
+    ) -> anyhow::Result<Arc<Self>> {
+        let path = dir.join(name);
         let store = Arc::new(Self {
             path,
             cipher,
             max_bytes: max_bytes.max(1024 * 1024),
             retention_ms,
+            keep_last,
             inner: Mutex::new(Inner {
                 index: BTreeMap::new(),
                 size: 0,
@@ -76,6 +105,7 @@ impl DetailStore {
             let mut offset = 0u64;
             let mut line = Vec::new();
             let mut inner = store.lock();
+            let mut newest: Option<(u64, Entry)> = None;
             loop {
                 line.clear();
                 let n = reader.read_until(b'\n', &mut line)?;
@@ -83,6 +113,12 @@ impl DetailStore {
                     break;
                 }
                 let body = line.strip_suffix(b"\n").unwrap_or(&line);
+                if let Some((id, ts)) = parse_head(body) {
+                    if newest.is_none_or(|(n, _)| id > n) {
+                        let len = body.len() as u32;
+                        newest = Some((id, Entry { offset, len, ts }));
+                    }
+                }
                 match parse_head(body) {
                     Some((id, ts)) if ts >= floor && keep(id) => {
                         inner.index.insert(
@@ -97,6 +133,9 @@ impl DetailStore {
                     _ => dropped = true,
                 }
                 offset += n as u64;
+            }
+            if let Some((id, e)) = newest.filter(|_| store.keep_last) {
+                inner.index.entry(id).or_insert(e);
             }
             inner.size = offset;
         }
@@ -116,21 +155,31 @@ impl DetailStore {
 
     /// Encrypt and append one incident.
     pub(crate) fn append(&self, id: u64, ts: i64, detail: &Detail) -> anyhow::Result<()> {
-        let plain = serde_json::to_vec(detail)?;
+        self.append_bytes(id, ts, &serde_json::to_vec(detail)?)
+    }
+
+    /// Append `plain` for `id`, encrypted when this store has a cipher.
+    pub(crate) fn append_bytes(&self, id: u64, ts: i64, plain: &[u8]) -> anyhow::Result<()> {
+        let Some(cipher) = &self.cipher else {
+            return self.append_line(id, ts, plain);
+        };
         let mut nonce = [0u8; 12];
         rand::thread_rng().fill_bytes(&mut nonce);
-        let ct = self
-            .cipher
+        let ct = cipher
             .encrypt(
                 Nonce::from_slice(&nonce),
                 Payload {
-                    msg: &plain,
+                    msg: plain,
                     aad: &aad(id, ts),
                 },
             )
             .map_err(|_| anyhow::anyhow!("details encryption failed"))?;
         let mut sealed = nonce.to_vec();
         sealed.extend_from_slice(&ct);
+        self.append_line(id, ts, &sealed)
+    }
+
+    fn append_line(&self, id: u64, ts: i64, sealed: &[u8]) -> anyhow::Result<()> {
         let line = format!(
             "{id} {ts} {}",
             base64::engine::general_purpose::STANDARD_NO_PAD.encode(sealed)
@@ -159,6 +208,28 @@ impl DetailStore {
 
     /// Read and decrypt one incident.
     pub(crate) fn get(&self, id: u64) -> Option<Detail> {
+        serde_json::from_slice(&self.get_bytes(id)?).ok()
+    }
+
+    /// Ids of the entries saved at or after `since` (unix ms), oldest first.
+    pub(crate) fn ids_since(&self, since: i64) -> Vec<u64> {
+        let inner = self.lock();
+        inner
+            .index
+            .iter()
+            .filter(|(_, e)| e.ts >= since)
+            .map(|(id, _)| *id)
+            .collect()
+    }
+
+    /// The newest entry: its id and bytes.
+    pub(crate) fn last(&self) -> Option<(u64, Vec<u8>)> {
+        let id = *self.lock().index.keys().next_back()?;
+        Some((id, self.get_bytes(id)?))
+    }
+
+    /// Read (and decrypt) the bytes saved for `id`.
+    pub(crate) fn get_bytes(&self, id: u64) -> Option<Vec<u8>> {
         let inner = self.lock();
         let e = *inner.index.get(&id)?;
         let mut f = std::fs::File::open(&self.path).ok()?;
@@ -169,7 +240,7 @@ impl DetailStore {
         self.open_line(&buf, id)
     }
 
-    fn open_line(&self, line: &[u8], want: u64) -> Option<Detail> {
+    fn open_line(&self, line: &[u8], want: u64) -> Option<Vec<u8>> {
         let (id, ts) = parse_head(line)?;
         if id != want {
             return None;
@@ -178,11 +249,13 @@ impl DetailStore {
         let sealed = base64::engine::general_purpose::STANDARD_NO_PAD
             .decode(b64)
             .ok()?;
+        let Some(cipher) = &self.cipher else {
+            return Some(sealed);
+        };
         if sealed.len() < 12 {
             return None;
         }
-        let plain = self
-            .cipher
+        cipher
             .decrypt(
                 Nonce::from_slice(&sealed[..12]),
                 Payload {
@@ -190,8 +263,7 @@ impl DetailStore {
                     aad: &aad(id, ts),
                 },
             )
-            .ok()?;
-        serde_json::from_slice(&plain).ok()
+            .ok()
     }
 
     /// Rewrite the file with the incidents still within retention, newest first up to
@@ -202,8 +274,9 @@ impl DetailStore {
         let budget = self.max_bytes - self.max_bytes / 4;
         let mut keep = vec![];
         let mut total = 0u64;
-        for (id, e) in inner.index.iter().rev() {
-            if e.ts < floor || total + e.len as u64 + 1 > budget {
+        for (i, (id, e)) in inner.index.iter().rev().enumerate() {
+            let pinned = i == 0 && self.keep_last;
+            if !pinned && (e.ts < floor || total + e.len as u64 + 1 > budget) {
                 break;
             }
             total += e.len as u64 + 1;
@@ -211,7 +284,12 @@ impl DetailStore {
         }
         keep.reverse();
         let dir = self.path.parent().unwrap_or_else(|| Path::new("."));
-        let tmp = dir.join(format!(".{DETAILS_LOG}.{}.tmp", std::process::id()));
+        let name = self
+            .path
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        let tmp = dir.join(format!(".{name}.{}.tmp", std::process::id()));
         let mut index = BTreeMap::new();
         {
             let mut src = std::fs::File::open(&self.path).ok();

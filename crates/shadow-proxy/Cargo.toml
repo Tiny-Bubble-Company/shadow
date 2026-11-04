@@ -10,6 +10,8 @@ repository.workspace = true
 [dependencies]
 shadow-core = { path = "../shadow-core" }
 anyhow = "1"
+base64 = "0.22"
+hex = "0.4"
 bytes = "1"
 flate2 = "1"
 futures-util = { version = "0.3", default-features = false, features = ["std"] }

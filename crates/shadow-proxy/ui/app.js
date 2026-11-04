@@ -229,6 +229,7 @@
       setOnline(true);
       $("disabled").hidden = res[0].enabled !== false;
       render(res[0], res[1].events || []);
+      loadChain();
     }).catch(function () {
       setOnline(false);
       if (!state.summary) render(emptySummary(state.window), []);
@@ -722,6 +723,7 @@
           ? "Incident details are turned off. Set [activity] details = true in shadow.toml and restart Shadow to see the prompt and source of new incidents."
           : "Shadow keeps every incident's prompt for as long as the incident (30 days by default). This one happened before Shadow saved prompts to disk, while incident details were off, or was dropped to stay under the size limit." })
       ]));
+      if (!DEMO) el.appendChild(receiptSection(e.id));
       return;
     }
 
@@ -774,6 +776,112 @@
       ]));
       draw();
     }
+    if (!DEMO) el.appendChild(receiptSection(e.id));
+  }
+
+  // ---------------------------------------------------------------- evidence receipts
+  var chainAt = 0;
+  function loadChain() {
+    // Checking every signature costs a little CPU: at most every 30 s.
+    if (Date.now() - chainAt < 30000 && state.chainWindow === state.window) return;
+    chainAt = Date.now();
+    state.chainWindow = state.window;
+    fetchJSON("/shadow/activity/receipts?window=" + encodeURIComponent(state.window)).then(renderChain, function () { $("chain-card").hidden = true; });
+  }
+
+  function renderChain(r) {
+    var card = $("chain-card"), el = clear($("chain")), v = $("chain-verdict");
+    card.hidden = false;
+    if (!r.checked) {
+      v.className = "verdict"; v.textContent = "";
+      el.appendChild(h("p", { class: "note", text: "No receipts in this period yet. Each request Shadow scans from now on gets one." }));
+      return;
+    }
+    var ok = r.valid === r.checked && !r.problems.length;
+    v.className = "verdict " + (ok ? "ok" : "bad");
+    v.textContent = ok ? "Chain intact" : plural(r.problems.length, "problem");
+    el.appendChild(h("ul", { class: "checks" }, [
+      check(r.valid === r.checked, plural(r.checked, "receipt") + " checked, every signature valid (key " + r.key_id + ")",
+        plural(r.checked - r.valid, "receipt") + " failed the signature check"),
+      check(r.missing === 0 && !r.problems.length,
+        "Receipts " + fmt(r.first_sequence) + " to " + fmt(r.last_sequence) + " link up with none missing" + (r.starts_mid_chain ? " (earlier ones are outside this period)" : ""),
+        r.missing ? plural(r.missing, "receipt") + " missing from the chain" : "The chain is broken")
+    ]));
+    if (r.problems.length) {
+      el.appendChild(h("ul", { class: "problems" }, r.problems.slice(0, 10).map(function (p) {
+        return h("li", null, [h("a", { href: "#/incidents/" + p.event_id, text: "Request #" + p.event_id }), ": " + p.error.message]);
+      })));
+    }
+  }
+
+  // ---------------------------------------------------------------- evidence receipt
+  function shortHash(hex) { return hex ? hex.slice(0, 12) + "…" + hex.slice(-6) : null; }
+  function hashCell(hex) { return hex ? h("span", { class: "mono small", title: hex, text: shortHash(hex) }) : null; }
+
+  function receiptSection(id) {
+    var sec = h("section", { class: "card receipt" }, [
+      h("div", { class: "card-head" }, [h("h2", { text: "Evidence receipt" }), h("span", { class: "hint", text: "Checking…" })])
+    ]);
+    fetchJSON("/shadow/activity/receipts/" + id).then(function (r) { fillReceipt(sec, r); }).catch(function () {
+      clear(sec).appendChild(h("div", { class: "card-head" }, [h("h2", { text: "Evidence receipt" })]));
+      sec.appendChild(h("p", { class: "note", text: "No receipt for this request. Receipts started with Shadow 0.1 and are kept for as long as the request itself." }));
+    });
+    return sec;
+  }
+
+  function check(ok, good, bad) {
+    return h("li", { class: ok === null ? "skip" : ok ? "ok" : "bad" }, [h("span", { class: "mark", "aria-hidden": "true", text: ok === null ? "–" : ok ? "✓" : "✕" }), ok === false ? bad : good]);
+  }
+
+  function fillReceipt(sec, r) {
+    var c = r.check || {}, cl = c.claims || {}, err = c.error;
+    var content = c.content;
+    var verified = c.valid && c.chained !== false && !err;
+    clear(sec);
+    sec.appendChild(h("div", { class: "card-head" }, [
+      h("div", null, [h("h2", { text: "Evidence receipt" }),
+        h("span", { class: "hint", text: "Signed by this machine when the request was scanned. Shadow Hub keeps a copy and checks it too." })]),
+      h("span", { class: "verdict " + (verified ? "ok" : "bad"), text: verified ? "Verified" : "Failed" })
+    ]));
+    var checks = h("ul", { class: "checks" }, [
+      check(c.valid, "Signature valid: signed by this machine's key " + r.key_id + ", nothing changed since", err && err.layer !== "policy" ? err.message : "Signature check failed"),
+      c.chained === undefined || c.chained === null
+        ? check(null, "Chain: the previous receipt has expired, so this link can't be checked here (Hub keeps the full chain)")
+        : check(c.chained, "Chain: receipt " + cl.sequence + " links to the one before it, so none in between were removed", err ? err.message : "Chain broken"),
+      content ? check(true, "Prompt matches the signed hashes" + (content.original_text ? " (as written and as the AI received it)" : " (as the AI received it)"))
+        : err && err.layer === "policy" && c.chained !== false ? check(false, "", err.message)
+        : check(null, "No prompt saved for this request: the receipt covers the bytes sent and received")
+    ]);
+    sec.appendChild(checks);
+    var findings = Object.keys(cl.findings || {});
+    sec.appendChild(kv([
+      ["Receipt", "#" + cl.sequence + " · " + r.size + " bytes · " + new Date(cl.iat * 1000).toLocaleString()],
+      ["Receipt hash", hashCell(r.hash)],
+      ["Previous", /^0+$/.test(cl.prev_receipt || "") ? "First in this machine's chain" : hashCell(cl.prev_receipt)],
+      ["Signed by", h("span", { class: "mono small", text: cl.iss })],
+      ["Recorded", (cl.action || "") + (findings.length ? " · " + findings.map(function (k) { return cl.findings[k] + " " + (KIND_SHORT[k] || k); }).join(", ") : "")],
+      ["Sent to AI", hashCell(cl.sent_body_hash) || "Nothing was sent"],
+      ["AI answer", hashCell(cl.response_hash)],
+      ["Given to app", hashCell(cl.delivered_hash)],
+      ["Prompt sent", hashCell(cl.sent_text_hash)],
+      ["Prompt written", cl.original_text_commitment ? h("span", { class: "mono small", title: "Salted, so the hash can't be guessed from the text", text: shortHash(cl.original_text_commitment) + " (salted)" }) : null],
+      ["Settings", hashCell(cl.policy_hash)],
+      ["Shadow", cl.shadow_version]
+    ]));
+    var json = JSON.stringify({ profile: r.profile, receipt: r.receipt, public_key: r.public_key }, null, 2);
+    var status = h("span", { class: "hint", role: "status" });
+    sec.appendChild(h("div", { class: "actions" }, [
+      h("button", { type: "button", class: "btn", onclick: function () {
+        var done = function () { status.textContent = "Copied"; };
+        if (navigator.clipboard) navigator.clipboard.writeText(json).then(done, function () { status.textContent = "Copy failed"; });
+      } }, "Copy receipt"),
+      h("button", { type: "button", class: "btn", onclick: function () {
+        var a = h("a", { href: URL.createObjectURL(new Blob([json], { type: "application/json" })), download: "shadow-receipt-" + cl.sequence + ".json" });
+        document.body.appendChild(a); a.click(); a.remove();
+      } }, "Download"),
+      status
+    ]));
+    sec.appendChild(h("p", { class: "note", text: "The receipt holds hashes and counts, never your text. Anyone with the machine's public key can check it with standard COSE tools, or paste it into Shadow Hub's verifier." }));
   }
 
   function setReveal(on) {

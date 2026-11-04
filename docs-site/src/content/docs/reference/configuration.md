@@ -173,6 +173,7 @@ The [activity dashboard](/shadow/concepts/activity-dashboard/) feed. The log on 
 | `persist_details` | bool | `true` | Save every incident's details to `details.log`, encrypted with `vault.key` (mode 0600), for as long as the incident is kept (`retention_days`) |
 | `details_max_mb` | integer | `512` | Size cap for `details.log`; the oldest incidents lose their details first |
 | `details_limit` | integer | `200` | With `persist_details = false`: how many recent incidents keep their details in memory |
+| `receipts` | bool | `true` | Sign an [evidence receipt](/shadow/concepts/evidence-receipts/) for every request with `receipt.key`, kept in `receipts.log` and sent to Shadow Hub |
 
 ## `[proxy]`
 

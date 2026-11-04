@@ -108,7 +108,8 @@ pub fn http_get(addr: &str, path: &str) -> anyhow::Result<String> {
         .context("no address to connect to")?;
     let mut s = TcpStream::connect_timeout(&sock, Duration::from_millis(600))
         .with_context(|| format!("Shadow is not running on {addr}"))?;
-    s.set_read_timeout(Some(Duration::from_secs(3)))?;
+    // Checking a month of receipt signatures can take a few seconds.
+    s.set_read_timeout(Some(Duration::from_secs(30)))?;
     s.set_write_timeout(Some(Duration::from_secs(3)))?;
     write!(
         s,

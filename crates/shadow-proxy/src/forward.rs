@@ -453,6 +453,9 @@ impl Proxy {
             Mode::App(_) | Mode::Restore => &self.web_client,
             Mode::Api | Mode::Pass => &self.client,
         };
+        if let Some(p) = pending.as_mut() {
+            p.sent(&out_body);
+        }
         let resp = match client
             .request(parts.method.clone(), &url)
             .headers(headers)
@@ -521,6 +524,8 @@ impl Proxy {
             let stream = resp.bytes_stream().map(move |r| {
                 if let (Ok(b), Some(p)) = (&r, pending.as_mut()) {
                     p.ev.bytes_out += b.len() as u64;
+                    p.response_chunk(b);
+                    p.delivered_chunk(b);
                 }
                 r.map(Frame::data).map_err(std::io::Error::other)
             });
@@ -542,6 +547,8 @@ impl Proxy {
                             Some(Ok(chunk)) => {
                                 let out = un.push(&chunk);
                                 if let Some(p) = pending.as_mut() {
+                                    p.response_chunk(&chunk);
+                                    p.delivered_chunk(&out);
                                     p.ev.bytes_out += out.len() as u64;
                                     p.ev.restored = un.restored() as u32;
                                 }
@@ -561,6 +568,7 @@ impl Proxy {
                             None => {
                                 let out = un.finish();
                                 if let Some(p) = pending.as_mut() {
+                                    p.delivered_chunk(&out);
                                     p.ev.bytes_out += out.len() as u64;
                                     p.ev.restored = un.restored() as u32;
                                 }
@@ -586,6 +594,9 @@ impl Proxy {
                 )
             }
         };
+        if let Some(p) = pending.as_mut() {
+            p.response_chunk(&bytes);
+        }
         let mut restored = 0;
         let out = match std::str::from_utf8(&bytes) {
             Ok(text) => {
@@ -613,6 +624,7 @@ impl Proxy {
         if let Some(mut p) = pending {
             p.ev.restored = restored as u32;
             p.ev.bytes_out = out.len() as u64;
+            p.delivered_chunk(&out);
         }
         builder.body(full(out)).expect("valid response")
     }

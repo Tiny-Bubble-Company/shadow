@@ -82,13 +82,22 @@ impl Proxy {
         };
         let act = &shadow.config().activity;
         let activity = if act.enabled {
-            let opened = ActivityLog::open(act, &shadow.config().activity_dir()).and_then(|log| {
-                if act.persist_details {
-                    log.with_saved_details(&shadow.config().key_path(), act.details_max_mb)
-                } else {
-                    Ok(log)
-                }
-            });
+            let opened = ActivityLog::open(act, &shadow.config().activity_dir())
+                .and_then(|log| {
+                    if act.persist_details {
+                        log.with_saved_details(&shadow.config().key_path(), act.details_max_mb)
+                    } else {
+                        Ok(log)
+                    }
+                })
+                .and_then(|log| {
+                    if act.receipts {
+                        let c = shadow.config();
+                        log.with_receipts(&c.receipt_key_path(), c.policy_hash())
+                    } else {
+                        Ok(log)
+                    }
+                });
             match opened {
                 Ok(log) => Some(Arc::new(log)),
                 Err(e) => {
