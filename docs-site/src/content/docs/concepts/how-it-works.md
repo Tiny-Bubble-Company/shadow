@@ -90,3 +90,8 @@ The effect is that tokens keep streaming at the same pace, delayed by at most a 
 - SigV4-signed requests (AWS Bedrock with IAM signing). Bedrock with bearer API keys is masked normally.
 
 See the [security model](/shadow/reference/security/) for the full list of limitations.
+
+## Related
+
+- [What is an LLM proxy?](/shadow/guides/what-is-an-llm-proxy/): gateway, forward proxy, privacy proxy and how to choose
+- [Integration modes](/shadow/integrate/overview/): proxy, gateway or Rust library
