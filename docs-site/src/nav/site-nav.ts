@@ -20,6 +20,8 @@ export interface NavGroup {
 	label: string;
 	/** Section landing page, if there is one. */
 	href?: string;
+	/** One-line pitch shown under the heading (Products menu). */
+	tagline?: string;
 	links: NavLink[];
 }
 
@@ -156,11 +158,52 @@ export async function mainNav() {
 			{ label: 'Changelog', href: sitePath('/project/changelog/') },
 		],
 	};
+	// The header's Products menu: one curated column per product, with a short pitch.
+	const products: NavGroup[] = [
+		{
+			id: 'core',
+			label: 'Shadow Core',
+			href: sitePath('/getting-started/introduction/'),
+			tagline: 'Free, open-source privacy layer on every machine',
+			links: [
+				{ label: 'How it works', href: sitePath('/concepts/how-it-works/'), description: 'Reversible fakes instead of blocking' },
+				{ label: 'Quick start', href: sitePath('/getting-started/quick-start/'), description: 'Install in a minute, no account' },
+				{ label: 'Supported providers', href: sitePath('/reference/providers/'), description: 'OpenAI, Anthropic, Gemini, Bedrock and more' },
+				{ label: 'Benchmarks', href: sitePath('/benchmarks/'), description: 'Leak rates vs Presidio, GLiNER, LLM Guard' },
+				{ label: 'Security model', href: sitePath('/reference/security/'), description: 'What Shadow protects, and what it does not' },
+			],
+		},
+		{
+			id: 'hub',
+			label: 'Shadow Hub',
+			href: sitePath('/hub/'),
+			tagline: 'Team visibility into what goes to AI',
+			links: [
+				{ label: 'Hub for teams', href: sitePath('/hub/'), description: 'Usage per user and tool, as counts only' },
+				{ label: 'Connect a machine', href: sitePath('/hub/connect/'), description: 'shadow hub connect, and how to leave' },
+				{ label: 'Teams and organisations', href: sitePath('/integrate/organisations/'), description: 'Invites, sharing levels, the managed notice' },
+				{ label: 'Trust and data', href: sitePath('/trust/'), description: 'What Hub receives, stores and never sees' },
+			],
+		},
+		{
+			id: 'connect',
+			label: 'Shadow Connect',
+			href: sitePath('/connect/'),
+			tagline: 'Shadow inside other platforms and agents',
+			links: [
+				{ label: 'Privacy API', href: sitePath('/connect/privacy-api/'), description: 'Scan, protect and restore over HTTP' },
+				{ label: 'MCP server', href: sitePath('/connect/mcp/'), description: 'Let any agent mask and restore data' },
+				{ label: 'Evidence API', href: sitePath('/connect/evidence-api/'), description: 'Controls mapped to SOC 2, ISO 27001, ISO 42001' },
+				{ label: 'Compliance platforms', href: sitePath('/connect/compliance-platforms/'), description: 'Vanta, Drata, Secureframe, Sprinto and more' },
+				{ label: 'Meridian', href: sitePath('/connect/meridian/'), description: 'Built-in privacy and evidence' },
+			],
+		},
+	];
 	const docs = {
 		id: 'docs',
 		label: 'Docs',
 		href: sitePath('/getting-started/introduction/'),
-		columns: [product, pick('getting-started'), pick('integrate'), pick('connect'), pick('concepts'), pick('reference')],
+		columns: [pick('getting-started'), pick('integrate'), pick('connect'), pick('concepts'), pick('reference')],
 	};
 	const solutions = {
 		id: 'solutions',
@@ -170,5 +213,5 @@ export async function mainNav() {
 	};
 	const industries = pick('industries');
 	const compare = pick('compare');
-	return { product, hub, connect, docs, solutions, industries, compare };
+	return { product, hub, connect, products, docs, solutions, industries, compare };
 }

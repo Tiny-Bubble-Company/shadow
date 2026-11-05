@@ -1,6 +1,6 @@
 ---
 // Site header for the home page and every docs page (overrides Starlight's Header).
-// 56px translucent bar: logo · menu (Docs, Hub, Connect, Compare, Solutions, Pricing, Trust) · search ·
+// 56px translucent bar: logo · menu (Products, Solutions, Docs, Pricing, Compare, Trust) · search ·
 // GitHub · the buyer CTA · "Install Core free". Also mounts the funnel tracking and the waitlist/demo form once. Menus are <details>; a small script only closes them on Escape,
 // outside click or when another one opens. Below 75rem the groups move into one "Menu"
 // panel (on docs pages under 50rem Starlight's own sidebar menu takes over).
@@ -14,11 +14,12 @@ import HubCta from './HubCta.astro';
 import HubForm from './HubForm.astro';
 
 const nav = await mainNav();
-type Menu = { id: string; label: string; wide?: boolean; columns?: NavGroup[]; href?: string; all?: { label: string; href: string } };
+type Menu = { id: string; label: string; wide?: boolean; products?: boolean; columns?: NavGroup[]; href?: string; all?: { label: string; href: string } };
 const menus: Menu[] = [
+	{ id: 'products', label: 'Products', wide: true, products: true, columns: nav.products, all: { label: 'Compare Core, Hub and Connect pricing', href: sitePath('/pricing/') } },
+	{ id: 'solutions', label: 'Solutions', wide: true, columns: nav.solutions.columns },
 	{ id: 'docs', label: 'Docs', wide: true, columns: nav.docs.columns },
-	{ id: 'hub', label: 'Hub', columns: [nav.hub], all: { label: 'Shadow Hub overview', href: sitePath('/hub/') } },
-	{ id: 'connect', label: 'Connect', columns: [nav.connect], all: { label: 'Shadow Connect overview', href: sitePath('/connect/') } },
+	{ id: 'pricing', label: 'Pricing', href: sitePath('/pricing/') },
 	{
 		id: 'compare',
 		label: 'Compare',
@@ -26,8 +27,6 @@ const menus: Menu[] = [
 		columns: [nav.compare],
 		all: nav.compare.href ? { label: 'Compare all AI data-leak tools', href: nav.compare.href } : undefined,
 	},
-	{ id: 'solutions', label: 'Solutions', wide: true, columns: nav.solutions.columns },
-	{ id: 'pricing', label: 'Pricing', href: sitePath('/pricing/') },
 	{ id: 'trust', label: 'Trust', href: sitePath('/trust/') },
 ];
 const { hasSidebar } = Astro.locals.starlightRoute;
@@ -55,8 +54,13 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 							<div class:list={['sh-panel', { 'sh-panel--wide': m.wide }]}>
 								<div class:list={['sh-panel__cols', `sh-panel__cols--${m.columns!.length}`, { 'sh-panel__cols--many': m.columns!.length === 1 && m.columns![0]!.links.length > 10 }]}>
 									{m.columns!.map((g) => (
-										<div class="sh-panel__group">
-											{m.columns!.length > 1 && (
+										<div class:list={['sh-panel__group', { 'sh-panel__product': m.products }]}>
+											{m.products ? (
+												<a class="sh-panel__product-head" href={g.href}>
+													<span class="sh-panel__product-name">{g.label}</span>
+													<span class="sh-panel__product-tag">{g.tagline}</span>
+												</a>
+											) : m.columns!.length > 1 && (
 												<p class="sh-panel__heading">
 													{g.href ? <a href={g.href}>{g.label}</a> : g.label}
 												</p>
@@ -66,7 +70,7 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 													<li>
 														<a href={l.href}>
 															<span class="sh-panel__label">{l.label}</span>
-															{(g.id === 'product' || g.id === 'hub' || g.id === 'connect') && l.description && <span class="sh-panel__desc">{l.description}</span>}
+															{m.products && l.description && <span class="sh-panel__desc">{l.description}</span>}
 														</a>
 													</li>
 												))}
@@ -115,7 +119,7 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 						<summary>{m.label}</summary>
 						{m.columns!.map((g) => (
 							<div class="sh-menu__sub">
-								{m.columns!.length > 1 && <p class="sh-panel__heading">{g.href ? <a href={g.href}>{g.label}</a> : g.label}</p>}
+								{(m.products || m.columns!.length > 1) && <p class="sh-panel__heading">{g.href ? <a href={g.href}>{g.label}</a> : g.label}</p>}
 								<ul>
 									{g.links.map((l) => (
 										<li>
