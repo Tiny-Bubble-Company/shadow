@@ -117,6 +117,17 @@ export default defineConfig({
 					],
 				},
 				{
+					label: 'Connect',
+					items: [
+						{ label: 'Overview', link: '/connect/' },
+						'connect/privacy-api',
+						'connect/mcp',
+						'connect/evidence-api',
+						'connect/compliance-platforms',
+						'connect/meridian',
+					],
+				},
+				{
 					label: 'Concepts',
 					items: [
 						'concepts/how-it-works',

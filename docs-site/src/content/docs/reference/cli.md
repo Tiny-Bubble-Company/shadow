@@ -32,6 +32,7 @@ Logs go to stderr. `shadow run` logs at `info` by default, every other command a
 |---|---|
 | [`init`](#shadow-init) | Create the persona, vault key and local CA |
 | [`run`](#shadow-run) | Run the proxy and gateway in the foreground |
+| [`serve`](#shadow-serve) | Serve the Shadow Connect API and MCP server |
 | [`install`](#shadow-install) / [`uninstall`](#shadow-uninstall) | Background service and CA trust, optionally the system proxy (dry run by default) |
 | [`system-proxy`](#shadow-system-proxy) | Route the machine's traffic through Shadow, or stop |
 | [`hub`](#shadow-hub) | Connect this machine to your organisation's Shadow Hub, check it, or disconnect |
@@ -77,6 +78,21 @@ shadow run [--listen <ADDR>]
 | `--listen <ADDR>` | Listen address. Default `[proxy] listen`, i.e. `127.0.0.1:8877`. Warns if not loopback |
 
 On start it prints the persona, the gateway URL pattern, the proxy setting and the CA path, and the upstream proxy if one is configured.
+
+## `shadow serve`
+
+Serve the [Shadow Connect Privacy API](/shadow/connect/privacy-api/) and [MCP server](/shadow/connect/mcp/) in the foreground until Ctrl-C: scan, protect and restore for other platforms and agents.
+
+```sh
+shadow serve [--listen <ADDR>] [--token <TOKEN>]
+```
+
+| Flag | Description |
+|---|---|
+| `--listen <ADDR>` | Listen address. Default `127.0.0.1:8878` |
+| `--token <TOKEN>` | Bearer token callers must send (or `SHADOW_API_TOKEN`). Required on a non-loopback address |
+
+It uses the same persona, vault and protected terms as `shadow run`, and can run next to it.
 
 ## `shadow install`
 

@@ -172,6 +172,10 @@ Shadow Core is free and complete on its own. [Shadow Hub](https://getshadow.dev/
 Connect a machine with `shadow hub connect <invite link>`; it shows what your organisation will see and asks first.
 Core never phones home. Nothing is sent unless you run `shadow hub connect`.
 
+**Shadow Connect for platforms and agents**
+
+[Shadow Connect](https://getshadow.dev/connect/) brings Shadow into other software. `shadow serve` runs a self-hosted [Privacy API](https://getshadow.dev/connect/privacy-api/) (`/v1/scan`, `/v1/protect`, `/v1/restore`) and an [MCP server](https://getshadow.dev/connect/mcp/) on `127.0.0.1:8878`. Hub's [Evidence API](https://getshadow.dev/connect/evidence-api/) feeds AI usage evidence, mapped to SOC 2, ISO 27001 and ISO 42001, into [Meridian, Vanta, Drata, Secureframe and other compliance platforms](https://getshadow.dev/connect/compliance-platforms/).
+
 **Verify**
 
 ```sh
@@ -339,6 +343,7 @@ Full documentation: **[getshadow.dev](https://getshadow.dev/)**
 - [Benchmarks](https://getshadow.dev/benchmarks/) · [Compare with alternatives](https://getshadow.dev/compare/) · [Use cases](https://getshadow.dev/use-cases/) · [Industries](https://getshadow.dev/industries/) · [By company size](https://getshadow.dev/company-size/)
 - [Introduction](https://getshadow.dev/getting-started/introduction/) · [Installation](https://getshadow.dev/getting-started/installation/)
 - [Proxy mode](https://getshadow.dev/integrate/proxy-mode/) · [Gateway mode](https://getshadow.dev/integrate/gateway-mode/) · [Embed in Rust](https://getshadow.dev/integrate/rust/) · [Docker and Kubernetes](https://getshadow.dev/integrate/docker-kubernetes/)
+- [Shadow Connect](https://getshadow.dev/connect/) · [Privacy API](https://getshadow.dev/connect/privacy-api/) · [MCP server](https://getshadow.dev/connect/mcp/) · [Evidence API](https://getshadow.dev/connect/evidence-api/) · [Compliance platforms](https://getshadow.dev/connect/compliance-platforms/)
 - [Configuration](https://getshadow.dev/reference/configuration/) · [CLI](https://getshadow.dev/reference/cli/) · [Providers](https://getshadow.dev/reference/providers/) · [FAQ](https://getshadow.dev/reference/faq/)
 
 The source of the docs is in [`docs-site/`](docs-site/). For LLMs and answer engines, the docs are also published as [`llms.txt`](https://getshadow.dev/llms.txt) and [`llms-full.txt`](https://getshadow.dev/llms-full.txt).
@@ -352,6 +357,7 @@ Release binaries and a published container image, local OCR for images and scann
 ```text
 crates/shadow-core    detection, persona, vault, policy, translation
 crates/shadow-proxy   CA, forward proxy, gateway, files, SSE translation
+crates/shadow-api     Shadow Connect: Privacy API and MCP server (`shadow serve`)
 crates/shadow-cli     the `shadow` binary
 apps/shadow-tray      menu-bar / tray app for the activity dashboard
 bench/                detection benchmark

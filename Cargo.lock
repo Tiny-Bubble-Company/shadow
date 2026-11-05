@@ -2156,6 +2156,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "shadow-api"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "http-body-util",
+ "rand 0.8.8",
+ "serde",
+ "serde_json",
+ "sha2",
+ "shadow-core",
+ "subtle",
+ "tempfile",
+ "tokio",
+ "tower",
+ "tracing",
+]
+
+[[package]]
 name = "shadow-cli"
 version = "0.1.0"
 dependencies = [
@@ -2167,6 +2186,7 @@ dependencies = [
  "dirs",
  "ratatui",
  "serde_json",
+ "shadow-api",
  "shadow-core",
  "shadow-proxy",
  "tempfile",

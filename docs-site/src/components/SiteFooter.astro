@@ -12,6 +12,7 @@ const g = (dir: string): NavGroup => groups[dir] ?? { id: dir, label: dir, links
 const columns: NavGroup[] = [
 	{ ...nav.product, label: 'Shadow Core' },
 	{ ...nav.hub, label: 'Shadow Hub' },
+	{ ...nav.connect, label: 'Shadow Connect' },
 	{ ...g('getting-started'), label: 'Get started' },
 	{ ...g('integrate'), label: 'Integrations' },
 	{ ...g('concepts'), label: 'Concepts' },

@@ -636,6 +636,18 @@ html[data-has-hero] .sh-footer {
 	.hp-products {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
+	/* Third product spans the row until there is room for three columns. */
+	.hp-products > :nth-child(3):last-child {
+		grid-column: 1 / -1;
+	}
+}
+@media (min-width: 72rem) {
+	.hp-products {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+	.hp-products > :nth-child(3):last-child {
+		grid-column: auto;
+	}
 }
 .hp-product {
 	display: flex;

@@ -127,6 +127,19 @@ export async function mainNav() {
 			{ label: 'Compare AI DLP tools', href: sitePath('/compare/ai-dlp/'), description: 'Endpoint DLP vs browser extension vs LLM proxy' },
 		],
 	};
+	const connect: NavGroup = {
+		id: 'connect',
+		label: 'Shadow Connect',
+		href: sitePath('/connect/'),
+		links: [
+			{ label: 'Shadow Connect overview', href: sitePath('/connect/'), description: 'Shadow for other platforms and agents' },
+			{ label: 'Privacy API', href: sitePath('/connect/privacy-api/'), description: 'Scan, protect and restore over HTTP' },
+			{ label: 'MCP server', href: sitePath('/connect/mcp/'), description: 'Let any agent mask and restore data' },
+			{ label: 'Evidence API', href: sitePath('/connect/evidence-api/'), description: 'Controls mapped to SOC 2, ISO 27001, ISO 42001' },
+			{ label: 'Compliance platforms', href: sitePath('/connect/compliance-platforms/'), description: 'Vanta, Drata, Secureframe, Sprinto and more' },
+			{ label: 'Meridian', href: sitePath('/connect/meridian/'), description: 'Built-in privacy and evidence' },
+		],
+	};
 	const product: NavGroup = {
 		id: 'product',
 		label: 'Shadow Core',
@@ -147,7 +160,7 @@ export async function mainNav() {
 		id: 'docs',
 		label: 'Docs',
 		href: sitePath('/getting-started/introduction/'),
-		columns: [product, pick('getting-started'), pick('integrate'), pick('concepts'), pick('reference')],
+		columns: [product, pick('getting-started'), pick('integrate'), pick('connect'), pick('concepts'), pick('reference')],
 	};
 	const solutions = {
 		id: 'solutions',
@@ -157,5 +170,5 @@ export async function mainNav() {
 	};
 	const industries = pick('industries');
 	const compare = pick('compare');
-	return { product, hub, docs, solutions, industries, compare };
+	return { product, hub, connect, docs, solutions, industries, compare };
 }

@@ -1,6 +1,6 @@
 ---
 // Site header for the home page and every docs page (overrides Starlight's Header).
-// 56px translucent bar: logo · menu (Docs, Hub, Compare, Solutions, Pricing, Trust) · search ·
+// 56px translucent bar: logo · menu (Docs, Hub, Connect, Compare, Solutions, Pricing, Trust) · search ·
 // GitHub · the buyer CTA · "Install Core free". Also mounts the funnel tracking and the waitlist/demo form once. Menus are <details>; a small script only closes them on Escape,
 // outside click or when another one opens. Below 75rem the groups move into one "Menu"
 // panel (on docs pages under 50rem Starlight's own sidebar menu takes over).
@@ -18,6 +18,7 @@ type Menu = { id: string; label: string; wide?: boolean; columns?: NavGroup[]; h
 const menus: Menu[] = [
 	{ id: 'docs', label: 'Docs', wide: true, columns: nav.docs.columns },
 	{ id: 'hub', label: 'Hub', columns: [nav.hub], all: { label: 'Shadow Hub overview', href: sitePath('/hub/') } },
+	{ id: 'connect', label: 'Connect', columns: [nav.connect], all: { label: 'Shadow Connect overview', href: sitePath('/connect/') } },
 	{
 		id: 'compare',
 		label: 'Compare',
@@ -65,7 +66,7 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 													<li>
 														<a href={l.href}>
 															<span class="sh-panel__label">{l.label}</span>
-															{(g.id === 'product' || g.id === 'hub') && l.description && <span class="sh-panel__desc">{l.description}</span>}
+															{(g.id === 'product' || g.id === 'hub' || g.id === 'connect') && l.description && <span class="sh-panel__desc">{l.description}</span>}
 														</a>
 													</li>
 												))}

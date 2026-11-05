@@ -15,6 +15,11 @@ export const SECTIONS: { dir: string; label: string; optional?: boolean; pages?:
 		pages: ['overview', 'proxy-mode', 'gateway-mode', 'rust', 'docker-kubernetes', 'any-endpoint'],
 	},
 	{
+		dir: 'connect',
+		label: 'Connect',
+		pages: ['privacy-api', 'mcp', 'evidence-api', 'compliance-platforms', 'meridian'],
+	},
+	{
 		dir: 'concepts',
 		label: 'Concepts',
 		pages: ['how-it-works', 'personas', 'vault', 'detection', 'intent-policy', 'file-masking', 'tool-calls', 'activity-dashboard'],

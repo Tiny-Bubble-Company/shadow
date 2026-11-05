@@ -15,7 +15,7 @@ COPY --from=build /src/target/release/shadow /usr/local/bin/shadow
 USER shadow
 ENV SHADOW_HOME=/data RUST_LOG=info
 VOLUME ["/data"]
-EXPOSE 8877
+EXPOSE 8877 8878
 HEALTHCHECK --interval=30s --timeout=3s CMD ["shadow", "status", "--quiet"]
 ENTRYPOINT ["shadow"]
 CMD ["run", "--listen", "0.0.0.0:8877"]

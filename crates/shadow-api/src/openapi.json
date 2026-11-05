@@ -1,0 +1,229 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Shadow Connect API",
+    "version": "1.0.0",
+    "summary": "Shadow's privacy layer for other platforms and agents.",
+    "description": "Find, mask and restore sensitive data in text or JSON before it reaches an AI service. Runs on your side (`shadow serve`), so real values never leave your network. Docs: https://getshadow.dev/connect/api/",
+    "license": { "name": "Apache-2.0", "identifier": "Apache-2.0" }
+  },
+  "servers": [{ "url": "http://127.0.0.1:8878", "description": "shadow serve (default)" }],
+  "security": [{ "bearer": [] }],
+  "tags": [
+    { "name": "privacy", "description": "Scan, protect and restore" },
+    { "name": "sessions", "description": "Keep tokens between a protect call and its restore" },
+    { "name": "service", "description": "Health and information" }
+  ],
+  "paths": {
+    "/v1/health": {
+      "get": {
+        "tags": ["service"],
+        "summary": "Liveness",
+        "operationId": "health",
+        "security": [],
+        "responses": {
+          "200": { "description": "Running", "content": { "application/json": { "schema": { "type": "object", "properties": { "status": { "const": "ok" }, "version": { "type": "string" } } } } } }
+        }
+      }
+    },
+    "/v1/info": {
+      "get": {
+        "tags": ["service"],
+        "summary": "Persona, vault and session counts",
+        "operationId": "info",
+        "responses": {
+          "200": { "description": "Information", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Info" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/v1/scan": {
+      "post": {
+        "tags": ["privacy"],
+        "summary": "Find sensitive values without changing anything",
+        "operationId": "scan",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ScanRequest" } } } },
+        "responses": {
+          "200": { "description": "Findings", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ScanResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/v1/protect": {
+      "post": {
+        "tags": ["privacy"],
+        "summary": "Replace sensitive values with consistent fakes",
+        "operationId": "protect",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProtectRequest" } } } },
+        "responses": {
+          "200": { "description": "Masked payload", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProtectResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/SessionNotFound" }
+        }
+      }
+    },
+    "/v1/restore": {
+      "post": {
+        "tags": ["privacy"],
+        "summary": "Translate fakes back to the real values",
+        "operationId": "restore",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RestoreRequest" } } } },
+        "responses": {
+          "200": { "description": "Restored payload", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RestoreResponse" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/SessionNotFound" }
+        }
+      }
+    },
+    "/v1/sessions/{id}": {
+      "delete": {
+        "tags": ["sessions"],
+        "summary": "Forget a session and the tokens it handed out",
+        "operationId": "endSession",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "204": { "description": "Forgotten" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/SessionNotFound" }
+        }
+      }
+    },
+    "/mcp": {
+      "post": {
+        "tags": ["privacy"],
+        "summary": "MCP server (streamable HTTP, JSON responses)",
+        "description": "JSON-RPC 2.0. Tools: shadow_scan, shadow_protect, shadow_restore.",
+        "operationId": "mcp",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": {
+          "200": { "description": "JSON-RPC response", "content": { "application/json": { "schema": { "type": "object" } } } },
+          "202": { "description": "Notification accepted" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearer": { "type": "http", "scheme": "bearer", "description": "The token given to `shadow serve` (SHADOW_API_TOKEN). Not needed on loopback when no token is set." }
+    },
+    "responses": {
+      "BadRequest": { "description": "Invalid request", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "Unauthorized": { "description": "Missing or wrong bearer token", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "SessionNotFound": { "description": "Unknown or expired session_id", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": ["code", "message"],
+            "properties": {
+              "code": { "type": "string", "enum": ["invalid_request", "invalid_json", "unauthorized", "not_found", "session_not_found"] },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      },
+      "Info": {
+        "type": "object",
+        "properties": {
+          "version": { "type": "string" },
+          "persona": { "type": "object", "description": "This installation's fake identity", "properties": { "company": { "type": "string" }, "full_name": { "type": "string" }, "region": { "type": "string" }, "domain": { "type": "string" } } },
+          "vault": { "type": "object", "properties": { "entries": { "type": "integer" }, "by_kind": { "type": "object", "additionalProperties": { "type": "integer" } }, "created_at": { "type": "string" } } },
+          "sessions": { "type": "integer" }
+        }
+      },
+      "ScanRequest": {
+        "type": "object",
+        "required": ["text"],
+        "additionalProperties": false,
+        "properties": {
+          "text": { "type": "string" },
+          "reveal": { "type": "boolean", "default": false, "description": "Return values in full instead of shortened previews" }
+        }
+      },
+      "Finding": {
+        "type": "object",
+        "properties": {
+          "kind": { "type": "string", "examples": ["email", "person", "phone", "api_key"] },
+          "detector": { "type": "string" },
+          "start": { "type": "integer", "description": "UTF-8 byte offset" },
+          "end": { "type": "integer", "description": "UTF-8 byte offset (exclusive)" },
+          "score": { "type": "number" },
+          "value": { "type": "string", "description": "Shortened preview, or the full value with reveal" }
+        }
+      },
+      "ScanResponse": {
+        "type": "object",
+        "properties": {
+          "findings": { "type": "array", "items": { "$ref": "#/components/schemas/Finding" } },
+          "counts": { "type": "object", "additionalProperties": { "type": "integer" }, "description": "Findings per kind" }
+        }
+      },
+      "Tool": {
+        "type": "object",
+        "required": ["name"],
+        "properties": { "name": { "type": "string" }, "remote": { "type": "boolean", "default": false, "description": "Run by the AI provider, not by you" } }
+      },
+      "ProtectRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Send exactly one of text and json.",
+        "properties": {
+          "text": { "type": "string" },
+          "json": { "description": "Any JSON value; every string inside is masked, e.g. a whole chat request body" },
+          "session_id": { "type": "string", "description": "Continue a session from an earlier call" },
+          "instruction": { "type": "string", "description": "The user's request, for the intent policy (defaults to text with policy intent)" },
+          "tools": { "type": "array", "items": { "$ref": "#/components/schemas/Tool" } },
+          "policy": { "type": "string", "enum": ["fakes", "intent"], "default": "fakes", "description": "fakes: persona fakes everywhere, restorable without a session. intent: Shadow's intent policy (fakes, typed tokens or kept values)" }
+        }
+      },
+      "SessionSummary": {
+        "type": "object",
+        "description": "Counts for the whole session, never values",
+        "properties": {
+          "surrogates": { "type": "integer" },
+          "tokens": { "type": "integer" },
+          "kept": { "type": "integer" },
+          "redacted": { "type": "integer" },
+          "kinds": { "type": "object", "additionalProperties": { "type": "integer" } },
+          "detectors": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "ProtectResponse": {
+        "type": "object",
+        "required": ["session_id", "replacements", "intent", "summary"],
+        "properties": {
+          "session_id": { "type": "string" },
+          "text": { "type": "string" },
+          "json": {},
+          "replacements": { "type": "integer" },
+          "kinds": { "type": "array", "items": { "type": "string" }, "description": "Kinds replaced in this call (text only)" },
+          "intent": { "type": "string", "enum": ["act", "report", "code", "converse"] },
+          "summary": { "$ref": "#/components/schemas/SessionSummary" }
+        }
+      },
+      "RestoreRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Send exactly one of text and json.",
+        "properties": {
+          "text": { "type": "string" },
+          "json": {},
+          "session_id": { "type": "string", "description": "Needed to restore typed tokens; fakes restore without it" }
+        }
+      },
+      "RestoreResponse": {
+        "type": "object",
+        "required": ["restored"],
+        "properties": { "text": { "type": "string" }, "json": {}, "restored": { "type": "integer" } }
+      }
+    }
+  }
+}

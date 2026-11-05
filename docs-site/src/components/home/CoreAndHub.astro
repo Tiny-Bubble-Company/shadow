@@ -1,5 +1,6 @@
 ---
-// Home page: the two products (Core free and open source, Hub for teams), then how teams roll
+// Home page: the three products (Core free and open source, Hub for teams, Connect for other
+// platforms and agents), then how teams roll
 // it out with the key facts. Prices come from src/data/pricing.ts, Hub links from src/data/hub.ts.
 import Section from './Section.astro';
 import InstallCmd from './InstallCmd.astro';
@@ -22,7 +23,7 @@ const facts = [
 ];
 ---
 
-<section id="products" class="hp-sec reveal not-content" aria-label="Shadow Core and Shadow Hub">
+<section id="products" class="hp-sec reveal not-content" aria-label="Shadow Core, Shadow Hub and Shadow Connect">
 	<div class="hp-wrap">
 		<div class="hp-products">
 			<article class="hp-product surface">
@@ -43,6 +44,15 @@ const facts = [
 					your security team: {hub.trial}.
 				</p>
 				<a class="sh-btn sh-btn--primary hp-product__cta" href={LINKS.hub}>See Shadow Hub <span aria-hidden="true">→</span></a>
+			</article>
+			<article class="hp-product surface">
+				<p class="hp-product__kicker">For platforms and agents · API · MCP</p>
+				<h2>Shadow Connect</h2>
+				<p class="hp-product__text">
+					Shadow inside the tools you already use. A self-hosted API and MCP server that mask and restore data for any
+					platform or agent, and an Evidence API that feeds Vanta, Drata, Secureframe and Meridian.
+				</p>
+				<a class="sh-btn sh-btn--fg hp-product__cta" href={LINKS.connect}>See Shadow Connect <span aria-hidden="true">→</span></a>
 			</article>
 		</div>
 	</div>

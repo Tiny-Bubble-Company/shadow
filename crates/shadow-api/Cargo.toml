@@ -1,0 +1,25 @@
+[package]
+name = "shadow-api"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Shadow Connect: Shadow's privacy layer as an HTTP API and MCP server for other platforms and agents."
+repository.workspace = true
+
+[dependencies]
+shadow-core = { path = "../shadow-core" }
+anyhow = "1"
+axum = "0.7"
+rand = "0.8"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+sha2 = "0.10"
+subtle = "2"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+
+[dev-dependencies]
+tempfile = "3"
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"

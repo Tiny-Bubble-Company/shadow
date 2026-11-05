@@ -55,6 +55,16 @@ enum Cmd {
         #[arg(long)]
         listen: Option<String>,
     },
+    /// Serve the Shadow Connect API (scan, protect, restore) and MCP server for other
+    /// platforms and agents.
+    Serve {
+        /// Listen address (default: 127.0.0.1:8878).
+        #[arg(long)]
+        listen: Option<String>,
+        /// Bearer token callers must send. Required on a non-loopback address.
+        #[arg(long, env = "SHADOW_API_TOKEN", hide_env_values = true)]
+        token: Option<String>,
+    },
     /// Install the background service and trust the CA (dry run unless --apply).
     Install(InstallArgs),
     /// Remove the background service and CA trust (dry run unless --apply).
@@ -239,7 +249,7 @@ enum TermsCmd {
 
 fn main() {
     let cli = Cli::parse();
-    let level = if matches!(cli.cmd, Cmd::Run { .. }) {
+    let level = if matches!(cli.cmd, Cmd::Run { .. } | Cmd::Serve { .. }) {
         "info"
     } else {
         "warn"
@@ -296,6 +306,7 @@ fn real_main(cli: Cli) -> anyhow::Result<()> {
             force,
         } => init(&cli, region.clone(), orgs.clone(), *force),
         Cmd::Run { listen } => run(&cli, listen.clone()),
+        Cmd::Serve { listen, token } => serve(&cli, listen.clone(), token.clone()),
         Cmd::Install(a) => install(&cli, a, true),
         Cmd::Uninstall(a) => install(&cli, a, false),
         Cmd::SystemProxy(a) => system_proxy(&cli, a),
@@ -458,6 +469,26 @@ fn init(cli: &Cli, region: Option<String>, orgs: Vec<String>, force: bool) -> an
         ui::bold("echo 'mail jane@acme.com' | shadow mask")
     );
     Ok(())
+}
+
+fn serve(cli: &Cli, listen: Option<String>, token: Option<String>) -> anyhow::Result<()> {
+    let shadow = open(cli)?;
+    let addr = listen.unwrap_or_else(|| shadow_api::DEFAULT_LISTEN.to_string());
+    let token = token.filter(|t| !t.trim().is_empty());
+    let cfg = shadow_api::ApiConfig {
+        token,
+        ..Default::default()
+    };
+    let rt = tokio::runtime::Runtime::new()?;
+    rt.block_on(async move {
+        let listener = tokio::net::TcpListener::bind(&addr)
+            .await
+            .with_context(|| format!("listening on {addr}"))?;
+        tokio::select! {
+            r = shadow_api::serve(listener, shadow, cfg) => r,
+            _ = tokio::signal::ctrl_c() => { eprintln!("\nshutting down"); Ok(()) }
+        }
+    })
 }
 
 fn run(cli: &Cli, listen: Option<String>) -> anyhow::Result<()> {

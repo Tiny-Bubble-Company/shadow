@@ -1,0 +1,68 @@
+---
+title: Bring Shadow's privacy and evidence into the platforms you already use
+seoTitle: "Shadow Connect: privacy API, MCP and AI evidence"
+description: "Shadow Connect exposes Shadow to other platforms and agents: a self-hosted API and MCP server that mask and restore sensitive data, and an evidence API that feeds Vanta, Drata, Secureframe, Meridian and other compliance platforms."
+template: splash
+editUrl: false
+keywords:
+  - pii masking api
+  - llm privacy api
+  - mcp server pii
+  - ai compliance evidence api
+  - vanta ai evidence
+  - drata ai evidence
+  - secureframe ai evidence
+faq:
+  - q: "What is Shadow Connect?"
+    a: "The third Shadow product, next to Core and Hub. Core protects each machine, Hub shows the whole team, and Connect lets other software use both: a Privacy API and MCP server that mask and restore sensitive data, and an Evidence API that sends Hub's results to compliance platforms."
+  - q: "Does the Privacy API send my data to Shadow?"
+    a: "No. You run it yourself with `shadow serve`, next to your application or agent. Real values, the vault and the persona stay on that machine, exactly as with Shadow Core."
+  - q: "Which compliance platforms does it work with?"
+    a: "Meridian natively. Vanta, Drata, Secureframe, Sprinto, Thoropass and Hyperproof through their custom-evidence features, and anything else through the Evidence API or a scheduled CSV. See [compliance platforms](/shadow/connect/compliance-platforms/)."
+  - q: "Does the Evidence API expose prompts or personal data?"
+    a: "No. It returns counts, statuses and summaries: how many values were masked, which AI services are in use, how many machines are covered. Prompts and original values are never part of it, whatever sharing level your organisation uses."
+  - q: "How much does it cost?"
+    a: "The Privacy API and MCP server are part of open-source Shadow Core (Apache-2.0) and free. The Evidence API is included in every Shadow Hub plan."
+---
+
+import SectionIndex from '../../../components/SectionIndex.astro';
+
+**Shadow Connect lets other platforms and agents use Shadow. It has two halves: a self-hosted Privacy API and MCP server that mask sensitive data before it reaches an AI service and restore it in the answer, and an Evidence API that turns Shadow Hub's results into evidence for compliance platforms such as Vanta, Drata, Secureframe and Meridian.**
+
+## Three products, one layer
+
+| | Shadow Core | Shadow Hub | Shadow Connect |
+|---|---|---|---|
+| **For** | Each laptop and server | The security team | Other platforms and agents |
+| **Does** | Masks sensitive data before it reaches AI, restores it in the answer | Shows what was protected, by person, machine, app and AI service | Exposes Core's privacy layer as an API and MCP server, and Hub's results as compliance evidence |
+| **Runs** | On the machine | Hosted at hub.getshadow.dev | Privacy API: on your side. Evidence API: in Hub |
+| **Price** | Free, Apache-2.0 | Free up to 3 users, then per user | Privacy API free; Evidence API in every Hub plan |
+
+## Privacy API and MCP server
+
+For AI platforms, agent builders and internal tools that send text to models. Run `shadow serve` next to your service and call it before each model call:
+
+```sh
+shadow serve                     # http://127.0.0.1:8878
+curl -s localhost:8878/v1/protect -H 'content-type: application/json' \
+  -d '{"text": "Draft a reply to Maria Lopez (maria.lopez@chatgpt.com)"}'
+```
+
+Shadow returns the text with consistent fakes and a `session_id`; send the masked text to any model, then call `/v1/restore` on the answer. Agents can use the same operations as MCP tools at `/mcp`.
+
+- [Privacy API reference](/shadow/connect/privacy-api/): scan, protect, restore, sessions, auth, OpenAPI.
+- [MCP server](/shadow/connect/mcp/): connect an agent in one line.
+
+If your tool can change its base URL, you may not need the API at all: [gateway mode](/shadow/integrate/gateway-mode/) protects OpenAI-, Anthropic- and Gemini-compatible traffic with no code.
+
+## Evidence API
+
+For compliance platforms and GRC teams. Shadow Hub already knows which AI services your people use, what was masked or blocked, and which machines are covered. The Evidence API serves that as seven controls (SHD-01 to SHD-07) mapped to SOC 2, ISO/IEC 27001, ISO/IEC 42001, the EU AI Act, GDPR and HIPAA, with a status and a one-line summary each. Counts only: never prompts or values.
+
+- [Evidence API reference](/shadow/connect/evidence-api/): keys, endpoints, the evidence pack and control mappings.
+- [Compliance platforms](/shadow/connect/compliance-platforms/): step-by-step paths for Vanta, Drata, Secureframe, Sprinto, Thoropass, Hyperproof and Meridian.
+- [Meridian](/shadow/connect/meridian/): Shadow is built into Meridian for privacy and evidence by default.
+
+## All Connect pages
+
+<SectionIndex dir="connect" />
