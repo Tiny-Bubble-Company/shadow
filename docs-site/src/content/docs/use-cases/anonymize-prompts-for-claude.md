@@ -161,6 +161,7 @@ When Claude answers with a `tool_use` block, its `input` contains the fakes it s
 
 ## Related
 
+- [Private ChatGPT: how to use AI without sharing your data](/shadow/guides/private-chatgpt/)
 - [Redact PII before sending to the OpenAI API](/shadow/use-cases/redact-pii-before-sending-to-openai-api/)
 - [GDPR-compliant LLM usage](/shadow/use-cases/gdpr-compliant-llm-usage/)
 - [Gateway mode](/shadow/integrate/gateway-mode/), [Proxy mode](/shadow/integrate/proxy-mode/), [Supported providers](/shadow/reference/providers/)

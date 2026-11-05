@@ -112,6 +112,7 @@ This guide describes risks and technical controls. It does not make your AI use 
 
 ## Related
 
+- [Private ChatGPT: how to use AI without sharing your data](/shadow/guides/private-chatgpt/)
 - [Is ChatGPT safe for company data?](/shadow/guides/is-chatgpt-safe-for-company-data/)
 - [Free AI acceptable use policy template](/shadow/guides/ai-acceptable-use-policy-template/)
 - [How to stop employees pasting customer data into ChatGPT](/shadow/use-cases/stop-pii-leaks-to-chatgpt/)

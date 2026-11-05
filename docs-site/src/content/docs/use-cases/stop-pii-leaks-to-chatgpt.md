@@ -146,6 +146,7 @@ There is no central admin console or fleet management yet, and an optional local
 
 ## Related
 
+- [Private ChatGPT: how to use AI without sharing your data](/shadow/guides/private-chatgpt/)
 - [Is ChatGPT safe for company data?](/shadow/guides/is-chatgpt-safe-for-company-data/): what happens to prompts on each plan
 - [Shadow AI governance](/shadow/use-cases/shadow-ai-governance/): unsanctioned AI tools and what to do about them
 - [Privacy for AI in customer support](/shadow/use-cases/privacy-for-ai-in-customer-support/)
