@@ -245,11 +245,18 @@ const structuredData = {
 <style>
 	:root {
 		--research-max-width: 42rem;
-		--research-wide-width: 54rem;
+		--research-wide-width: 56rem;
 		/* WCAG AA compliant text colors for research articles */
 		--research-body: oklch(88% 0.008 285); /* ~5:1 contrast on dark bg */
 		--research-secondary: oklch(82% 0.01 285); /* ~4.5:1 for secondary */
 		--research-heading: oklch(96% 0.006 285); /* high contrast headings */
+	}
+
+	/* Ensure Geist font is applied throughout (matches homepage) */
+	body {
+		font-family: var(--sl-font);
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
 	}
 
 	.skip-link {
@@ -325,22 +332,24 @@ const structuredData = {
 		padding: 4rem 0 3rem;
 		border-bottom: 1px solid var(--sh-border);
 		margin-bottom: 3rem;
+		text-align: center;
 	}
 
 	@media (min-width: 50rem) {
 		.research-hero {
-			padding: 5rem 0 3.5rem;
+			padding: 5rem 0 4rem;
 		}
 	}
 
 	.research-breadcrumb ol {
 		display: flex;
+		justify-content: center;
 		gap: 0.5rem;
 		list-style: none;
 		padding: 0;
 		margin: 0 0 1.5rem;
-		font-size: 0.8125rem;
-		color: var(--sh-muted);
+		font-size: 0.875rem;
+		color: var(--research-secondary);
 	}
 
 	.research-breadcrumb li:not(:last-child)::after {
@@ -371,28 +380,32 @@ const structuredData = {
 	}
 
 	.research-title {
-		margin: 0 0 1rem;
-		font-size: clamp(1.75rem, 5vw, 2.5rem);
+		max-width: 52rem;
+		margin: 0 auto 1.25rem;
+		font-family: var(--sl-font);
+		font-size: clamp(2.25rem, 1.6rem + 3vw, 3.5rem);
 		font-weight: 500;
-		line-height: 1.15;
+		line-height: 1.1;
 		letter-spacing: -0.035em;
 		color: var(--sh-text);
 	}
 
 	.research-dek {
-		margin: 0 0 1.75rem;
-		font-size: 1.25rem;
-		line-height: 1.65;
-		color: var(--research-secondary);
 		max-width: var(--research-max-width);
+		margin: 0 auto 2rem;
+		font-family: var(--sl-font);
+		font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+		line-height: 1.6;
+		color: var(--research-secondary);
 	}
 
 	.research-meta {
 		display: flex;
 		flex-wrap: wrap;
+		justify-content: center;
 		align-items: center;
 		gap: 0.625rem;
-		font-size: 0.9375rem;
+		font-size: 1rem;
 		color: var(--research-secondary);
 	}
 
@@ -408,6 +421,7 @@ const structuredData = {
 	.research-topics {
 		display: flex;
 		flex-wrap: wrap;
+		justify-content: center;
 		gap: 0.5rem;
 		list-style: none;
 		padding: 0;
@@ -442,9 +456,11 @@ const structuredData = {
 
 	.research-content {
 		max-width: var(--research-max-width);
+		font-family: var(--sl-font);
 		font-size: 1.125rem;
 		line-height: 1.75;
 		color: var(--research-body);
+		text-align: left;
 	}
 
 	.research-content :global(h2) {
