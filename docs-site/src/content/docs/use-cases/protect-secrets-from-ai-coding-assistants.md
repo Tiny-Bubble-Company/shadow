@@ -147,6 +147,7 @@ Shadow classifies requests that contain source code, diffs, stack traces or conf
 
 ## Related
 
+- [Does Cursor train on my code?](/shadow/guides/does-cursor-train-on-my-code/)
 - [Anonymise prompts for Claude](/shadow/use-cases/anonymize-prompts-for-claude/)
 - [Mask PII in LLM agents and tool calls](/shadow/use-cases/mask-pii-in-llm-agents-and-tool-calls/)
 - [SaaS and technology](/shadow/industries/saas-technology/), [solo developers and freelancers](/shadow/company-size/solo-developers-freelancers/)

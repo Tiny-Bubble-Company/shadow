@@ -160,6 +160,7 @@ ChatGPT writes a polite reply about Yuki Tanaka. Shadow restores the real names 
 ## Related
 
 - [Is ChatGPT safe for company data?](/shadow/guides/is-chatgpt-safe-for-company-data/)
+- [Does Cursor train on my code?](/shadow/guides/does-cursor-train-on-my-code/)
 - [What is an LLM proxy?](/shadow/guides/what-is-an-llm-proxy/)
 - [GDPR-compliant LLM usage](/shadow/use-cases/gdpr-compliant-llm-usage/)
 - [How to stop employees pasting customer data into ChatGPT](/shadow/use-cases/stop-pii-leaks-to-chatgpt/)
