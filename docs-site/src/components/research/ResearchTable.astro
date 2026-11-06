@@ -35,15 +35,16 @@ const { headers, rows, caption, footer } = Astro.props;
 
 <style>
 	.research-table-wrap {
-		margin: 2rem 0;
+		margin: 2.5rem 0;
 		max-width: 100%;
 	}
 
 	.research-table-caption {
-		margin-bottom: 0.75rem;
-		font-size: 0.9375rem;
-		font-weight: 500;
-		color: var(--sh-text);
+		margin-bottom: 1rem;
+		font-size: 1.125rem;
+		font-weight: 600;
+		color: oklch(96% 0.006 285);
+		letter-spacing: -0.01em;
 	}
 
 	.research-table-scroll {
@@ -57,33 +58,38 @@ const { headers, rows, caption, footer } = Astro.props;
 	.research-table {
 		width: 100%;
 		border-collapse: collapse;
-		font-size: 0.9375rem;
-		line-height: 1.5;
+		font-size: 1rem;
+		line-height: 1.65;
 	}
 
 	.research-table th,
 	.research-table td {
-		padding: 0.75rem 1rem;
+		padding: 1rem 1.25rem;
 		text-align: left;
 		vertical-align: top;
 		border-bottom: 1px solid var(--sh-border);
 	}
 
+	.research-table thead {
+		background: var(--sh-raised);
+	}
+
 	.research-table thead th {
-		font-size: 0.75rem;
-		font-weight: 500;
-		color: var(--sh-muted);
-		letter-spacing: -0.003em;
-		background: transparent;
+		font-size: 0.875rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: oklch(96% 0.006 285);
+		border-bottom: 2px solid var(--sh-border-strong);
 	}
 
 	.research-table tbody th {
-		font-weight: 500;
-		color: var(--sh-text);
+		font-weight: 600;
+		color: oklch(96% 0.006 285);
 	}
 
 	.research-table tbody td {
-		color: var(--sl-color-gray-2);
+		color: oklch(88% 0.008 285);
 	}
 
 	.research-table tbody tr:last-child th,
@@ -98,20 +104,35 @@ const { headers, rows, caption, footer } = Astro.props;
 
 	.research-table :global(strong) {
 		font-weight: 600;
-		color: var(--sh-text);
+		color: oklch(96% 0.006 285);
 	}
 
 	.research-table-footer {
-		margin: 0.75rem 0 0;
-		font-size: 0.8125rem;
-		color: var(--sh-muted);
+		margin: 1rem 0 0;
+		font-size: 0.9375rem;
+		line-height: 1.6;
+		color: oklch(82% 0.01 285);
 	}
 
 	@media (max-width: 40rem) {
+		.research-table {
+			font-size: 0.9375rem;
+		}
+
 		.research-table th,
 		.research-table td {
-			padding: 0.625rem 0.75rem;
-			font-size: 0.875rem;
+			padding: 0.875rem 1rem;
+		}
+
+		/* Prevent text from becoming tiny on mobile */
+		.research-table thead th {
+			font-size: 0.8125rem;
+			white-space: nowrap;
+		}
+
+		/* First column readable width on mobile */
+		.research-table tbody th:first-child {
+			min-width: 140px;
 		}
 	}
 </style>

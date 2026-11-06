@@ -17,20 +17,20 @@ const { findings, title = 'Key findings' } = Astro.props;
 
 <style>
 	.research-highlights-box {
-		padding: 1.5rem;
+		padding: 1.75rem 2rem;
 		background: var(--sh-panel);
 		border: 1px solid var(--sh-border);
-		border-left: 3px solid var(--sh-accent);
+		border-left: 4px solid var(--sh-accent);
 		border-radius: 0 var(--sh-radius) var(--sh-radius) 0;
 	}
 
 	.research-highlights-title {
-		margin: 0 0 1rem;
-		font-size: 0.875rem;
+		margin: 0 0 1.25rem;
+		font-size: 0.9375rem;
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
-		color: var(--sh-muted);
+		color: oklch(96% 0.006 285);
 	}
 
 	.research-highlights-list {
@@ -38,29 +38,30 @@ const { findings, title = 'Key findings' } = Astro.props;
 		padding: 0;
 		list-style: none;
 		display: grid;
-		gap: 0.625rem;
+		gap: 0.875rem;
 	}
 
 	.research-highlights-list li {
 		position: relative;
-		padding-left: 1.25rem;
-		font-size: 0.9375rem;
-		line-height: 1.5;
-		color: var(--sh-text);
+		padding-left: 1.5rem;
+		font-size: 1.0625rem;
+		line-height: 1.6;
+		color: oklch(88% 0.008 285);
 	}
 
 	.research-highlights-list li::before {
 		content: '';
 		position: absolute;
 		left: 0;
-		top: 0.5rem;
-		width: 6px;
-		height: 6px;
+		top: 0.55rem;
+		width: 7px;
+		height: 7px;
 		background: var(--sh-accent);
 		border-radius: 50%;
 	}
 
 	.research-highlights-list :global(strong) {
 		font-weight: 600;
+		color: oklch(96% 0.006 285);
 	}
 </style>

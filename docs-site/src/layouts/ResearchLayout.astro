@@ -246,6 +246,10 @@ const structuredData = {
 	:root {
 		--research-max-width: 42rem;
 		--research-wide-width: 54rem;
+		/* WCAG AA compliant text colors for research articles */
+		--research-body: oklch(88% 0.008 285); /* ~5:1 contrast on dark bg */
+		--research-secondary: oklch(82% 0.01 285); /* ~4.5:1 for secondary */
+		--research-heading: oklch(96% 0.006 285); /* high contrast headings */
 	}
 
 	.skip-link {
@@ -376,10 +380,10 @@ const structuredData = {
 	}
 
 	.research-dek {
-		margin: 0 0 1.5rem;
-		font-size: 1.125rem;
-		line-height: 1.6;
-		color: var(--sh-muted);
+		margin: 0 0 1.75rem;
+		font-size: 1.25rem;
+		line-height: 1.65;
+		color: var(--research-secondary);
 		max-width: var(--research-max-width);
 	}
 
@@ -387,18 +391,18 @@ const structuredData = {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.5rem;
-		font-size: 0.875rem;
-		color: var(--sh-muted);
+		gap: 0.625rem;
+		font-size: 0.9375rem;
+		color: var(--research-secondary);
 	}
 
 	.research-meta__author {
-		font-weight: 500;
-		color: var(--sh-text);
+		font-weight: 600;
+		color: var(--research-heading);
 	}
 
 	.research-meta__sep {
-		color: var(--sh-faint);
+		color: oklch(60% 0.015 285);
 	}
 
 	.research-topics {
@@ -438,46 +442,59 @@ const structuredData = {
 
 	.research-content {
 		max-width: var(--research-max-width);
-		font-size: 1.0625rem;
-		line-height: 1.7;
+		font-size: 1.125rem;
+		line-height: 1.75;
+		color: var(--research-body);
 	}
 
 	.research-content :global(h2) {
 		margin-top: 3rem;
-		margin-bottom: 1rem;
-		font-size: 1.5rem;
-		font-weight: 500;
+		margin-bottom: 1.25rem;
+		font-size: 1.625rem;
+		font-weight: 600;
 		letter-spacing: -0.025em;
+		color: var(--research-heading);
 	}
 
 	.research-content :global(h3) {
-		margin-top: 2rem;
-		margin-bottom: 0.75rem;
-		font-size: 1.125rem;
+		margin-top: 2.5rem;
+		margin-bottom: 1rem;
+		font-size: 1.25rem;
 		font-weight: 600;
 		letter-spacing: -0.015em;
+		color: var(--research-heading);
+	}
+
+	.research-content :global(h4) {
+		margin-top: 2rem;
+		margin-bottom: 0.75rem;
+		font-size: 1.0625rem;
+		font-weight: 600;
+		color: var(--research-heading);
 	}
 
 	.research-content :global(p) {
-		margin-bottom: 1.25rem;
-		color: var(--sl-color-gray-2);
+		margin-bottom: 1.5rem;
+		color: var(--research-body);
 	}
 
 	.research-content :global(ul),
 	.research-content :global(ol) {
-		margin-bottom: 1.25rem;
-		padding-left: 1.25rem;
+		margin-bottom: 1.5rem;
+		padding-left: 1.5rem;
 	}
 
 	.research-content :global(li) {
-		margin-bottom: 0.5rem;
-		color: var(--sl-color-gray-2);
+		margin-bottom: 0.625rem;
+		color: var(--research-body);
+		line-height: 1.7;
 	}
 
 	.research-content :global(a) {
 		color: var(--sh-accent-text);
-		text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+		text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
 		text-underline-offset: 0.2em;
+		transition: text-decoration-color var(--sh-ease);
 	}
 
 	.research-content :global(a:hover) {
@@ -486,49 +503,130 @@ const structuredData = {
 
 	.research-content :global(strong) {
 		font-weight: 600;
-		color: var(--sh-text);
+		color: var(--research-heading);
 	}
 
 	.research-content :global(code:not(pre code)) {
 		background: var(--sh-raised);
 		border: 1px solid var(--sh-border);
 		border-radius: 4px;
-		padding: 0.1em 0.35em;
-		font-size: 0.875em;
+		padding: 0.15em 0.4em;
+		font-size: 0.9em;
+		color: var(--research-heading);
 	}
 
 	.research-content :global(pre) {
-		margin: 1.5rem 0;
-		padding: 1rem 1.25rem;
+		margin: 2rem 0;
+		padding: 1.25rem 1.5rem;
 		background: var(--sh-panel);
 		border: 1px solid var(--sh-border);
 		border-radius: 8px;
 		overflow-x: auto;
-		font-size: 0.875rem;
-		line-height: 1.6;
+		font-size: 0.9375rem;
+		line-height: 1.65;
 	}
 
 	.research-content :global(hr) {
-		margin: 3rem 0;
+		margin: 3.5rem 0;
 		border: none;
 		border-top: 1px solid var(--sh-border);
 	}
 
 	.research-content :global(blockquote) {
-		margin: 1.5rem 0;
-		padding: 1rem 1.25rem;
+		margin: 2rem 0;
+		padding: 1.25rem 1.5rem;
 		background: var(--sh-panel);
 		border-left: 3px solid var(--sh-accent);
 		border-radius: 0 8px 8px 0;
+	}
+
+	.research-content :global(blockquote p) {
+		color: var(--research-secondary);
 	}
 
 	.research-content :global(blockquote p:last-child) {
 		margin-bottom: 0;
 	}
 
+	/* Research tables: high contrast, readable, responsive */
+	.research-content :global(table) {
+		width: 100%;
+		margin: 2rem 0;
+		border-collapse: separate;
+		border-spacing: 0;
+		border: 1px solid var(--sh-border);
+		border-radius: var(--sh-radius);
+		background: var(--sh-panel);
+		font-size: 1rem;
+		line-height: 1.6;
+		overflow: hidden;
+	}
+
+	.research-content :global(thead) {
+		background: var(--sh-raised);
+	}
+
+	.research-content :global(thead th) {
+		padding: 1rem 1.25rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--research-heading);
+		text-align: left;
+		border-bottom: 2px solid var(--sh-border-strong);
+	}
+
+	.research-content :global(tbody td),
+	.research-content :global(tbody th) {
+		padding: 1rem 1.25rem;
+		color: var(--research-body);
+		vertical-align: top;
+		border-bottom: 1px solid var(--sh-border);
+	}
+
+	.research-content :global(tbody th) {
+		font-weight: 600;
+		color: var(--research-heading);
+	}
+
+	.research-content :global(tbody tr:last-child td),
+	.research-content :global(tbody tr:last-child th) {
+		border-bottom: 0;
+	}
+
+	.research-content :global(tbody tr:hover td),
+	.research-content :global(tbody tr:hover th) {
+		background: var(--sh-hover);
+	}
+
+	/* Mobile table: scrollable with visible scroll hint */
+	@media (max-width: 40rem) {
+		.research-content :global(table) {
+			display: block;
+			overflow-x: auto;
+			-webkit-overflow-scrolling: touch;
+			font-size: 0.9375rem;
+		}
+
+		.research-content :global(thead th),
+		.research-content :global(tbody td),
+		.research-content :global(tbody th) {
+			padding: 0.875rem 1rem;
+			white-space: nowrap;
+		}
+
+		/* First column stays readable width */
+		.research-content :global(tbody th:first-child),
+		.research-content :global(tbody td:first-child) {
+			white-space: normal;
+			min-width: 140px;
+		}
+	}
+
 	.research-methodology {
-		margin: 3rem 0;
-		padding: 1.5rem;
+		margin: 3.5rem 0;
+		padding: 1.75rem 2rem;
 		background: var(--sh-panel);
 		border: 1px solid var(--sh-border);
 		border-radius: var(--sh-radius);
@@ -536,17 +634,17 @@ const structuredData = {
 	}
 
 	.research-methodology h2 {
-		margin: 0 0 1rem;
-		font-size: 1.125rem;
+		margin: 0 0 1.25rem;
+		font-size: 1.25rem;
 		font-weight: 600;
-		color: var(--sh-text);
+		color: var(--research-heading);
 	}
 
 	.research-methodology :global(p) {
-		margin: 0 0 0.75rem;
-		font-size: 0.9375rem;
-		line-height: 1.6;
-		color: var(--sh-muted);
+		margin: 0 0 1rem;
+		font-size: 1rem;
+		line-height: 1.7;
+		color: var(--research-secondary);
 	}
 
 	.research-methodology :global(p:last-child) {
@@ -554,18 +652,20 @@ const structuredData = {
 	}
 
 	.research-methodology :global(strong) {
-		color: var(--sh-text);
+		font-weight: 600;
+		color: var(--research-heading);
 	}
 
 	.research-methodology :global(ul) {
-		margin: 0.75rem 0;
-		padding-left: 1.25rem;
+		margin: 1rem 0;
+		padding-left: 1.5rem;
 	}
 
 	.research-methodology :global(li) {
-		margin-bottom: 0.35rem;
-		font-size: 0.9375rem;
-		color: var(--sh-muted);
+		margin-bottom: 0.5rem;
+		font-size: 1rem;
+		line-height: 1.65;
+		color: var(--research-secondary);
 	}
 
 	.research-cta {

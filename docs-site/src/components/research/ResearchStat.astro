@@ -17,7 +17,7 @@ const { value, label, description } = Astro.props;
 
 <style>
 	.research-stat {
-		padding: 1.5rem;
+		padding: 1.75rem 2rem;
 		background: var(--sh-panel);
 		border: 1px solid var(--sh-border);
 		border-radius: var(--sh-radius);
@@ -26,7 +26,7 @@ const { value, label, description } = Astro.props;
 
 	.research-stat__value {
 		margin: 0;
-		font-size: 2.5rem;
+		font-size: 2.75rem;
 		font-weight: 500;
 		letter-spacing: -0.03em;
 		line-height: 1.1;
@@ -34,15 +34,16 @@ const { value, label, description } = Astro.props;
 	}
 
 	.research-stat__label {
-		margin: 0.5rem 0 0;
-		font-size: 0.9375rem;
-		font-weight: 500;
-		color: var(--sh-text);
+		margin: 0.75rem 0 0;
+		font-size: 1rem;
+		font-weight: 600;
+		color: oklch(96% 0.006 285);
 	}
 
 	.research-stat__desc {
-		margin: 0.5rem 0 0;
-		font-size: 0.8125rem;
-		color: var(--sh-muted);
+		margin: 0.625rem 0 0;
+		font-size: 0.9375rem;
+		line-height: 1.55;
+		color: oklch(82% 0.01 285);
 	}
 </style>

@@ -92,9 +92,12 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 		</ul>
 	</nav>
 
-	<div class="sh-header__search print:hidden">
-		<Search />
-	</div>
+	{/* Search only on docs pages (with sidebar), not on marketing/research pages */}
+	{hasSidebar && (
+		<div class="sh-header__search print:hidden">
+			<Search />
+		</div>
+	)}
 
 	<div class="sh-header__right print:hidden">
 		<a class="sh-gh" href={REPO_URL} rel="noopener">
