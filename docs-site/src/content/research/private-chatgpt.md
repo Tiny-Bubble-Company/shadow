@@ -1,13 +1,13 @@
 ---
-title: "Private ChatGPT: How to Use AI Without Sharing Your Data"
-seoTitle: "Private ChatGPT: How to Use AI Without Sharing Your Data"
+title: "Private ChatGPT: how to use AI without sharing your data"
+seoTitle: "Private ChatGPT: use AI without sharing your data"
 description: "A private ChatGPT keeps prompts out of training data and away from the provider. Compare settings, enterprise plans, self-hosted models and privacy proxies."
 publishedDate: 2026-09-20
 updatedDate: 2026-11-06
 topics:
   - AI Privacy
   - Enterprise AI
-  - ChatGPT
+  - Privacy Controls
 author: Shadow Research Team
 readingTime: 12
 keywords:
@@ -53,21 +53,21 @@ People searching for a private ChatGPT usually want one or more of these:
 3. **No access.** No one at the provider can read the prompts.
 4. **Data stays local.** Nothing sensitive ever leaves your network.
 
-No cloud AI service offers all four, because even zero-retention APIs log something for abuse monitoring and safety review. The practical question is how much risk you accept, and for which data.
+No cloud AI service offers all four: the provider has to process the prompt to answer it, and even zero-retention terms leave room for safety screening. The practical question is how much risk you accept, and for which data.
 
-## Your options
+## What are the options for a private ChatGPT?
 
 ### 1. Consumer ChatGPT with training turned off
 
 On personal Free, Plus and Pro accounts, you can disable "Improve the model for everyone" in Settings, Data controls. You can also use temporary chats, which are not saved to history and not used for training.
 
-**Pros:** Free or cheap, no setup, the full GPT-4o model.
+**Pros:** Free or cheap, no setup, the same models.
 
-**Cons:** Settings can change. Users have reported the training toggle being silently re-enabled after product updates, including reports around Codex in 2025 and Gemini personal accounts training on saved chats. Even with training off, prompts are still sent to OpenAI and retained for up to 30 days for abuse monitoring. The company cannot see or delete what employees send from personal accounts. This is not suitable for customer data, credentials or regulated information.
+**Cons:** It is a per-user setting the company cannot enforce or check. Even with training off, prompts are still sent to OpenAI and kept in the user's history until deleted; temporary chats are kept for up to 30 days for safety. Separate tools have separate controls (Codex, for example, has its own training setting). The company cannot see or delete what employees send from personal accounts, so this is not suitable for customer data, credentials or regulated information.
 
-### 2. ChatGPT Team/Enterprise or Claude Team/Enterprise
+### 2. ChatGPT Business or Enterprise, Claude Team or Enterprise
 
-Business plans from OpenAI and Anthropic come with zero-data-retention (ZDR) agreements, admin controls, SSO and SOC 2 attestations. The OpenAI API and Anthropic API also offer ZDR for eligible use cases.
+Business plans from OpenAI and Anthropic do not train on your data by default and add admin-controlled retention, SSO, a data processing agreement and SOC 2 reports. Zero data retention (ZDR) is not automatic: OpenAI and Anthropic offer it for eligible API use cases by agreement.
 
 **Pros:** Prompts are not used for training by default, retention is admin-controlled, and you have a contract and a DPA.
 
@@ -85,28 +85,28 @@ Run Llama, Mistral, Qwen, DeepSeek or another open-weight model on your own hard
 
 A privacy proxy sits between your apps and the AI provider, detects personal data and secrets in prompts, replaces them with realistic fakes, and restores the real values in the response. You keep using frontier models, and the provider sees a prompt about fictional people.
 
-**Pros:** Full model quality. Works with ChatGPT, Claude, Gemini and coding assistants. Data is masked on your machine, not a third-party server. Streaming and tool calls are supported.
+**Pros:** Full model quality. Works with ChatGPT, Claude and Gemini in the browser, AI APIs and most coding agents (not Cursor, whose protocol it cannot read). Data is masked on your machine, not a third-party server. Streaming and tool calls are supported.
 
 **Cons:** Detection is best effort: unusual names or formats can be missed. The proxy adds a small amount of latency. You need to install and configure it.
 
 [Shadow](/shadow/) is an open-source (Apache-2.0) privacy proxy that does exactly this. It runs on `127.0.0.1:8877`, masks prompts to [288 AI services](/shadow/reference/providers/), and restores the real values in answers, including streamed text and tool calls.
 
-## Comparison table
+## How do the options compare?
 
 | Approach | Data leaves your network? | Provider sees real PII? | Model quality | Setup effort | Cost |
 |---|---|---|---|---|---|
 | Consumer ChatGPT, training off | Yes | Yes | Frontier | None | Free or subscription |
-| ChatGPT Enterprise / API ZDR | Yes | Yes (under contract) | Frontier | Procurement | Per seat or token |
+| ChatGPT Business or Enterprise, API with ZDR | Yes | Yes (under contract) | Frontier | Procurement | Per seat or token |
 | Self-hosted (Ollama/vLLM) | No | No | Open-weight, weaker | Medium-high | Hardware |
 | Privacy proxy (Shadow) | Yes, masked | No (fakes only) | Frontier | Low | Free (Shadow Core) |
 
-## How to set up a private ChatGPT for your team in an afternoon
+## How do you set up a private ChatGPT for a team?
 
 ### Step 1: Pick a sanctioned tool
 
 Decide which AI tools your team may use. Options include:
 
-- ChatGPT Business or Enterprise (prompts reach OpenAI under a DPA)
+- ChatGPT Business or Enterprise (prompts reach OpenAI under a data processing agreement)
 - The OpenAI or Anthropic API via an internal chat UI
 - ChatGPT, Claude.ai or Gemini in a browser, with Shadow's [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) masking prompts
 - A self-hosted model for the most sensitive work
@@ -137,7 +137,7 @@ For API-based tools, point them at Shadow's [gateway](/shadow/integrate/gateway-
 
 ### Step 4: Get visibility with Shadow Hub
 
-[Shadow Hub](/shadow/hub/) shows which AI tools your team uses and what Shadow masked or blocked, per user and per tool, without collecting prompt text by default. It is free for up to 3 users, then $3 per user per month up to 500 users. See [Pricing](/shadow/pricing/).
+[Shadow Hub](/shadow/hub/) shows which AI tools your team uses and what Shadow masked or blocked, per user and per tool, at the [sharing level](/shadow/trust/) your organisation chooses, down to counts only. It is free for up to 3 users, then $3 per user per month. See [Pricing](/shadow/pricing/).
 
 Connect a laptop to Hub with one command from your invite link:
 
@@ -145,7 +145,7 @@ Connect a laptop to Hub with one command from your invite link:
 curl -fsSL https://hub.getshadow.dev/core/install.sh | SHADOW_ENROLL='<invite-link>' sh
 ```
 
-## Example: before and after masking
+## What does ChatGPT see after masking?
 
 What you type into ChatGPT:
 
@@ -165,7 +165,7 @@ support promised a refund.
 
 ChatGPT writes a polite reply about Yuki Tanaka. Shadow restores the real names and details in the answer you see, so the reply addresses Jane Doe at her real address. The order number passed through because it is not a detected format; add such references as [terms](/shadow/concepts/detection/#custom-terms) if they matter.
 
-## Limits to be honest about
+## What are the limits?
 
 - **Detection is best effort.** Unusual names, internal ID formats and context that uniquely identifies a person can be missed. Test with `shadow scan`.
 - **Dates are not masked.** A date of birth combined with other context can identify someone.

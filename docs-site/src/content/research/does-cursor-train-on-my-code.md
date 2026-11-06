@@ -1,156 +1,110 @@
 ---
-title: "Does Cursor Train on My Code? Privacy, Data Retention and Residual Risks"
-seoTitle: "Does Cursor train on my code?"
-description: "Cursor does not train on your code by default, but prompts, file context and terminal output still reach model providers. What leaves, and how to mask it."
+title: "Does Cursor train on my code? Privacy Mode, retention and what still leaves"
+seoTitle: "Does Cursor train on my code? Privacy Mode explained"
+description: "Only if Privacy Mode is off. With it on, Cursor and its model providers do not train on your code, but every prompt still goes through Cursor's servers."
 publishedDate: 2026-10-15
 updatedDate: 2026-11-06
 topics:
   - AI Coding Tools
   - Privacy Controls
-  - Developer Security
+  - Developer Tools
 author: Shadow Research Team
-readingTime: 10
+readingTime: 7
 keywords:
   - does cursor train on my code
-  - cursor privacy
-  - cursor ai data privacy
+  - cursor privacy mode
+  - cursor data retention
   - is cursor safe for company code
   - cursor enterprise privacy
-  - cursor privacy mode
   - ai coding assistant privacy
-  - cursor data retention
 faq:
   - q: "Does Cursor train on my code?"
-    a: "No. Cursor states it does not train models on your code by default. Enabling Privacy Mode adds a contractual guarantee that your data is never used for training. Enterprise plans include the same guarantee and additional controls such as zero-data-retention (ZDR) with providers."
-  - q: "Is Cursor safe for company code?"
-    a: "That depends on your risk tolerance. Cursor does not train on code, but prompts, file snippets, terminal output and any secrets in your workspace still reach model providers such as OpenAI or Anthropic over the internet. For regulated or highly sensitive code, combine Privacy Mode with a local masking proxy that removes secrets and identifiers before they leave."
-  - q: "What is Cursor Privacy Mode?"
-    a: "A setting in Cursor's preferences that makes code and prompts ineligible for training and restricts their use to providing the service. It does not stop data from leaving your machine; it is a contractual commitment about how that data is handled."
-  - q: "Does Cursor send my code to OpenAI or Anthropic?"
-    a: "Yes. When you use a model like GPT-4 or Claude in Cursor, your prompts and any file context the agent reads are sent to the provider's API. Cursor routes the traffic, but the provider's servers process it. Privacy Mode and enterprise ZDR terms control retention and training, not transmission."
+    a: "Only when Privacy Mode is off. Cursor's data-use page says that with Privacy Mode off it may use and store codebase data, prompts and code snippets to improve its AI features and train its models. With Privacy Mode on, Cursor does not train on your code and its model providers keep no data under zero-data-retention agreements."
+  - q: "Is Cursor Privacy Mode on by default?"
+    a: "For Teams and Enterprise plans, yes: Cursor enables it for every member. Individual Free and Pro users choose it in Settings, so check that it is on."
+  - q: "Does Privacy Mode stop my code leaving my machine?"
+    a: "No. Privacy Mode is a promise about training and retention, not about transmission. Prompts, open files, codebase context and terminal output still travel to Cursor's servers and on to model providers such as OpenAI and Anthropic."
+  - q: "Does using my own OpenAI or Anthropic API key keep data away from Cursor?"
+    a: "No. Cursor says requests still go through its backend, where the final prompt is built, even with your own key. Cursor also notes that its zero-data-retention agreements do not apply when you use your own API keys."
+  - q: "Can Shadow mask what Cursor sends?"
+    a: "Not today. Cursor talks to its backend in a binary protocol that Shadow cannot rewrite, so Shadow recognises Cursor's traffic and shows it as seen, not protected. Shadow masks Claude Code, Codex CLI, Gemini CLI, GitHub Copilot, Aider, Cline, Continue and any tool that calls a model API directly."
   - q: "How do I stop secrets in .env files reaching the model?"
-    a: "Do not rely on Cursor settings alone. Keep .env files outside your workspace or in .cursorignore, and route API traffic through a local masking proxy like Shadow that detects and replaces secrets before they leave your machine."
-  - q: "Can my company use Cursor without data leaving the network?"
-    a: "Not with Cursor's hosted models. You can point Cursor at a local OpenAI-compatible endpoint (such as Ollama or vLLM) so prompts never leave, but you lose frontier model quality. For cloud models with privacy, use a masking proxy to strip sensitive values before egress."
+    a: "Keep real secrets out of the workspace, list `.env` files in `.cursorignore`, use short-lived credentials, and rotate any key an agent may have read. For agents that call model APIs directly, a masking proxy such as Shadow replaces secrets before the request leaves the laptop."
 cta:
-  label: "Try Shadow free"
+  label: "Install Shadow Core free"
   href: /getting-started/quick-start/
 related:
   - is-chatgpt-safe-for-company-data
-  - private-chatgpt
+  - ai-leak-report-1
   - what-is-an-llm-proxy
 ---
 
-**Cursor does not train models on your code by default.** Enabling Privacy Mode adds a contractual guarantee that prompts and codebase snippets are never used for training and are retained only as long as needed for the service. Enterprise customers can negotiate zero-data-retention (ZDR) terms with the underlying providers. None of these settings stop your code from leaving your machine: prompts, file context, terminal output and anything the agent reads are still sent over the internet to model providers such as OpenAI and Anthropic.
+**Cursor trains on your code only if Privacy Mode is off.** With Privacy Mode on (the default for Teams and Enterprise), Cursor does not use your code for training and its model providers keep no data under zero-data-retention agreements. Neither setting stops your code from leaving the machine: prompts, open files, codebase context and terminal output still go to Cursor's servers and on to model providers such as OpenAI and Anthropic.
 
-## What Cursor's privacy controls actually do
+## What does Cursor's Privacy Mode change?
 
-| Control | Who has it | What it does | What it does not do |
+| Setting | Training | Retention at model providers | What it does not change |
 |---|---|---|---|
-| **Default (no Privacy Mode)** | Everyone | Cursor states it does not train on your code. Provider terms apply. | Does not prevent prompts reaching provider APIs or being logged for abuse monitoring. |
-| **Privacy Mode** | Everyone (Settings → Privacy) | Adds a contractual commitment that your data is never used for training and is used only to provide the service. | Does not stop data leaving your machine or being processed by provider infrastructure. |
-| **Enterprise / Business** | Paid orgs | Adds SSO, admin controls, audit logs, and the option to negotiate ZDR agreements with providers. | Still routes traffic through provider APIs unless you bring your own endpoint. |
-| **Local model endpoint** | Self-configured | Points Cursor at a local OpenAI-compatible server; prompts never leave. | You lose GPT-4o/Claude-class quality and take on model hosting. |
+| **Privacy Mode off** | Cursor may use and store codebase data, prompts and code snippets to improve its features and train models | Provider terms apply | Data is sent and may be kept |
+| **Privacy Mode on** | No training by Cursor | Zero data retention with Cursor's providers, with exceptions Cursor lists (abuse review, some models that require retention) | Data still leaves your machine and passes through Cursor's backend |
+| **Teams / Enterprise** | Privacy Mode on by default for every member | As above, plus admin controls | Same as Privacy Mode on |
+| **Your own API key** | Your provider's terms | Cursor's ZDR agreements do not apply | Requests still go through Cursor's backend |
 
-Sources: [Cursor Privacy Policy](https://www.cursor.com/privacy) and [Cursor Security](https://www.cursor.com/security).
+Sources: Cursor's [data use](https://cursor.com/data-use), [privacy policy](https://cursor.com/privacy) and [security and privacy help](https://cursor.com/help/security-and-privacy/privacy), read on 6 November 2026. Cursor's policy pages differ in wording; the data-use page is the most specific about training.
 
-## The residual risk: what still leaves your machine
+## What still leaves your machine?
 
-Even with Privacy Mode on and an enterprise contract signed, every prompt you send and every file the agent opens travels to a model provider. That includes:
+Privacy Mode governs what happens to data after it arrives. It does not scan, redact or reduce what is sent. In a normal session that includes:
 
 | What leaves | Example |
 |---|---|
 | Prompt text | "Refactor this function to be async" |
-| File snippets the agent reads for context | Entire source files, config files, READMEs |
-| Terminal output and error logs | Stack traces with internal hostnames, IPs, usernames |
-| Secrets if they are anywhere in the workspace | `.env` values, API keys in config, tokens in logs |
+| Files and snippets the agent reads | Source files, config files, READMEs |
+| Terminal output and errors | Stack traces with internal hostnames, IPs and usernames |
+| Secrets anywhere in the workspace | `.env` values, API keys in config, tokens in logs |
 | Git metadata | Commit author names and emails |
-| Internal identifiers | Database IDs, order numbers, customer emails in test fixtures |
+| Data in fixtures and exports | Customer emails and order numbers in test data |
 
-### Secrets deserve special attention
+A secret that reaches a provider should be treated as exposed and rotated, whatever the provider's terms say. Our [AI Leak Report #1](/shadow/research/ai-leak-report-1/) counted 287 secrets in 30 days of AI traffic from one developer laptop.
 
-AI coding assistants read files to build context. If your `.env`, `config/production.yml` or test fixtures contain real API keys, database passwords or customer data, the agent can include them in a prompt without you noticing. Cursor's Privacy Mode does not scan or redact content; it only promises not to train on it after it arrives. A secret that reaches the provider is a secret you should rotate, regardless of what the provider's terms say.
+## Is Cursor safe for company code?
 
-## Comparison: settings vs contracts vs masking
+It can be, with three conditions: Privacy Mode on (enforced at team level), no real secrets or customer data in the workspace, and a clear policy for which repositories may be opened in it. For regulated code or code under strict client confidentiality, treat Cursor like any cloud service that receives your source: get the agreement reviewed, and keep the most sensitive repositories in tools you can control.
 
-| Approach | Training risk | Data leaves your machine? | Secrets protected? | Effort |
-|---|---|---|---|---|
-| Default Cursor (no Privacy Mode) | Low (Cursor says no training) | Yes | No | None |
-| Privacy Mode on | Contractually zero | Yes | No | One toggle |
-| Enterprise ZDR agreement | Contractually zero, auditable | Yes | No | Procurement |
-| Local masking proxy ([Shadow](/shadow/)) | Contractually zero + values replaced | Yes, but with fakes | Yes | Install and configure |
-| Local model (Ollama, vLLM) | Zero (nothing leaves) | No | Yes | Host your own model |
+## How do I protect code in Cursor?
 
-A masking proxy like Shadow sits between Cursor and the provider API. It detects names, emails, phone numbers, card numbers, secrets, internal hostnames and your own terms in the request, replaces them with realistic fakes, and restores the real values in the response. The provider never sees the originals. You keep frontier model quality and add a technical control instead of relying solely on contracts.
+1. **Turn on Privacy Mode**, and on a Teams or Enterprise plan confirm it is enforced for everyone.
+2. **Keep secrets out of the workspace.** Use environment variables or a secrets manager, never commit real keys, and remember the agent can read git history.
+3. **Exclude sensitive paths** with a `.cursorignore` file at the project root:
 
-## Practical steps to protect code in Cursor
+   ```text
+   .env*
+   config/production.yml
+   test/fixtures/customer_exports/
+   ```
 
-### 1. Turn on Privacy Mode
+4. **Use short-lived, scoped credentials** so a leaked key expires and can do little.
+5. **Audit fixtures and logs** for real customer data before an agent reads them.
 
-In Cursor, go to **Settings → Privacy → Privacy Mode** and enable it. This is the minimum baseline for work code.
+## Can a masking proxy protect Cursor?
 
-### 2. Keep secrets out of the workspace
+Not Shadow, today. Cursor sends prompts to its own backend in a binary protocol and builds the final prompt there, so a local proxy cannot read or rewrite the content. Shadow recognises Cursor's hosts and shows its requests on the dashboard as **seen, not protected**, which tells you how much Cursor traffic a machine sends, but it does not mask them. See the [provider catalog](/shadow/reference/providers/).
 
-- Store API keys and credentials in environment variables, a secrets manager or a `.env` file listed in `.cursorignore`.
-- Never commit real secrets to version control; the agent can read git history.
-- Audit test fixtures and config files for leftover production values.
+Shadow does mask coding agents that call model APIs directly: Claude Code, Codex CLI, Gemini CLI, GitHub Copilot, Aider, Cline, Continue and OpenCode. For those, names, emails, secrets, hostnames and your own terms are replaced with realistic fakes before the request leaves the laptop and restored in the answer and in tool calls. Setup: [protect secrets from AI coding assistants](/shadow/use-cases/protect-secrets-from-ai-coding-assistants/).
 
-### 3. Exclude sensitive directories
-
-Add paths you never want the agent to read to `.cursorignore` at the project root:
-
-```text
-.env*
-config/production.yml
-test/fixtures/customer_exports/
-```
-
-### 4. Point Cursor at a local masking proxy
-
-[Shadow](/shadow/) intercepts requests to OpenAI, Anthropic and other providers and masks sensitive values before they leave. Install it on your laptop:
-
-```sh
-curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
-shadow init --org "Your Company"
-```
-
-Configure Shadow for code (in `shadow.toml`):
-
-```toml
-organization = ["Your Company"]
-internal_domains = ["corp.example.com", "prod.internal"]
-
-[policy.always]
-secret = "redact"
-```
-
-Start Shadow and configure Cursor to route traffic through the proxy:
-
-```sh
-shadow install --apply
-```
-
-Then set Cursor's HTTP proxy to `http://127.0.0.1:8877` in your IDE settings, or export `HTTPS_PROXY` for terminal-based agent commands. See the [protect secrets from AI coding assistants](/shadow/use-cases/protect-secrets-from-ai-coding-assistants/) guide for detailed setup.
-
-### 5. Alternatively: use a local model
-
-If nothing may leave your network, point Cursor at a local OpenAI-compatible endpoint:
-
-1. Install [Ollama](https://ollama.com/) and pull a coding model (`ollama pull codellama` or `ollama pull deepseek-coder`).
-2. In Cursor, add a custom model with base URL `http://localhost:11434/v1`.
-
-You get full air-gap privacy but accept weaker model quality for complex reasoning and large codebases.
+| Approach | Training risk | Data leaves the machine? | Secrets protected? |
+|---|---|---|---|
+| Cursor, Privacy Mode off | Possible | Yes | No |
+| Cursor, Privacy Mode on | None by contract | Yes, through Cursor's backend | No |
+| Agent calling a model API through Shadow | Per provider terms | Yes, with fakes in place of real values | Yes |
+| Local model (Ollama, vLLM) with a local agent | None | No | Yes |
 
 ## What about GitHub Copilot?
 
-GitHub Copilot has similar dynamics: prompts reach GitHub/OpenAI servers, and settings control training opt-out and telemetry but not transmission. Shadow does not intercept Copilot's proprietary backend today (see [which assistants are covered](/shadow/use-cases/protect-secrets-from-ai-coding-assistants/#which-assistants-are-covered)). For Copilot privacy, rely on the business plan's telemetry controls and keep secrets out of the workspace.
+Copilot has the same shape: prompts and code context reach GitHub's servers, and settings control retention and training rather than transmission. Unlike Cursor, Copilot's requests use an OpenAI-style JSON format, so Shadow can mask them when the editor's traffic goes through Shadow (the IDE's HTTP proxy setting and Shadow's trusted CA, or the system proxy).
 
-## About Shadow
+## About this research
 
-[Shadow](/shadow/) is an open-source (Apache-2.0) privacy proxy for AI, developed by the [Tiny Bubble Company](https://github.com/Tiny-Bubble-Company). It runs locally, masks PII and secrets in prompts to ChatGPT, Claude, Cursor (when using provider APIs) and other LLMs, and restores the real values in responses. Nothing is sent to a third-party service; the real-to-fake mapping stays in an encrypted vault on your machine.
+Written by the Shadow Research Team from Cursor's published policies and Shadow's own provider catalog. [Shadow](/shadow/) is an open-source (Apache-2.0) privacy layer for AI from [Tiny Bubble Company](https://github.com/Tiny-Bubble-Company): it runs on your machine, masks personal data and secrets in prompts to the AI APIs and chat apps it supports, and restores the real values in the answer. It is not affiliated with Cursor or Anysphere.
 
-For teams, [Shadow Hub](/shadow/hub/) shows which AI tools your people use and what was masked or blocked, per user and per tool, without collecting prompt text. Hub is free for up to 3 users, then $3 per user per month up to 500 users. See [Pricing](/shadow/pricing/).
-
----
-
-**Disclaimer**: This guide describes technical controls and publicly stated policies. It does not constitute legal advice or guarantee compliance with any regulation. Involve your security, legal and privacy teams before using AI coding assistants on sensitive codebases.
+**Disclaimer:** this article describes publicly stated policies and technical controls as of the date above. It is not legal advice. Policies change; check Cursor's current terms before relying on them.

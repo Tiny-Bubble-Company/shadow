@@ -1,5 +1,6 @@
 // RSS feed for Shadow Research articles.
 import type { APIRoute } from 'astro';
+import { getResearch } from '../../data/research';
 import { HOME_URL, SITE_NAME, SITE_DESCRIPTION, ORG_NAME } from '../../site.mjs';
 
 export const prerender = true;
@@ -13,23 +14,12 @@ const escapeXml = (text: string) =>
 		.replace(/'/g, '&apos;');
 
 export const GET: APIRoute = async () => {
-	const allPosts = import.meta.glob('../../content/research/*.md', { eager: true });
-	const research = Object.entries(allPosts)
-		.filter(([_, post]: [string, any]) => !post.frontmatter?.draft)
-		.map(([path, post]: [string, any]) => ({
-			slug: path.split('/').pop()?.replace('.md', '') || '',
-			data: {
-				...post.frontmatter,
-				publishedDate: new Date(post.frontmatter.publishedDate),
-				topics: post.frontmatter.topics || [],
-			},
-		}));
-	const articles = research.sort((a, b) => b.data.publishedDate.valueOf() - a.data.publishedDate.valueOf());
+	const articles = await getResearch();
 
 	const now = new Date().toUTCString();
 	const items = articles
 		.map((article) => {
-			const url = `${HOME_URL}research/${article.slug}/`;
+			const url = `${HOME_URL}research/${article.id}/`;
 			const pubDate = article.data.publishedDate.toUTCString();
 			const categories = article.data.topics.map((t) => `<category>${escapeXml(t)}</category>`).join('');
 			return `
@@ -39,18 +29,18 @@ export const GET: APIRoute = async () => {
       <guid isPermaLink="true">${url}</guid>
       <pubDate>${pubDate}</pubDate>
       <description>${escapeXml(article.data.description)}</description>
-      <author>${escapeXml(article.data.author)}</author>
+      <dc:creator>${escapeXml(article.data.author)}</dc:creator>
       ${categories}
     </item>`;
 		})
 		.join('');
 
 	const rss = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
     <title>${SITE_NAME} Research</title>
     <link>${HOME_URL}research/</link>
-    <description>Evidence-based analysis on AI data privacy, security risks, and developer tool exposure from the ${SITE_NAME} team.</description>
+    <description>Evidence-based research on AI data privacy and what developer tools send to model providers, from the ${SITE_NAME} Research Team.</description>
     <language>en</language>
     <lastBuildDate>${now}</lastBuildDate>
     <managingEditor>support@getshadow.dev (${ORG_NAME})</managingEditor>

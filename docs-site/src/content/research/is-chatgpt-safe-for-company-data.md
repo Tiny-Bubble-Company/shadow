@@ -1,5 +1,5 @@
 ---
-title: "Is ChatGPT Safe for Company Data? What Happens to Your Prompts"
+title: "Is ChatGPT safe for company data? What happens to your prompts"
 seoTitle: "Is ChatGPT safe for company data?"
 description: "Whether ChatGPT is safe for work data depends on the plan: Free, Plus and Pro can train on chats by default; Business, Enterprise and the API do not."
 publishedDate: 2026-08-25
@@ -7,8 +7,7 @@ updatedDate: 2026-11-06
 topics:
   - AI Privacy
   - Enterprise AI
-  - ChatGPT
-  - Data Security
+  - Data Privacy
 author: Shadow Research Team
 readingTime: 9
 keywords:
@@ -41,7 +40,7 @@ related:
 
 **ChatGPT can be safe for company data, but only on the right plan and with the right settings.** On personal Free, Plus and Pro accounts, conversations can be used to train OpenAI models by default unless the user turns that off. ChatGPT Business, Enterprise and the API are not used for training by default. On every plan, the safest rule is the same: keep customer data, credentials and secrets out of the prompt, or mask them before they leave the laptop.
 
-## The short answer by plan
+## Does ChatGPT train on my data? The answer by plan
 
 | Plan | Used to train models by default? | Retention (per OpenAI) | Who controls it |
 |---|---|---|---|
@@ -51,14 +50,14 @@ related:
 | ChatGPT Enterprise / Edu / Healthcare | No | Admin-controlled; deleted chats removed within 30 days unless legally required | Workspace admin |
 | OpenAI API | No | Up to 30 days for abuse monitoring, except listed endpoints; zero data retention available for eligible use cases | The developer or company |
 
-Sources: [OpenAI enterprise privacy](https://openai.com/enterprise-privacy/) and [Data controls in ChatGPT](https://help.openai.com/en/articles/7730893-data-controls-faq).
+Sources: [OpenAI enterprise privacy](https://openai.com/enterprise-privacy/) and [Data controls in ChatGPT](https://help.openai.com/en/articles/7730893-data-controls-faq), read on 6 November 2026.
 
-## What actually happens to a prompt
+## What happens to a prompt after you send it?
 
 1. The text you type (and any file you upload) is sent to OpenAI's servers over TLS.
 2. It is processed by the model and stored as part of the conversation, unless it is a temporary chat.
 3. Depending on plan and settings, it may be used to improve models. Giving thumbs-up or thumbs-down feedback can make the whole conversation eligible for training, even after opting out, according to OpenAI's FAQ.
-4. On business plans and the API, OpenAI says data may be run through automated safety classifiers, and authorized staff or contractors may access it for abuse investigation, support or legal reasons.
+4. On business plans and the API, OpenAI says data may be run through automated safety classifiers, and authorised staff or contractors may access it for abuse investigation, support or legal reasons.
 
 None of this is unusual for a cloud service. The risk is not that OpenAI is careless; it is that **once a value leaves your machine, you no longer control where it is stored, who can be compelled to produce it, or how long it lives.**
 
@@ -70,11 +69,11 @@ Treat it like any external SaaS vendor:
 - **ChatGPT Business or Enterprise:** acceptable for much internal work once legal has reviewed the DPA and retention settings. Regulated data (PHI, cardholder data) still needs a specific agreement, such as a BAA, and a policy.
 - **API:** good controls, but your developers decide what goes into each request. One log line or support ticket pasted into a prompt can carry hundreds of customer emails.
 
-## The real risk at most companies: shadow AI
+## Where do most ChatGPT leaks come from?
 
 Most leaks do not come from the official ChatGPT Enterprise rollout. They come from people using personal accounts, browser extensions and coding assistants the company never approved. See [what is shadow AI](/shadow/research/what-is-shadow-ai/).
 
-## How to use ChatGPT safely at work
+## How do you use ChatGPT safely at work?
 
 1. **Pick a business plan** (Business, Enterprise or the API) so training is off by default and an admin controls retention.
 2. **Write an AI acceptable use policy** that lists approved tools and data that may never be shared. Start from our [free template](/shadow/research/ai-acceptable-use-policy-template/).
@@ -82,17 +81,17 @@ Most leaks do not come from the official ChatGPT Enterprise rollout. They come f
 4. **Mask sensitive data before it leaves the device.** This is the one control that works on every plan and every tool.
 5. **Get visibility.** Know which AI tools your team uses and whether sensitive data reached them.
 
-## Mask data before it reaches ChatGPT with Shadow
+## How do you mask data before it reaches ChatGPT?
 
-[Shadow](/shadow/) is a free, open-source privacy layer that runs on your machine. It detects names, emails, phone numbers, card numbers, IBANs, secrets and your own organisation terms in prompts to ChatGPT, Claude, Gemini and AI APIs, replaces them with realistic, reversible fakes, and restores the real values in the answer. In the ChatGPT app it masks only the prompt text, and TLS is terminated only on your own machine ([how proxy mode works](/shadow/integrate/proxy-mode/)).
+[Shadow](/shadow/) is a free, open-source privacy layer that runs on your machine. It detects names, emails, phone numbers, card numbers, IBANs, secrets and your own organisation terms in prompts to ChatGPT, Claude, Gemini and AI APIs, replaces them with realistic, reversible fakes, and restores the real values in the answer. For ChatGPT in the browser, it works through the system proxy, masks only the prompt text and restores your values in the answer; TLS is terminated only on your own machine ([how proxy mode works](/shadow/integrate/proxy-mode/)).
 
-On a Mac or Linux laptop:
+On macOS or Linux ([Windows and other options](/shadow/getting-started/installation/)):
 
 ```sh
 curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 ```
 
-For teams, [Shadow Hub](/shadow/hub/) shows which AI tools your people use and what Shadow masked or blocked, per user and per tool, without collecting prompt text. Hub is free for up to 3 users, then $3 per user per month up to 500 users. See [Pricing](/shadow/pricing/).
+For teams, [Shadow Hub](/shadow/hub/) shows which AI tools your people use and what Shadow masked or blocked, per user and per tool, at the [sharing level](/shadow/trust/) your organisation chooses, down to counts only. Hub is free for up to 3 users, then $3 per user per month. See [Pricing](/shadow/pricing/).
 
 ---
 

@@ -11,7 +11,7 @@ keywords:
   - redact secrets before llm
 faq:
   - q: "Which coding assistants does Shadow work with?"
-    a: "Any tool that calls a supported provider API with your key and honours a base URL or HTTPS_PROXY: Claude Code, OpenAI-API-based CLIs, Aider, Continue and Cline with your own keys, and your own scripts. GitHub Copilot and Cursor's hosted models send traffic to their vendors' own backends, which are not built-in intercepted hosts."
+    a: "Any tool that calls a supported provider API with your key and honours a base URL or HTTPS_PROXY: Claude Code, Codex CLI, Gemini CLI, GitHub Copilot, OpenAI-API-based CLIs, Aider, Continue and Cline with your own keys, and your own scripts. GitHub Copilot and Cursor's hosted models send traffic to their vendors' own backends, which are not built-in intercepted hosts."
   - q: "Are secrets redacted or replaced with fakes?"
     a: "By default a secret becomes a fake of the same shape, so code and configs stay coherent and the real key is restored locally if the model quotes it back. For coding work we recommend [policy.always] secret = \"redact\", which sends [REDACTED_SECRET] and never the key in any form."
   - q: "Does masking make code suggestions worse?"
@@ -47,10 +47,10 @@ Most of these are things you would never type into a chat on purpose. They leak 
 | CLIs and scripts using an OpenAI API key | `api.openai.com` | Yes: `OPENAI_BASE_URL` or `HTTPS_PROXY` |
 | Aider, Continue, Cline and similar with your own key | The provider you configure | Yes, through a base URL setting or the proxy |
 | VS Code / JetBrains extensions calling provider APIs | Provider API | Yes, through the IDE proxy setting and the trusted CA |
-| GitHub Copilot | GitHub's own backend | Not built in |
-| Cursor (hosted models) | Cursor's own backend | Not built in |
+| GitHub Copilot | `api.githubcopilot.com` (OpenAI-style JSON) | Yes: the IDE proxy setting or the system proxy, with the trusted CA |
+| Cursor | Cursor's own backend, binary protocol | No: recognised and shown as seen, not protected |
 
-Shadow intercepts the [provider API hosts](/shadow/reference/providers/). Tools that route through their vendor's backend are not on that list. You can add other hosts with `[proxy] extra_hosts`, and Shadow masks string values in any JSON body it intercepts, but that is untested for these products; check the per-request log if you try it.
+Shadow masks the [hosts in its provider catalog](/shadow/reference/providers/) whose request format it can read: model APIs and coding agents' own APIs that use JSON, such as Copilot's. Cursor, Windsurf, Amazon Q and Kiro use binary protocols, so Shadow recognises their traffic and shows it as seen, not protected, but cannot mask it.
 
 ## How to set it up
 
@@ -141,7 +141,7 @@ Shadow classifies requests that contain source code, diffs, stack traces or conf
 
 ## Limits
 
-- Copilot and Cursor's hosted backends are not covered (see the table).
+- Cursor, Windsurf, Amazon Q and Kiro are recognised but not masked: their binary protocols cannot be rewritten (see the table).
 - Detection is best effort, and proprietary code is not "masked": Shadow hides values, not your algorithms. If source code itself is the secret, decide which repositories an assistant may read at all.
 - Apps that pin certificates reject the local CA in proxy mode. Use a base URL where possible.
 

@@ -68,7 +68,7 @@ images = "block"                 # screenshots in tickets are not OCR'd
 ```
 
 :::note[Which coding assistants are covered]
-Shadow intercepts provider API hosts such as `api.openai.com` and `api.anthropic.com`. Claude Code, Codex CLI, Aider, Continue and Cline with your own key are covered through `HTTPS_PROXY` or a base URL. GitHub Copilot and Cursor's hosted models talk to their vendors' own backends, which are not on the built-in list. You can add hosts with `extra_hosts`, but those integrations are untested. See [protecting secrets from AI coding assistants](/shadow/use-cases/protect-secrets-from-ai-coding-assistants/).
+Shadow intercepts provider API hosts such as `api.openai.com` and `api.anthropic.com`. Claude Code, Codex CLI, Aider, Continue and Cline with your own key are covered through `HTTPS_PROXY` or a base URL. GitHub Copilot is masked too, through the IDE proxy setting or the system proxy. Cursor, Windsurf, Amazon Q and Kiro use binary protocols Shadow cannot rewrite, so their traffic is shown as seen, not protected. See [protecting secrets from AI coding assistants](/shadow/use-cases/protect-secrets-from-ai-coding-assistants/).
 :::
 
 ## Regulations and frameworks

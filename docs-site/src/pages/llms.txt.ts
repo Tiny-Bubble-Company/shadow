@@ -1,5 +1,6 @@
 // /llms.txt — an index of the docs for LLMs and answer engines (https://llmstxt.org).
 import type { APIRoute } from 'astro';
+import { getResearch } from '../data/research';
 import { HOME_URL, REPO_URL, SITE_DESCRIPTION } from '../site.mjs';
 import { groupedPages, pageUrl } from '../seo/docs-index';
 import { TIERS } from '../data/pricing';
@@ -17,6 +18,8 @@ export const GET: APIRoute = async () => {
 		'Shadow is a single Rust binary (macOS, Linux, Windows) licensed under Apache-2.0. It runs on the endpoint as an HTTPS proxy for every tool, as a gateway base URL for SDKs, or in-process as the `shadow-core` Rust library. It detects personal data, customer names, credentials and machine identifiers in outbound AI requests (OpenAI, Anthropic, Google Gemini, Azure OpenAI, OpenRouter, Mistral, Groq and more), replaces them with format-preserving fakes drawn from a persistent persona (fake emails stay emails, fake card numbers still pass Luhn, fake IBANs still pass mod-97), keeps the mapping in an encrypted local vault, and restores the real values in responses, including streamed responses and tool-call arguments. Unlike DLP that blocks, it keeps AI tools useful. Shadow Core needs no cloud service or account and has no telemetry.',
 		'',
 		'Benchmark (held-out test set): Shadow\'s built-in rules leaked 3.08% of sensitive values at about 8 ms per document with a 100% exact round trip, 1.33% with the Presidio detector added and 0.09% with the open-weight NER sidecar; standalone, OpenAI Privacy Filter leaked 11.01%, GLiNER multi PII 13.28% and Microsoft Presidio 20.74%.',
+		'',
+		'Coverage: Shadow masks requests to the model APIs, inference clouds and routers in its catalog of 288 AI services; coding agents that call them (Claude Code, Codex CLI, Gemini CLI, GitHub Copilot, Aider, Cline, Continue, OpenCode); and ChatGPT, Claude.ai, Gemini, Perplexity, DeepSeek and Grok in a browser through the system proxy. Cursor, Windsurf, Amazon Q and Kiro use binary protocols Shadow cannot rewrite: their traffic is recognised and shown as seen, not protected. Microsoft Copilot, Le Chat, Meta AI and Poe are recognised but not masked yet. Images are not OCR\'d.',
 		'',
 		`- Docs home: ${HOME_URL}`,
 		'- Support: support@getshadow.dev',
@@ -42,31 +45,15 @@ export const GET: APIRoute = async () => {
 		'',
 	];
 
-	// Research articles section
-	try {
-		const allPosts = import.meta.glob('./research/../../content/research/*.md', { eager: true });
-		const research = Object.entries(allPosts)
-			.filter(([_, post]: [string, any]) => !post.frontmatter?.draft)
-			.map(([path, post]: [string, any]) => ({
-				slug: path.split('/').pop()?.replace('.md', '') || '',
-				data: {
-					title: post.frontmatter.title,
-					description: post.frontmatter.description,
-					publishedDate: new Date(post.frontmatter.publishedDate),
-				},
-			}));
-		if (research.length > 0) {
-			lines.push('## Research', '');
-			lines.push('Evidence-based analysis from the Shadow team on AI data privacy and what developer tools can expose.', '');
-			const sorted = research.sort((a, b) => b.data.publishedDate.valueOf() - a.data.publishedDate.valueOf());
-			for (const article of sorted) {
-				const url = new URL(`research/${article.slug}/`, HOME_URL).href;
-				lines.push(`- [${article.data.title}](${url}): ${article.data.description}`);
-			}
-			lines.push('');
+	// Research articles, newest first.
+	const research = await getResearch();
+	if (research.length > 0) {
+		lines.push('## Research', '');
+		lines.push('Evidence-based analysis from the Shadow Research Team on AI data privacy and what developer tools send to model providers. Each article states its sources and the date they were read.', '');
+		for (const a of research) {
+			lines.push(`- [${a.data.title}](${new URL(`research/${a.id}/`, HOME_URL).href}): ${a.data.description}`);
 		}
-	} catch {
-		// Research collection may not exist
+		lines.push('');
 	}
 
 	const optional: typeof groups = [];

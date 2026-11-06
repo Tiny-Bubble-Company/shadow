@@ -1,5 +1,5 @@
 ---
-title: "122,255 Sensitive Values Protected on One Developer Laptop: AI Leak Report #1"
+title: "AI Leak Report #1: 122,255 sensitive values caught on one developer laptop"
 seoTitle: "AI Leak Report #1: 122k sensitive values from one laptop"
 description: "In 30 days Shadow masked 122,255 sensitive values in AI traffic from one developer laptop, including 287 secrets and 1,405 emails. What it found and why."
 publishedDate: 2026-11-06
@@ -7,56 +7,50 @@ topics:
   - AI Security
   - Data Privacy
   - Developer Tools
-  - Research
 author: Shadow Research Team
-readingTime: 8
+readingTime: 6
 series: AI Leak Report
 seriesNumber: 1
 keywords:
   - ai data leak
   - llm privacy
-  - cursor privacy
   - claude code privacy
-  - chatgpt data exposure
   - ai coding assistant security
   - api key leak prevention
   - pii in prompts
 keyFindings:
-  - "122,255 total sensitive values detected and masked in 30 days on one laptop"
-  - "287 secrets and API keys caught before reaching model providers"
-  - "1,405 email addresses and 2,759 names masked in outgoing prompts"
-  - "184 national IDs and 87 card numbers protected"
-  - "12 dangerous tool calls blocked by intent policy"
-  - "1,669 total requests observed across AI coding assistants and chat UIs"
+  - "<strong>122,255</strong> sensitive values detected and masked in 30 days on one laptop"
+  - "<strong>287</strong> secrets and API keys replaced before they reached a model provider"
+  - "<strong>1,405</strong> email addresses and <strong>2,759</strong> names masked in outgoing prompts"
+  - "<strong>184</strong> national IDs and <strong>87</strong> card numbers protected"
+  - "<strong>12</strong> dangerous tool calls blocked by the intent policy"
+  - "<strong>1,669</strong> AI requests observed from coding agents and chat apps"
 methodology: |
-  These aggregates come from one developer laptop running Shadow over a 30-day window ending approximately November 5, 2026. Data was collected via `shadow activity --window 30d --json --no-hints`.
+  The numbers come from one developer laptop running Shadow Core for the 30 days ending 5 November 2026, read with `shadow activity --window 30d --json --no-hints`. Shadow's activity log holds counts and categories only, never the values themselves.
 
-  **What the numbers represent:**
-  - Detections of sensitive-looking strings in outgoing prompts, context windows, and related AI traffic
-  - Values that were masked (replaced with realistic fakes) before reaching model providers
-  - The laptop ran typical developer AI workflows: coding assistants, chat UIs, and agents
+  **What the numbers are:**
+  - Sensitive values Shadow detected in outgoing AI requests (prompts, context and tool results) and replaced with realistic fakes before the request left the machine
+  - Counted per request: a value resent on every turn of an agent conversation is counted each time
+  - Traffic from AI tools whose requests Shadow can read: coding agents that call model APIs and supported chat apps
 
-  **Important caveats:**
-  - This is not a count of confirmed data breaches or verified leaks
-  - Some values are duplicates (the same key resent with every agent turn)
-  - Some detections may be false positives (pattern-matched but not actually sensitive)
-  - One machine's usage patterns do not represent industry-wide data
-  - AI tools in the mix included Cursor, Claude Code, ChatGPT, and other common developer tools
-
-  We label these as "potential leaks" or "protected values" rather than breaches. The goal is to show what *could* leave a developer machine, not to claim definite exposure.
+  **What they are not:**
+  - Confirmed breaches or verified leaks: the values were masked, so none of them reached a provider
+  - Free of false positives: some pattern matches are not truly sensitive
+  - Representative of every developer or company: this is one machine's work pattern
+  - Complete: tools whose protocol Shadow cannot read, such as Cursor's, are recognised but their contents are not inspected, so they add no values to these counts
 faq:
-  - q: "What counts as a 'sensitive value' in this report?"
-    a: "Any string that matches Shadow's detection patterns for PII, secrets, or sensitive business data: API keys and tokens, email addresses, names, national ID numbers (SSN, passport, etc.), payment card numbers, and custom terms configured by the user."
-  - q: "Were any actual data breaches confirmed?"
-    a: "No. These are detections of sensitive-looking data that Shadow intercepted and masked *before* it reached model providers. We cannot know what would have happened without the masking, and some detections may be false positives."
+  - q: "What counts as a sensitive value in this report?"
+    a: "Any string Shadow's detectors classed as personal data, a secret or a custom term: API keys and tokens, email addresses, names, national ID numbers, payment card numbers, hostnames, IP addresses, usernames, addresses and the organisation's own terms."
+  - q: "Were any data breaches confirmed?"
+    a: "No. These are sensitive-looking values Shadow intercepted and replaced *before* they reached a model provider. Some detections may be false positives, and nobody can say what would have happened without the masking."
   - q: "Why are the numbers so high for one laptop?"
-    a: "AI coding assistants and agents read files for context—potentially entire repositories. Each turn can include secrets from .env files, names from test fixtures, and emails from logs. The agent doesn't paste them; it reads them automatically. Over 30 days of active development, these add up."
-  - q: "Does this mean Cursor, Claude Code, or ChatGPT are unsafe?"
-    a: "These tools follow their stated data-handling policies. The issue isn't policy violations—it's that prompts and context reach providers at all. Even with training disabled and zero-data-retention agreements, the data travels over the network and is processed by provider infrastructure."
+    a: "Coding agents read files for context and resend that context on every turn. One secret in a config file, or a page of names in a test fixture, is counted each time it is sent. Over a month of active development the counts add up quickly."
+  - q: "Does this mean Claude Code or ChatGPT are unsafe?"
+    a: "No. These tools follow their published data-handling policies. The point is that prompts and context reach providers at all: even with training off and zero-data-retention terms, the data travels over the network and is processed on the provider's infrastructure."
   - q: "How can I protect my own development environment?"
-    a: "Keep secrets out of your workspace tree or in `.cursorignore`. Use short-lived credentials. Check what context your AI tools actually send (verbose/debug modes). Consider a masking proxy like Shadow that replaces sensitive values before the request leaves your machine."
+    a: "Keep secrets out of the workspace, list `.env` files in your tool's ignore file (such as `.cursorignore`), use short-lived credentials, check what your tools send with their debug modes, and route agents that call model APIs through a masking proxy such as Shadow."
 cta:
-  label: "Try Shadow free"
+  label: "Install Shadow Core free"
   href: /getting-started/quick-start/
 related:
   - does-cursor-train-on-my-code
@@ -64,81 +58,70 @@ related:
   - what-is-an-llm-proxy
 ---
 
-Developer AI tools—coding assistants, chat UIs, and agents—can accelerate work dramatically. They can also send more data to model providers than most developers realize.
+**In 30 days, Shadow caught and masked 122,255 sensitive values in the AI traffic of one developer laptop: 287 secrets and API keys, 1,405 email addresses, 2,759 names, 184 national IDs and 87 card numbers, across 1,669 requests.** Each value was replaced with a realistic fake before the request left the machine. The total is high because coding agents resend the files they have read on every turn, so one secret in a config file is counted each time it is sent.
 
-Over a 30-day period ending around November 5, 2026, we tracked what Shadow detected and masked on one developer laptop. The results: **122,255 sensitive values** in outgoing AI traffic, including API keys, customer data, and internal identifiers—masked before they could reach any provider.
+This is not an industry survey. It is what one active developer workstation sends over a month of normal AI-assisted work, published to show how much exposure builds up without anyone noticing.
 
-This is not an industry survey. It's what one active developer workstation looks like. The numbers show the *scope* of potential exposure that can accumulate silently during normal AI-assisted development.
+## What did the laptop send to AI tools?
 
-## What the laptop revealed
-
-| Category | Count | What gets caught |
+| Category | Count | Where it usually comes from |
 |---|---|---|
-| **Names** | 2,759 | Customer names in logs, test fixtures, commit metadata |
-| **Email addresses** | 1,405 | User emails in config, support tickets in context |
-| **Secrets / API keys** | 287 | Keys in .env, tokens in logs, connection strings |
-| **National IDs** | 184 | SSNs, passport numbers, government identifiers |
-| **Card numbers** | 87 | Test cards, production cards in debugging sessions |
-| **All protected values** | **122,255** | Everything above plus addresses, IBANs, custom terms |
+| **Names** | 2,759 | Customer names in logs, test fixtures and commit metadata |
+| **Email addresses** | 1,405 | User emails in config, support tickets read into context |
+| **Secrets and API keys** | 287 | Keys in `.env`, tokens in logs, connection strings |
+| **National IDs** | 184 | Social security, passport and other government numbers in test data |
+| **Card numbers** | 87 | Test cards and card numbers in debugging sessions |
+| **Other types** | 117,533 | The remaining detected types, such as hostnames, IP addresses, usernames, addresses and custom terms |
+| **All protected values** | **122,255** | Every value replaced before it left the laptop |
 
-*Additionally: 1,669 requests observed, 12 dangerous tool calls blocked*
+In the same window Shadow observed 1,669 AI requests and blocked 12 dangerous tool calls with its [intent policy](/shadow/concepts/intent-policy/).
 
-The 122,255 figure is large because of how AI coding tools work: they build context by reading files. Every turn of an agent conversation can include material from your entire repository. Secrets in `.env` files, customer data in test fixtures, and API keys in logs can all become prompt content.
+## Why are the numbers so high?
 
-## Why this matters now
+Coding agents build context by reading files, and every turn of a conversation resends that context. Secrets in `.env` files, customer data in test fixtures and API keys in logs all become prompt content, again and again. The other 117,533 values are the remaining types Shadow detects, such as hostnames, IP addresses, usernames and the organisation's own terms; this report does not break them down further.
 
-This week, Claude Code was found putting account emails into outbound User-Agent headers because the email address was already in model context ([GitHub #107757](https://github.com/anthropics/claude-code/issues/107757)). The same class of problem applies to any data in the context window: if the agent can see it, a tool call can emit it.
+## Why does this matter now?
 
-**What AI coding assistants can expose:**
+This week, Claude Code was reported to put the account's email address into outbound User-Agent headers because the address was already in the model's context ([anthropics/claude-code#107757](https://github.com/anthropics/claude-code/issues/107757)). The same applies to any data in the context window: if the agent can see it, a tool call can send it somewhere.
 
 | Data type | How it enters context | Why it matters |
 |---|---|---|
-| API keys and secrets | Agent reads .env, config files, or error logs | Credential theft, unauthorized access |
-| Customer emails and names | Test fixtures, support tickets, or logs in the repo | Privacy violations, GDPR exposure |
-| Internal hostnames | Stack traces, config, environment variables | Network reconnaissance information |
-| Database credentials | Connection strings in config or .env | Direct database access risk |
-| Commit author info | Git metadata the agent reads for context | Employee identification, social engineering |
+| API keys and secrets | The agent reads `.env`, config files or error logs | Credential theft and unauthorised access |
+| Customer emails and names | Test fixtures, support tickets or logs in the repository | Privacy breaches and GDPR exposure |
+| Internal hostnames | Stack traces, config, environment variables | A map of your internal network |
+| Database credentials | Connection strings in config or `.env` | Direct database access |
+| Commit author details | Git metadata the agent reads | Identifies employees for phishing |
 
-## A synthetic example
+## What does masking look like?
 
-What Shadow catches and masks (values are synthetic examples, not real data):
+An illustrative example, not data from the laptop. Shadow replaces each value with a fake of the same shape, so the prompt still makes sense to the model:
 
+```text
+Sent by the agent:   DATABASE_URL=postgres://admin:skobayashi2@db.yamamoto-corp.internal
+                     OPENAI_API_KEY=sk-proj-Q7wKIHXZ4097704176058327
+
+Received by the AI:  DATABASE_URL=postgres://admin:Lq0vT8d2xW@db.nexora-dev.internal
+                     OPENAI_API_KEY=sk-proj-mB2rTnYp8814620093715542
 ```
-Before:  DATABASE_URL=postgres://admin:hunter2@db.example.com
-         OPENAI_KEY=sk-test-EXAMPLE0000000000000000000000000000
 
-After:   DATABASE_URL=postgres://admin:<SECRET_1>@db.example.com
-         OPENAI_KEY=<API_KEY_1>
-```
+The provider never sees the real credentials or hostname. When the answer comes back, Shadow puts the real values back, including inside tool-call arguments, so the code the agent writes still works. Teams that never want a secret sent in any form can set `secret = "redact"` under [`[policy.always]`](/shadow/reference/configuration/#policyalways).
 
-The model sees a working prompt. The provider never sees your real credentials. When the response arrives, Shadow restores the original values so your code runs correctly.
+## How can developers reduce the exposure?
 
-## What helps, regardless of tooling
+From what this laptop sent, five habits matter most:
 
-Based on what we've observed:
+1. **Keep secrets out of the repository tree.** Store credentials in environment variables, a secrets manager, or a `.env` file listed in `.gitignore` and in your AI tool's ignore file.
+2. **Use short-lived, scoped credentials.** A leaked temporary token expires; a scoped one can do little.
+3. **Check what your tools actually send.** Most AI tools have a verbose or debug mode that shows the full request. Look at the context, headers and tool arguments, not just the chat box.
+4. **Audit test fixtures and logs.** Real customer data lingers in test data, support exports and error logs, and agents read them.
+5. **Mask on the machine.** A privacy proxy replaces sensitive values before the request leaves the laptop, including in files you did not know held sensitive data. It works for tools whose traffic it can read; see [which tools Shadow masks](/shadow/reference/providers/).
 
-1. **Keep secrets out of the repo tree.** Store credentials in environment variables, a secrets manager, or a `.env` file listed in `.gitignore` *and* `.cursorignore` (or equivalent for your tool).
+## About the AI Leak Report
 
-2. **Use short-lived, scoped credentials.** Temporary tokens limit damage if one leaks. Scoped permissions mean a leaked key can't do everything.
+The **AI Leak Report** is a recurring Shadow Research series on what sensitive data developer AI tools send to model providers, and how to reduce it. Future reports will cover specific tools, team-wide numbers and other ways of working. If you have measured this in your own setup, write to [support@getshadow.dev](mailto:support@getshadow.dev).
 
-3. **Check what your tools actually send.** Most AI tools have verbose or debug modes that show the full request. Inspect the context, headers, and tool arguments—not just the chat box.
+## About this research
 
-4. **Audit test fixtures and logs.** Real customer data often lingers in test data, support exports, and error logs. The agent will read them if they're in your workspace.
+Produced by the Shadow Research Team from Shadow Core's activity log on one laptop. [Shadow](/shadow/) is an open-source (Apache-2.0) privacy layer for AI: it runs on your machine, masks personal data and secrets in prompts to the AI APIs and chat apps it supports, and restores the real values in the answer. The real-to-fake mapping stays in an encrypted vault on the machine, with no account and no telemetry. For teams, [Shadow Hub](/shadow/hub/) shows these numbers per person, app and AI service, at the [sharing level](/shadow/trust/) the organisation chooses.
 
-5. **Mask at the network boundary.** A privacy proxy detects sensitive values and replaces them before the request leaves your machine. This works even for files you didn't know contained sensitive data.
-
-## Series introduction
-
-This is the first **AI Leak Report**, a recurring publication tracking what sensitive data developer AI tools can send to model providers and practical ways to reduce it.
-
-Future reports will cover specific tools, different work patterns, and what the community reports. If you've measured this in your own setup, we'd like to hear about it.
-
-## About Shadow
-
-[Shadow](/shadow/) is an open-source (Apache-2.0) privacy layer for AI. It runs locally, masks PII and secrets in prompts before they reach ChatGPT, Claude, Cursor, and other LLM APIs, and restores real values in responses. The mapping stays in an encrypted vault on your machine—no cloud service, no account, no telemetry.
-
-For teams, [Shadow Hub](/shadow/hub/) shows which AI tools your people use and what was masked or blocked, per user and per tool, without collecting prompt text.
-
----
-
-**Disclosure**: This report was produced by the Shadow team. We build the masking proxy that collected these statistics. We've tried to be precise about what the numbers represent and what they don't.
+**Disclosure:** we build the tool that collected these numbers, and have tried to be precise about what they represent and what they do not.

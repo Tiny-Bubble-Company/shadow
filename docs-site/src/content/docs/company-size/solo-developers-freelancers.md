@@ -130,7 +130,7 @@ Point that client's workspace at port 8879. The [consulting guide](/shadow/indus
 ## Honest limits
 
 :::caution[What Shadow will not do for you]
-- **Copilot and Cursor's hosted models** use their vendors' backends, not built-in hosts. Use an assistant that takes your own API key if you want it covered.
+- **Cursor, Windsurf, Amazon Q and Kiro** use binary protocols Shadow cannot rewrite; their traffic is shown as seen, not protected. GitHub Copilot is masked through the IDE proxy setting or the system proxy.
 - **Code itself is not masked.** Shadow replaces identifiers, not logic. Proprietary algorithms still reach the model as written.
 - **Passwords inside connection URLs** (`postgres://user:pw@host`) are not detected as secrets. Keep them in `password=`-style variables or out of context.
 - **Images and screenshots** are not OCR'd.

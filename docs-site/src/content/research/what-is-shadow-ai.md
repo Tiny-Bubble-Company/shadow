@@ -1,5 +1,5 @@
 ---
-title: "What is Shadow AI? Risks, Examples and How to Detect It"
+title: "What is shadow AI? Risks, examples and how to detect it"
 seoTitle: "What is shadow AI? Risks and how to detect it"
 description: "Shadow AI is AI use your IT team doesn't know about. What it is, the risks, real examples and how to detect it without blocking work."
 publishedDate: 2026-06-10
@@ -7,7 +7,7 @@ updatedDate: 2026-11-06
 topics:
   - Shadow AI
   - AI Governance
-  - Enterprise Security
+  - AI Security
 author: Shadow Research Team
 readingTime: 11
 keywords:
@@ -41,7 +41,7 @@ related:
 
 This guide explains what counts as shadow AI, why it happens, the risks, real examples, how to detect it, and how to govern it without banning AI.
 
-## Shadow AI vs shadow IT
+## How is shadow AI different from shadow IT?
 
 Shadow IT is any software or service used without IT's approval: a personal Dropbox, an unapproved project tool. Shadow AI is the part of shadow IT that sends data to an AI model, and it differs in three ways:
 
@@ -53,7 +53,7 @@ Shadow IT is any software or service used without IT's approval: a personal Drop
 
 The last row matters. On consumer plans, providers' terms commonly allow conversations to be used to improve their models unless the user opts out, and some content is kept for review even then. A business agreement usually changes that, which is exactly what an unapproved personal account lacks.
 
-## Why shadow AI happens
+## Why does shadow AI happen?
 
 People use AI because it saves them hours. They use *unapproved* AI when:
 
@@ -64,7 +64,7 @@ People use AI because it saves them hours. They use *unapproved* AI when:
 
 Shadow AI is a sign of demand, not of bad intent. That shapes how you fix it.
 
-## The risks of shadow AI
+## What are the risks of shadow AI?
 
 **Data leaving your control.** Customer names, emails, contracts, health and financial details, source code, credentials and internal hostnames end up with a provider outside any data processing agreement. Once sent, you cannot recall it.
 
@@ -78,7 +78,7 @@ Shadow AI is a sign of demand, not of bad intent. That shapes how you fix it.
 
 **Unvetted tools.** Browser extensions and small AI apps can request broad permissions, read every page and send it to servers you have never assessed.
 
-## Shadow AI examples
+## What are examples of shadow AI?
 
 - **Pasting customer data into a chatbot.** "Reply politely to this complaint" followed by the whole ticket: name, email, order number, address. The most common case by far.
 - **Source code in a personal account.** In 2023 Samsung engineers pasted internal source code and meeting notes into ChatGPT; the company then restricted generative AI tools on work devices. Many other companies issued similar restrictions that year.
@@ -87,7 +87,7 @@ Shadow AI is a sign of demand, not of bad intent. That shapes how you fix it.
 - **AI browser extensions.** Writing assistants and "chat with this page" extensions that read the content of internal apps.
 - **AI features in approved SaaS.** A meeting tool's AI notes or a CRM's assistant, switched on by a user and sending data to a model provider you never reviewed.
 
-## How to detect shadow AI
+## How do you detect shadow AI?
 
 You can't govern what you can't see. Detection works best from the traffic, not from surveys.
 
@@ -98,19 +98,19 @@ You can't govern what you can't see. Detection works best from the traffic, not 
 
 [Shadow Core](/shadow/getting-started/quick-start/) is that endpoint layer, open source and free. It recognises AI traffic from browsers, desktop apps, SDKs and coding agents, replaces sensitive values with realistic fakes before the request leaves the machine, and shows each request in a local dashboard. [Shadow Hub](/shadow/hub/) collects that activity from every enrolled laptop, lists **newly seen AI services** each week and who uses them, and flags services Shadow recognises but cannot protect yet as *seen, not protected*.
 
-## How to govern shadow AI without banning AI
+## How do you govern shadow AI without banning AI?
 
 Blocking every AI site is tempting and rarely works: the work moves to phones and personal laptops, where you see nothing. A model that holds up:
 
 1. **Discover** which AI tools are in use, with the methods above.
 2. **Decide** which tools are approved, sign business agreements with those providers, and write a short [AI acceptable use policy](/shadow/research/ai-acceptable-use-policy-template/).
 3. **Provide** approved tools that are good enough for real work, so people don't need the unapproved ones.
-4. **Protect** what leaves. Shadow masks names, emails, phone numbers, card numbers, IBANs, national IDs, addresses and secrets in every AI request and restores the real values in the answer, so people can use AI on real work without the data reaching the provider.
+4. **Protect** what leaves. Shadow masks names, emails, phone numbers, card numbers, IBANs, national IDs, addresses and secrets in the AI requests it can read and restores the real values in the answer, so people can use AI on real work without the data reaching the provider.
 5. **Monitor and review.** Watch new AI services and policy violations, and update the approved list every quarter.
 
-## A five-minute start
+## How do you start in five minutes?
 
-On a Mac or Linux laptop:
+On macOS or Linux ([Windows and other options](/shadow/getting-started/installation/)):
 
 ```sh
 curl -fsSL https://hub.getshadow.dev/core/install.sh | sh

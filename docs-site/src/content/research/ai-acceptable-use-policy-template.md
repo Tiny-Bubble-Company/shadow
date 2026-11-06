@@ -1,13 +1,13 @@
 ---
-title: "Free AI Acceptable Use Policy Template (with Enforcement)"
+title: "Free AI acceptable use policy template, with enforcement"
 seoTitle: "Free AI acceptable use policy template"
 description: "A free AI acceptable use policy template for companies, with the controls that make each rule enforceable rather than a document nobody reads."
 publishedDate: 2026-05-01
 updatedDate: 2026-11-06
 topics:
   - AI Governance
-  - Policy Templates
-  - Enterprise Security
+  - Enterprise AI
+  - Shadow AI
 author: Shadow Research Team
 readingTime: 14
 keywords:
@@ -41,7 +41,7 @@ related:
 
 [Download the template as Markdown](/shadow/templates/ai-acceptable-use-policy-template.md), or copy it from this page.
 
-## How to use this template
+## How do you use this template?
 
 1. Replace everything in `[square brackets]` with your organisation's details.
 2. Fill in the approved tools table with what you actually provide, and only list tools you have a business agreement for.
@@ -75,7 +75,7 @@ You may use these tools for company work, with the accounts listed:
 | Tool | Use for | Account | Data allowed |
 |------|---------|---------|--------------|
 | [ChatGPT Business / Enterprise] | Writing, analysis | Company SSO | Internal, with masking on |
-| [Claude Code / Codex / Cursor] | Software development | Company key | Code, with masking on |
+| [Claude Code / Codex / GitHub Copilot] | Software development | Company key | Code, with masking on |
 | [Internal assistant] | [Use] | Company SSO | [Level] |
 
 Approved tools run with [Shadow] on company laptops, which replaces
@@ -144,7 +144,7 @@ Everyone who uses AI for work completes [AI training] when they join and
 [every year].
 ```
 
-## Making it enforceable
+## How do you make an AI policy enforceable?
 
 Each section of the policy needs a control behind it. Here is what to pair with what.
 
@@ -170,7 +170,7 @@ curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 
 Then turn on **Protect all apps and browsers** in the menu-bar app. For a whole team, [start Shadow Hub](https://hub.getshadow.dev/signup): free for up to 3 people, then per monitored user.
 
-## Tips for a policy people follow
+## How do you write a policy people follow?
 
 - **Keep it short.** Two pages people read beat twenty they don't.
 - **Say yes first.** Lead with what is approved. A policy that only lists bans reads as "don't use AI", and people will use it anyway.
@@ -178,7 +178,7 @@ Then turn on **Protect all apps and browsers** in the menu-bar app. For a whole 
 - **Be open about monitoring.** Tell people what is recorded and what isn't. Covert monitoring of employees is restricted in many countries, and in some (Germany, for example) a works council has to agree first.
 - **Review it every quarter.** AI tools change monthly. Use what you have seen (new services, blocked requests, exception requests) to update the approved list.
 
-## Laws and frameworks to check against
+## Which laws and frameworks should it meet?
 
 - **GDPR**: a legal basis and a data processing agreement for personal data sent to an AI provider; data protection by design (Article 25) and appropriate security (Article 32).
 - **EU AI Act**: AI literacy for staff who use AI (Article 4) and duties for deployers of high-risk systems. Check the current text: the 2026 Digital Omnibus amended several provisions and timelines.

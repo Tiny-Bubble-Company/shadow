@@ -3,6 +3,7 @@ import { z } from 'astro/zod';
 import { glob } from 'astro/loaders';
 import { docsLoader } from '@astrojs/starlight/loaders';
 import { docsSchema } from '@astrojs/starlight/schema';
+import { PRIMARY_TOPICS } from './data/research-topics';
 
 const faq = z.array(z.object({ q: z.string().min(1), a: z.string().min(1) }));
 
@@ -20,8 +21,10 @@ const researchSchema = z.object({
 	publishedDate: z.coerce.date(),
 	updatedDate: z.coerce.date().optional(),
 	readingTime: z.number().optional(),
-	/** Topic labels from src/data/research-topics.ts. */
-	topics: z.array(z.string()).default([]),
+	/** Topic labels from src/data/research-topics.ts (each links to its section on /research/). */
+	topics: z
+		.array(z.string().refine((t) => PRIMARY_TOPICS.some((p) => p.label === t), { message: 'unknown topic; add it to src/data/research-topics.ts' }))
+		.default([]),
 	author: z.string().default('Shadow Research Team'),
 	/** Highlights shown in a box above the article (inline HTML allowed). */
 	keyFindings: z.array(z.string()).default([]),
