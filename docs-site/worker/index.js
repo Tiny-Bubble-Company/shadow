@@ -13,8 +13,16 @@ import { EmailMessage } from 'cloudflare:email';
 const APEX = 'getshadow.dev';
 
 // Moved pages: old path -> new path (both with trailing slash).
+// Guide URLs redirect to /research/ for SEO preservation (marketing guides moved to editorial layout).
 const REDIRECTS = {
 	'/compare/ai-dlp-tools/': '/compare/ai-dlp/',
+	// Marketing guides migrated to research section
+	'/guides/does-cursor-train-on-my-code/': '/research/does-cursor-train-on-my-code/',
+	'/guides/private-chatgpt/': '/research/private-chatgpt/',
+	'/guides/is-chatgpt-safe-for-company-data/': '/research/is-chatgpt-safe-for-company-data/',
+	'/guides/what-is-an-llm-proxy/': '/research/what-is-an-llm-proxy/',
+	'/guides/what-is-shadow-ai/': '/research/what-is-shadow-ai/',
+	'/guides/ai-acceptable-use-policy-template/': '/research/ai-acceptable-use-policy-template/',
 };
 
 // Allowed events and the props each may carry (anything else is dropped).

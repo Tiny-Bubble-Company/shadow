@@ -41,6 +41,34 @@ export const GET: APIRoute = async () => {
 		`- Compare (Nightfall, Harmonic Security, Prompt Security, LayerX and more): ${new URL('compare/', HOME_URL).href}`,
 		'',
 	];
+
+	// Research articles section
+	try {
+		const allPosts = import.meta.glob('./research/../../content/research/*.md', { eager: true });
+		const research = Object.entries(allPosts)
+			.filter(([_, post]: [string, any]) => !post.frontmatter?.draft)
+			.map(([path, post]: [string, any]) => ({
+				slug: path.split('/').pop()?.replace('.md', '') || '',
+				data: {
+					title: post.frontmatter.title,
+					description: post.frontmatter.description,
+					publishedDate: new Date(post.frontmatter.publishedDate),
+				},
+			}));
+		if (research.length > 0) {
+			lines.push('## Research', '');
+			lines.push('Evidence-based analysis from the Shadow team on AI data privacy and what developer tools can expose.', '');
+			const sorted = research.sort((a, b) => b.data.publishedDate.valueOf() - a.data.publishedDate.valueOf());
+			for (const article of sorted) {
+				const url = new URL(`research/${article.slug}/`, HOME_URL).href;
+				lines.push(`- [${article.data.title}](${url}): ${article.data.description}`);
+			}
+			lines.push('');
+		}
+	} catch {
+		// Research collection may not exist
+	}
+
 	const optional: typeof groups = [];
 	for (const g of groups) {
 		if (g.optional) {

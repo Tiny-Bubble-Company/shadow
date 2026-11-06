@@ -1,0 +1,66 @@
+---
+// Key findings / highlights box for research articles.
+interface Props {
+	findings: string[];
+	title?: string;
+}
+
+const { findings, title = 'Key findings' } = Astro.props;
+---
+
+<div class="research-highlights-box">
+	<h2 class="research-highlights-title">{title}</h2>
+	<ul class="research-highlights-list">
+		{findings.map((finding) => <li set:html={finding} />)}
+	</ul>
+</div>
+
+<style>
+	.research-highlights-box {
+		padding: 1.5rem;
+		background: var(--sh-panel);
+		border: 1px solid var(--sh-border);
+		border-left: 3px solid var(--sh-accent);
+		border-radius: 0 var(--sh-radius) var(--sh-radius) 0;
+	}
+
+	.research-highlights-title {
+		margin: 0 0 1rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--sh-muted);
+	}
+
+	.research-highlights-list {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: grid;
+		gap: 0.625rem;
+	}
+
+	.research-highlights-list li {
+		position: relative;
+		padding-left: 1.25rem;
+		font-size: 0.9375rem;
+		line-height: 1.5;
+		color: var(--sh-text);
+	}
+
+	.research-highlights-list li::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0.5rem;
+		width: 6px;
+		height: 6px;
+		background: var(--sh-accent);
+		border-radius: 50%;
+	}
+
+	.research-highlights-list :global(strong) {
+		font-weight: 600;
+	}
+</style>
