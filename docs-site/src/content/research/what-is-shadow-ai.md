@@ -31,6 +31,10 @@ faq:
 cta:
   label: "Try Shadow free"
   href: /getting-started/quick-start/
+related:
+  - private-chatgpt
+  - is-chatgpt-safe-for-company-data
+  - ai-acceptable-use-policy-template
 ---
 
 **Shadow AI is the use of AI tools at work without IT or security knowing about it or approving it.** A support agent pastes a customer thread into a personal ChatGPT account, an engineer runs a coding agent with their own API key, a marketer installs an AI browser extension that reads every page. None of it is malicious. All of it can send company and customer data to a provider your organisation has no contract with, no review of and no visibility into.
@@ -87,19 +91,19 @@ Shadow AI is a sign of demand, not of bad intent. That shapes how you fix it.
 
 You can't govern what you can't see. Detection works best from the traffic, not from surveys.
 
-1. **Network and DNS logs.** Look for requests to AI providers and chat apps. Shadow keeps a [catalog of 288 AI services](/reference/providers/) (model APIs, inference clouds, routers, coding agents and chat apps) that you can use as a list of domains to look for.
+1. **Network and DNS logs.** Look for requests to AI providers and chat apps. Shadow keeps a [catalog of 288 AI services](/shadow/reference/providers/) (model APIs, inference clouds, routers, coding agents and chat apps) that you can use as a list of domains to look for.
 2. **CASB, SASE or secure web gateway reports.** Most have an "AI" or "generative AI" category that shows usage by user and app.
 3. **SSO and expense reports.** Sign-ins with company accounts and AI subscriptions on expense claims show which tools people pay for.
 4. **The endpoint.** Network logs show *where* traffic went, not *what* was in it. An endpoint layer sees each AI request on the laptop itself: which app sent it, which AI service received it, and whether it carried names, card numbers, national IDs or secrets.
 
-[Shadow Core](/getting-started/quick-start/) is that endpoint layer, open source and free. It recognises AI traffic from browsers, desktop apps, SDKs and coding agents, replaces sensitive values with realistic fakes before the request leaves the machine, and shows each request in a local dashboard. [Shadow Hub](/hub/) collects that activity from every enrolled laptop, lists **newly seen AI services** each week and who uses them, and flags services Shadow recognises but cannot protect yet as *seen, not protected*.
+[Shadow Core](/shadow/getting-started/quick-start/) is that endpoint layer, open source and free. It recognises AI traffic from browsers, desktop apps, SDKs and coding agents, replaces sensitive values with realistic fakes before the request leaves the machine, and shows each request in a local dashboard. [Shadow Hub](/shadow/hub/) collects that activity from every enrolled laptop, lists **newly seen AI services** each week and who uses them, and flags services Shadow recognises but cannot protect yet as *seen, not protected*.
 
 ## How to govern shadow AI without banning AI
 
 Blocking every AI site is tempting and rarely works: the work moves to phones and personal laptops, where you see nothing. A model that holds up:
 
 1. **Discover** which AI tools are in use, with the methods above.
-2. **Decide** which tools are approved, sign business agreements with those providers, and write a short [AI acceptable use policy](/research/ai-acceptable-use-policy-template/).
+2. **Decide** which tools are approved, sign business agreements with those providers, and write a short [AI acceptable use policy](/shadow/research/ai-acceptable-use-policy-template/).
 3. **Provide** approved tools that are good enough for real work, so people don't need the unapproved ones.
 4. **Protect** what leaves. Shadow masks names, emails, phone numbers, card numbers, IBANs, national IDs, addresses and secrets in every AI request and restores the real values in the answer, so people can use AI on real work without the data reaching the provider.
 5. **Monitor and review.** Watch new AI services and policy violations, and update the approved list every quarter.
@@ -117,9 +121,3 @@ Then click the menu-bar icon and choose **Protect all apps and browsers**. Paste
 ---
 
 **Disclaimer**: This guide describes risks and technical controls. It does not make your AI use compliant with any law or standard. Involve your security, privacy and legal teams.
-
-## Related research
-
-- [Private ChatGPT: how to use AI without sharing your data](/research/private-chatgpt/)
-- [Is ChatGPT safe for company data?](/research/is-chatgpt-safe-for-company-data/)
-- [Free AI acceptable use policy template](/research/ai-acceptable-use-policy-template/)

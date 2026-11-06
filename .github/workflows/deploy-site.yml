@@ -43,6 +43,8 @@ jobs:
           cache-dependency-path: docs-site/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+      # SEO and link checks over dist/ (scripts/check-site.mjs)
+      - run: pnpm check
       - run: node deploy/csp.mjs dist dist/_headers
       - name: Deploy to Cloudflare
         env:

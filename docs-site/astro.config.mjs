@@ -9,10 +9,6 @@ import { SITE, BASE, REPO_URL, SITE_DESCRIPTION, CF_BEACON_TOKEN } from './src/s
 // Where the site is published comes from the SITE and BASE environment variables
 // (see src/site.mjs). Default: served at the domain root (BASE=""); GitHub Pages uses BASE=/shadow.
 
-// Research articles are always indexed (unless draft: true in frontmatter).
-// Former /guides/* content has been migrated to /research/* with 301 redirects.
-const RESEARCH_SECTION = '/research/';
-
 // https://astro.build/config
 export default defineConfig({
 	site: SITE,
@@ -25,13 +21,11 @@ export default defineConfig({
 		// Starlight would add this automatically; listing it pins the version and lets us
 		// keep the 404 page out of the sitemap.
 		sitemap({
-			// noindex pages stay out: case studies until a customer approves, guide stubs
-			// (migrated to /research/ with 301 redirects), and the Hub connect page (may carry
-			// an invite token). Research articles are always included.
-			filter: (page) =>
-				!/\/404\/?$/.test(page) &&
-				(page.includes(RESEARCH_SECTION) ||
-					!/\/(customers|guides|docs\/hub)\/|\/hub\/connect\//.test(page)),
+			// noindex pages stay out: case studies until a customer approves, unfinished guide
+			// stubs, and the Hub connect page (may carry an invite token). Guides that moved to
+			// /research/ are 301 redirects in worker/index.js and are no longer built.
+			// scripts/check-site.mjs fails the build check if a noindex page is listed.
+			filter: (page) => !/\/404\/?$/.test(page) && !/\/(customers|guides|docs\/hub)\/|\/hub\/connect\//.test(page),
 		}),
 		starlight({
 			title: 'Shadow',

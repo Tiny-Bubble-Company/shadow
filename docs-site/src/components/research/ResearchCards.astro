@@ -1,0 +1,38 @@
+---
+// Research articles as a grid of hairline link cells (the home page's .hp-cells system).
+// Used by the research index, the "Related research" block on articles and the home page.
+import { formatDate, researchPath, type ResearchEntry } from '../../data/research';
+
+interface Props {
+	entries: ResearchEntry[];
+	/** Columns from 40rem up. */
+	columns?: 2 | 3;
+	/** Heading level of each card title. */
+	level?: 'h2' | 'h3';
+}
+const { entries, columns = 2, level = 'h3' } = Astro.props;
+const Title = level;
+---
+
+<div class:list={['hp-cells', `hp-cells--${columns}`, 'rs-cards', 'not-content']}>
+	{
+		entries.map((e) => (
+			<a class="hp-cell hp-cell--link rs-card" href={researchPath(e.id)}>
+				<p class="rs-card__meta">
+					{e.data.series && (
+						<span class="rs-card__series">
+							{e.data.series}
+							{e.data.seriesNumber && ` #${e.data.seriesNumber}`}
+						</span>
+					)}
+					<time datetime={e.data.publishedDate.toISOString()}>{formatDate(e.data.publishedDate, 'short')}</time>
+					{e.data.readingTime && <span>{e.data.readingTime} min read</span>}
+				</p>
+				<Title class="rs-card__title">
+					{e.data.title} <span class="hp-cell__arrow" aria-hidden="true">→</span>
+				</Title>
+				<p class="rs-card__desc">{e.data.description}</p>
+			</a>
+		))
+	}
+</div>

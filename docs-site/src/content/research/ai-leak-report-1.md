@@ -1,7 +1,7 @@
 ---
 title: "122,255 Sensitive Values Protected on One Developer Laptop: AI Leak Report #1"
-seoTitle: "AI Leak Report: 122k potential leaks blocked from developer AI tools"
-description: "Over 30 days, Shadow detected and masked 122,255 sensitive values in outgoing AI traffic from one developer laptop—including 287 secrets, 1,405 emails, and 2,759 names. Here is what AI coding assistants can expose and how to reduce it."
+seoTitle: "AI Leak Report #1: 122k sensitive values from one laptop"
+description: "In 30 days Shadow masked 122,255 sensitive values in AI traffic from one developer laptop, including 287 secrets and 1,405 emails. What it found and why."
 publishedDate: 2026-11-06
 topics:
   - AI Security
@@ -58,6 +58,10 @@ faq:
 cta:
   label: "Try Shadow free"
   href: /getting-started/quick-start/
+related:
+  - does-cursor-train-on-my-code
+  - what-is-shadow-ai
+  - what-is-an-llm-proxy
 ---
 
 Developer AI tools—coding assistants, chat UIs, and agents—can accelerate work dramatically. They can also send more data to model providers than most developers realize.
@@ -131,9 +135,9 @@ Future reports will cover specific tools, different work patterns, and what the 
 
 ## About Shadow
 
-[Shadow](/) is an open-source (Apache-2.0) privacy layer for AI. It runs locally, masks PII and secrets in prompts before they reach ChatGPT, Claude, Cursor, and other LLM APIs, and restores real values in responses. The mapping stays in an encrypted vault on your machine—no cloud service, no account, no telemetry.
+[Shadow](/shadow/) is an open-source (Apache-2.0) privacy layer for AI. It runs locally, masks PII and secrets in prompts before they reach ChatGPT, Claude, Cursor, and other LLM APIs, and restores real values in responses. The mapping stays in an encrypted vault on your machine—no cloud service, no account, no telemetry.
 
-For teams, [Shadow Hub](/hub/) shows which AI tools your people use and what was masked or blocked, per user and per tool, without collecting prompt text.
+For teams, [Shadow Hub](/shadow/hub/) shows which AI tools your people use and what was masked or blocked, per user and per tool, without collecting prompt text.
 
 ---
 

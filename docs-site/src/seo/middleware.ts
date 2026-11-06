@@ -22,6 +22,7 @@ import { inlineMarkdownToText } from './inline-md';
 import { idToSlug, sectionLabel } from './sections';
 import { mainNav } from '../nav/site-nav';
 import { OG_CARDS } from './og-cards.mjs';
+import { getResearch } from '../data/research';
 
 type HeadEntry = HeadConfig[number];
 
@@ -99,6 +100,7 @@ export const onRequest = defineRouteMiddleware(async (context) => {
 		keywords?: string[];
 		ogImage?: string;
 		seoTitle?: string;
+		article?: { published: Date; modified?: Date; author: string };
 	};
 	const slug = idToSlug(route.id ?? '');
 	const isHome = slug === '';
@@ -128,6 +130,10 @@ export const onRequest = defineRouteMiddleware(async (context) => {
 			: `${sectionLabel(section)} · ${SITE_NAME} docs: ${SECTION_OG_ALT[section] ?? TAGLINE}`;
 	setMeta(head, 'property', 'og:title', fullTitle);
 	setMeta(head, 'property', 'og:type', isHome ? 'website' : 'article');
+	if (data.article) {
+		setMeta(head, 'property', 'article:published_time', new Date(data.article.published).toISOString());
+		if (data.article.modified) setMeta(head, 'property', 'article:modified_time', new Date(data.article.modified).toISOString());
+	}
 	setMeta(head, 'property', 'og:image', image, false);
 	if (!data.ogImage) {
 		setMeta(head, 'property', 'og:image:width', '1200', false);
@@ -228,7 +234,8 @@ export const onRequest = defineRouteMiddleware(async (context) => {
 		const parts = slug.split('/');
 		for (let i = 1; i < parts.length; i++) {
 			const sub = parts.slice(0, i).join('/');
-			if (pages.has(sub)) crumbs.push({ name: i === 1 ? sectionLabel(sub) : pages.get(sub)!, item: pageUrl(sub) });
+			if (sub === 'research') crumbs.push({ name: 'Research', item: pageUrl(sub) });
+			else if (pages.has(sub)) crumbs.push({ name: i === 1 ? sectionLabel(sub) : pages.get(sub)!, item: pageUrl(sub) });
 		}
 		// A section landing page ('compare') is named by its section label, not its long H1.
 		const last = parts.length === 1 ? sectionLabel(slug) : data.title;
@@ -261,6 +268,49 @@ export const onRequest = defineRouteMiddleware(async (context) => {
 			mainEntity: { '@id': appId },
 			primaryImageOfPage: { '@type': 'ImageObject', url: image },
 			dateModified: dates.modified,
+		});
+	} else if (slug === 'research') {
+		// The research index: a collection of the articles, newest first.
+		const articles = await getResearch();
+		graph.push({
+			'@type': 'CollectionPage',
+			'@id': `${canonicalHref}#webpage`,
+			url: canonicalHref,
+			name: data.title,
+			description,
+			inLanguage: 'en',
+			isPartOf: { '@id': siteId },
+			publisher: { '@id': orgId },
+			breadcrumb: { '@id': `${canonicalHref}#breadcrumb` },
+			mainEntity: {
+				'@type': 'ItemList',
+				itemListElement: articles.map((a, i) => ({
+					'@type': 'ListItem',
+					position: i + 1,
+					url: pageUrl(`research/${a.id}`),
+					name: a.data.title,
+				})),
+			},
+		});
+	} else if (data.article) {
+		// Research articles: dates and byline from their frontmatter, not from git.
+		const art = data.article;
+		graph.push({
+			'@type': 'Article',
+			'@id': `${canonicalHref}#article`,
+			headline: data.title,
+			description,
+			url: canonicalHref,
+			mainEntityOfPage: canonicalHref,
+			inLanguage: 'en',
+			datePublished: new Date(art.published).toISOString(),
+			dateModified: new Date(art.modified ?? art.published).toISOString(),
+			image,
+			isPartOf: { '@id': siteId },
+			author: { '@type': 'Organization', name: art.author, url: abs('research/'), parentOrganization: { '@id': orgId } },
+			publisher: { '@id': orgId },
+			...(data.keywords?.length ? { keywords: data.keywords.join(', ') } : {}),
+			breadcrumb: { '@id': `${canonicalHref}#breadcrumb` },
 		});
 	} else {
 		graph.push({

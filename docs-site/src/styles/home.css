@@ -1883,3 +1883,277 @@ h1.mk-hero__title {
 		padding-top: 3.5rem;
 	}
 }
+
+/* ---------- Research (src/pages/research, PageTitle.astro, ResearchCards.astro) ---------- */
+/* The index uses the marketing page system above (.mk-hero). Articles get .rs-hero: the same
+   wash, eyebrow and heading at a size for long headlines, then docs prose at a reading measure. */
+.main-pane:has(.rs-hero) {
+	overflow-x: clip;
+}
+.main-pane:has(.rs-hero) .sl-container {
+	max-width: 46rem;
+	margin-inline: auto;
+}
+.main-pane:has(.rs-hero) .content-panel + .content-panel {
+	border-top: 0;
+	padding-top: 0;
+}
+.rs-hero {
+	position: relative;
+	padding: 3.5rem 0 2.5rem;
+	margin-bottom: 2.5rem;
+	border-bottom: 1px solid var(--sh-border);
+	text-align: center;
+}
+.rs-hero .mk-hero__eyebrow .hp-pill__dot {
+	display: inline-block;
+}
+h1.rs-hero__title {
+	font-size: clamp(2rem, 1.4rem + 2.4vw, 3rem);
+	line-height: 1.1;
+	text-wrap: balance;
+}
+.rs-hero__dek {
+	max-width: 40rem;
+	margin: 1.25rem auto 0;
+	color: var(--sh-muted);
+	font-size: clamp(1.0625rem, 0.95rem + 0.45vw, 1.25rem);
+	line-height: 1.6;
+}
+.rs-hero__meta {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.25rem 1rem;
+	margin: 1.5rem 0 0;
+	color: var(--sh-faint);
+	font-size: 0.875rem;
+}
+.rs-hero__meta > :first-child {
+	color: var(--sh-text);
+}
+.rs-crumbs ol {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.5rem;
+	margin: 0 0 1.5rem;
+	padding: 0;
+	list-style: none;
+	font-size: 0.875rem;
+	color: var(--sh-faint);
+}
+.rs-crumbs li + li::before {
+	content: '/';
+	margin-right: 0.5rem;
+}
+.rs-crumbs a {
+	color: var(--sh-muted);
+	text-decoration: none;
+}
+.rs-crumbs a:hover {
+	color: var(--sh-text);
+}
+@media (max-width: 47.99rem) {
+	.rs-hero {
+		padding-top: 2rem;
+	}
+}
+
+/* Topic links: small outlined pills */
+.rs-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin: 1.5rem 0 0;
+	padding: 0;
+	list-style: none;
+}
+.rs-tags--center {
+	justify-content: center;
+}
+.main-pane:has(.mk-hero) .sl-markdown-content > ul.rs-tags--center {
+	max-width: 44rem;
+	margin-inline: auto;
+}
+.rs-tags a {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.375rem;
+	padding: 0.25rem 0.75rem;
+	border: 1px solid var(--sh-border);
+	border-radius: 999px;
+	background: var(--sh-panel);
+	color: var(--sh-muted);
+	font-size: 0.75rem;
+	text-decoration: none;
+	transition:
+		color var(--sh-ease),
+		border-color var(--sh-ease);
+}
+.rs-tags a:hover {
+	border-color: var(--sh-border-strong);
+	color: var(--sh-text);
+}
+.rs-tags__count {
+	color: var(--sh-faint);
+}
+
+/* Article cards: .hp-cells / .hp-cell from the home page */
+.rs-cards {
+	margin-top: 2rem;
+}
+.rs-card {
+	display: flex;
+	flex-direction: column;
+	gap: 0.625rem;
+}
+.rs-card__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem 0.75rem;
+	margin: 0;
+	color: var(--sh-faint);
+	font-size: 0.75rem;
+}
+.rs-card__series {
+	color: var(--sh-accent-text);
+}
+.rs-card .rs-card__title {
+	margin: 0;
+	font-size: 1.0625rem;
+	font-weight: 500;
+	line-height: 1.35;
+	letter-spacing: -0.01em;
+	color: var(--sh-text);
+}
+.rs-card p.rs-card__desc {
+	margin: 0;
+}
+.rs-card .hp-cell__arrow {
+	margin-left: 0.25rem;
+}
+/* An odd last card fills the row instead of leaving an empty cell */
+@media (min-width: 40rem) {
+	.hp-cells--2 > .rs-card:last-child:nth-child(odd) {
+		grid-column: 1 / -1;
+	}
+}
+@media (min-width: 64rem) {
+	.hp-cells--3 > .rs-card:last-child:nth-child(3n + 1) {
+		grid-column: 1 / -1;
+	}
+	.hp-cells--3 > .rs-card:last-child:nth-child(3n + 2) {
+		grid-column: span 2;
+	}
+}
+
+/* Plain link lists under each topic */
+.rs-list {
+	margin: 1.25rem 0 0;
+	padding: 0;
+	list-style: none;
+	border-top: 1px solid var(--sh-border);
+}
+.rs-list li {
+	border-bottom: 1px solid var(--sh-border);
+}
+.rs-list a {
+	display: block;
+	padding: 0.875rem 0;
+	color: var(--sh-text);
+	font-size: 0.9375rem;
+	text-decoration: none;
+	transition: color var(--sh-ease);
+}
+.rs-list a:hover {
+	color: var(--sh-accent-text);
+}
+
+/* Key findings, methodology, CTA and related articles on an article */
+.rs-findings,
+.rs-note {
+	margin: 0 0 2.5rem;
+	padding: 1.5rem 1.75rem;
+	border: 1px solid var(--sh-border);
+	border-radius: calc(var(--sh-radius) + 4px);
+	background: var(--sh-panel);
+}
+.rs-note {
+	margin: 3rem 0 0;
+}
+.rs-findings h2,
+.rs-note h2 {
+	margin: 0 0 1rem;
+	font-size: 0.875rem;
+	font-weight: 500;
+	letter-spacing: 0;
+	color: var(--sh-faint);
+}
+.rs-findings ul {
+	display: grid;
+	gap: 0.625rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.rs-findings li {
+	position: relative;
+	padding-left: 1.25rem;
+	color: var(--sh-text);
+	font-size: 0.9375rem;
+	line-height: 1.55;
+}
+.rs-findings li::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 0.55em;
+	width: 0.375rem;
+	height: 0.375rem;
+	border-radius: 50%;
+	background: var(--sh-accent);
+}
+.rs-note :is(p, li) {
+	color: var(--sh-muted);
+	font-size: 0.9375rem;
+	line-height: 1.6;
+}
+.rs-note p {
+	margin: 0 0 0.75rem;
+}
+.rs-note ul {
+	margin: 0 0 1rem;
+	padding-left: 1.25rem;
+}
+.rs-note strong {
+	color: var(--sh-text);
+	font-weight: 500;
+}
+.rs-note > :last-child {
+	margin-bottom: 0;
+}
+.rs-cta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+	margin: 3rem 0 0;
+}
+.rs-related {
+	margin-top: 4rem;
+	padding-top: 3rem;
+	border-top: 1px solid var(--sh-border);
+}
+.rs-related h2 {
+	margin: 0;
+	font-size: var(--sl-text-h2);
+	font-weight: 500;
+	letter-spacing: -0.02em;
+	color: var(--sh-text);
+}
+/* Wide tables in article prose scroll inside their own box on phones */
+.main-pane:has(.rs-hero) .sl-markdown-content table {
+	display: block;
+	max-width: 100%;
+	overflow-x: auto;
+}

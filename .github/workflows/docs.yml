@@ -32,3 +32,5 @@ jobs:
           cache-dependency-path: docs-site/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+      # SEO and link checks over dist/ (scripts/check-site.mjs)
+      - run: pnpm check

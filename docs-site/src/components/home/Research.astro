@@ -1,33 +1,15 @@
 ---
-// Research section for the homepage: highlights recent research articles.
+// Home page research section: the three newest articles as hairline cells.
+import { getResearch } from '../../data/research';
 import { sitePath } from '../../nav/site-nav';
+import ResearchCards from '../research/ResearchCards.astro';
 
-const allPosts = import.meta.glob('../../content/research/*.md', { eager: true });
-const allResearch = Object.entries(allPosts)
-	.filter(([_, post]: [string, any]) => !post.frontmatter?.draft)
-	.map(([path, post]: [string, any]) => ({
-		slug: path.split('/').pop()?.replace('.md', '') || '',
-		data: {
-			...post.frontmatter,
-			publishedDate: new Date(post.frontmatter.publishedDate),
-			topics: post.frontmatter.topics || [],
-			keyFindings: post.frontmatter.keyFindings || [],
-		},
-	}));
-const articles = allResearch
-	.sort((a, b) => b.data.publishedDate.valueOf() - a.data.publishedDate.valueOf())
-	.slice(0, 3);
-
-const formatDate = (date: Date) =>
-	date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-
-const featured = articles[0];
-const recent = articles.slice(1);
+const articles = (await getResearch()).slice(0, 3);
 ---
 
 {
 	articles.length > 0 && (
-		<section id="research" class="hp-sec hp-research reveal" aria-labelledby="research-heading">
+		<section id="research" class="hp-sec reveal" aria-labelledby="research-heading">
 			<div class="hp-wrap">
 				<header class="hp-head">
 					<p class="hp-eyebrow">Research</p>
@@ -35,58 +17,10 @@ const recent = articles.slice(1);
 						Evidence-based AI privacy analysis
 					</h2>
 					<p class="hp-lead">
-						What AI coding tools and chat assistants can expose, measured and documented. From the Shadow team.
+						ktanaka AI coding tools and chat assistants can expose, measured and documented. From the Shadow team.
 					</p>
 				</header>
-
-				<div class="hp-research__grid">
-					{featured && (
-						<article class="hp-research__featured">
-							<a href={sitePath(`/research/${featured.slug}/`)} class="hp-research__link">
-								{featured.data.series && (
-									<p class="hp-research__series">
-										{featured.data.series}
-										{featured.data.seriesNumber && <span>#{featured.data.seriesNumber}</span>}
-									</p>
-								)}
-								<h3 class="hp-research__title">{featured.data.title}</h3>
-								<p class="hp-research__desc">{featured.data.description}</p>
-								<div class="hp-research__meta">
-									<time datetime={featured.data.publishedDate.toISOString()}>
-										{formatDate(featured.data.publishedDate)}
-									</time>
-									{featured.data.readingTime && <span>{featured.data.readingTime} min read</span>}
-								</div>
-								{featured.data.keyFindings && featured.data.keyFindings.length > 0 && (
-									<ul class="hp-research__findings">
-										{featured.data.keyFindings.slice(0, 3).map((finding) => (
-											<li set:html={finding} />
-										))}
-									</ul>
-								)}
-							</a>
-						</article>
-					)}
-
-					{recent.length > 0 && (
-						<div class="hp-research__recent">
-							{recent.map((article) => (
-								<article class="hp-research__card">
-									<a href={sitePath(`/research/${article.slug}/`)} class="hp-research__link">
-										<h3 class="hp-research__card-title">{article.data.title}</h3>
-										<p class="hp-research__card-desc">{article.data.description}</p>
-										<div class="hp-research__meta">
-											<time datetime={article.data.publishedDate.toISOString()}>
-												{formatDate(article.data.publishedDate)}
-											</time>
-										</div>
-									</a>
-								</article>
-							))}
-						</div>
-					)}
-				</div>
-
+				<ResearchCards entries={articles} columns={3} />
 				<a class="hp-more" href={sitePath('/research/')}>
 					Browse all research <span aria-hidden="true">→</span>
 				</a>
@@ -94,168 +28,3 @@ const recent = articles.slice(1);
 		</section>
 	)
 }
-
-<style>
-	.hp-research {
-		padding-top: 5rem;
-		padding-bottom: 5rem;
-	}
-
-	.hp-research__grid {
-		display: grid;
-		gap: 1.5rem;
-		margin-top: 2.5rem;
-	}
-
-	@media (min-width: 50rem) {
-		.hp-research__grid {
-			grid-template-columns: 1.5fr 1fr;
-			gap: 2rem;
-		}
-	}
-
-	.hp-research__featured {
-		background: var(--sh-panel);
-		border: 1px solid var(--sh-border);
-		border-radius: var(--sh-radius);
-		overflow: hidden;
-	}
-
-	.hp-research__link {
-		display: block;
-		padding: 1.75rem;
-		text-decoration: none;
-		transition: background-color var(--sh-ease);
-	}
-
-	.hp-research__featured .hp-research__link:hover {
-		background: var(--sh-hover);
-	}
-
-	.hp-research__series {
-		display: inline-flex;
-		gap: 0.35rem;
-		margin: 0 0 1rem;
-		padding: 0.25rem 0.75rem;
-		background: var(--sh-accent-soft);
-		border-radius: 100px;
-		font-size: 0.75rem;
-		font-weight: 500;
-		color: var(--sh-accent-text);
-	}
-
-	.hp-research__title {
-		margin: 0 0 0.75rem;
-		font-size: 1.375rem;
-		font-weight: 500;
-		line-height: 1.25;
-		letter-spacing: -0.02em;
-		color: var(--sh-text);
-	}
-
-	.hp-research__featured .hp-research__link:hover .hp-research__title {
-		color: var(--sh-accent-text);
-	}
-
-	.hp-research__desc {
-		margin: 0;
-		font-size: 0.9375rem;
-		line-height: 1.55;
-		color: var(--sh-muted);
-	}
-
-	.hp-research__meta {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.75rem;
-		margin-top: 1rem;
-		font-size: 0.8125rem;
-		color: var(--sh-faint);
-	}
-
-	.hp-research__findings {
-		margin: 1.25rem 0 0;
-		padding: 0 0 0 1rem;
-		list-style: none;
-		display: grid;
-		gap: 0.5rem;
-	}
-
-	.hp-research__findings li {
-		position: relative;
-		padding-left: 1rem;
-		font-size: 0.875rem;
-		line-height: 1.5;
-		color: var(--sl-color-gray-2);
-	}
-
-	.hp-research__findings li::before {
-		content: '';
-		position: absolute;
-		left: 0;
-		top: 0.5rem;
-		width: 5px;
-		height: 5px;
-		background: var(--sh-accent);
-		border-radius: 50%;
-	}
-
-	.hp-research__recent {
-		display: grid;
-		gap: 1rem;
-		align-content: start;
-	}
-
-	.hp-research__card {
-		background: var(--sh-panel);
-		border: 1px solid var(--sh-border);
-		border-radius: var(--sh-radius);
-	}
-
-	.hp-research__card .hp-research__link {
-		padding: 1.25rem;
-	}
-
-	.hp-research__card .hp-research__link:hover {
-		background: var(--sh-hover);
-	}
-
-	.hp-research__card-title {
-		margin: 0 0 0.5rem;
-		font-size: 1rem;
-		font-weight: 500;
-		line-height: 1.35;
-		color: var(--sh-text);
-	}
-
-	.hp-research__card .hp-research__link:hover .hp-research__card-title {
-		color: var(--sh-accent-text);
-	}
-
-	.hp-research__card-desc {
-		margin: 0;
-		font-size: 0.8125rem;
-		line-height: 1.5;
-		color: var(--sh-muted);
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-	}
-
-	.hp-more {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-		margin-top: 2rem;
-		font-size: 0.9375rem;
-		font-weight: 500;
-		color: var(--sh-accent-text);
-		text-decoration: none;
-		transition: color var(--sh-ease);
-	}
-
-	.hp-more:hover {
-		color: var(--sh-text);
-	}
-</style>

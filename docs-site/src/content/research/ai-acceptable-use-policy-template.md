@@ -31,11 +31,15 @@ faq:
 cta:
   label: "Try Shadow free"
   href: /getting-started/quick-start/
+related:
+  - what-is-shadow-ai
+  - is-chatgpt-safe-for-company-data
+  - private-chatgpt
 ---
 
 **An AI acceptable use policy tells employees which AI tools they may use, what data they must never put into them, and how the rules are enforced.** Below is a free template you can copy and adapt. Unlike most templates, each rule is paired with the control that enforces it, because a policy nobody can check becomes a document nobody reads.
 
-[Download the template as Markdown](/templates/ai-acceptable-use-policy-template.md), or copy it from this page.
+[Download the template as Markdown](/shadow/templates/ai-acceptable-use-policy-template.md), or copy it from this page.
 
 ## How to use this template
 
@@ -147,7 +151,7 @@ Each section of the policy needs a control behind it. Here is what to pair with 
 | Policy section | Control that enforces it | How Shadow helps |
 |---|---|---|
 | 3. Approved tools | Business agreements and company accounts with each provider | Masks data in approved tools, so more tools are safe to approve |
-| 4. Prohibited tools | Web filter or CASB for unsanctioned AI sites; extension allow-list | [Shadow Hub](/hub/) lists newly seen AI services and who uses them |
+| 4. Prohibited tools | Web filter or CASB for unsanctioned AI sites; extension allow-list | [Shadow Hub](/shadow/hub/) lists newly seen AI services and who uses them |
 | 5. Data never entered | Technical masking or blocking before data leaves the laptop | Shadow Core replaces names, emails, phones, card numbers, IBANs, national IDs, addresses and secrets with realistic fakes and restores them in the answer; it can block image uploads |
 | 6. Using AI output | Review steps in existing processes (code review, legal sign-off) | Not a Shadow feature |
 | 7. Monitoring | A dashboard of AI usage and incidents, with a clear sharing level | Hub shows masked and blocked requests per person, app and AI service, at the sharing level you choose |
@@ -184,9 +188,3 @@ Then turn on **Protect all apps and browsers** in the menu-bar app. For a whole 
 ---
 
 **Disclaimer**: This template is a starting point, not legal advice. Have your legal, privacy and HR teams review it for your organisation and jurisdiction before you adopt it.
-
-## Related research
-
-- [What is shadow AI?](/research/what-is-shadow-ai/)
-- [Is ChatGPT safe for company data?](/research/is-chatgpt-safe-for-company-data/)
-- [Private ChatGPT: how to use AI without sharing your data](/research/private-chatgpt/)

@@ -1,35 +1,94 @@
 ---
-// Dynamic route for individual research articles.
-import ResearchLayout from '../../layouts/ResearchLayout.astro';
+// Research articles (src/content/research/*.md) at /research/<slug>/, rendered in Starlight's
+// page shell so they share the site header, footer, fonts, tokens and SEO middleware with
+// every other page. PageTitle.astro draws the article hero from `article`; the FAQ is appended
+// by MarkdownContent.astro and emitted as FAQPage JSON-LD by src/seo/middleware.ts.
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { render } from 'astro:content';
+import { createMarkdownProcessor } from '@astrojs/markdown-remark';
+import { getResearch, relatedResearch, topicHref, type ResearchEntry } from '../../data/research';
+import { sitePath } from '../../nav/site-nav';
+import { withBase } from '../../seo/inline-md';
+import ResearchCards from '../../components/research/ResearchCards.astro';
 
 export async function getStaticPaths() {
-	const allPosts = await import.meta.glob('../../content/research/*.md', { eager: true });
-	const paths = Object.entries(allPosts)
-		.filter(([_, post]: [string, any]) => !post.frontmatter?.draft)
-		.map(([path, post]: [string, any]) => {
-			const slug = path.split('/').pop()?.replace('.md', '') || '';
-			return {
-				params: { slug },
-				props: {
-					frontmatter: {
-						...post.frontmatter,
-						publishedDate: new Date(post.frontmatter.publishedDate),
-						updatedDate: post.frontmatter.updatedDate ? new Date(post.frontmatter.updatedDate) : undefined,
-						topics: post.frontmatter.topics || [],
-						keyFindings: post.frontmatter.keyFindings || [],
-						faq: post.frontmatter.faq || [],
-					},
-					Content: post.Content,
-					slug,
-				},
-			};
-		});
-	return paths;
+	return (await getResearch()).map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
 }
 
-const { frontmatter, Content, slug } = Astro.props;
+const { entry } = Astro.props as { entry: ResearchEntry };
+const d = entry.data;
+const { Content, headings } = await render(entry);
+const related = await relatedResearch(entry);
+
+let methodologyHtml = '';
+if (d.methodology) {
+	const md = await createMarkdownProcessor({ syntaxHighlight: false });
+	methodologyHtml = (await md.render(d.methodology)).code;
+}
 ---
 
-<ResearchLayout frontmatter={frontmatter} slug={slug}>
+<StarlightPage
+	frontmatter={{
+		title: d.title,
+		seoTitle: d.seoTitle,
+		description: d.description,
+		template: 'splash',
+		keywords: d.keywords,
+		faq: d.faq,
+		ogImage: d.ogImage,
+		editUrl: false,
+		article: {
+			published: d.publishedDate,
+			modified: d.updatedDate,
+			author: d.author,
+			readingTime: d.readingTime,
+			series: d.series ? `${d.series}${d.seriesNumber ? ` #${d.seriesNumber}` : ''}` : undefined,
+			topics: d.topics.map((label) => ({ label, href: topicHref(label) })),
+		},
+	}}
+	headings={headings}
+>
+	{
+		d.keyFindings.length > 0 && (
+			<aside class="rs-findings not-content" aria-labelledby="key-findings">
+				<h2 id="key-findings" class="rs-findings__title">Key findings</h2>
+				<ul>
+					{d.keyFindings.map((f) => (
+						<li set:html={f} />
+					))}
+				</ul>
+			</aside>
+		)
+	}
+
 	<Content />
-</ResearchLayout>
+
+	{
+		methodologyHtml && (
+			<aside class="rs-note not-content" aria-labelledby="methodology">
+				<h2 id="methodology">Methodology and caveats</h2>
+				<Fragment set:html={methodologyHtml} />
+			</aside>
+		)
+	}
+
+	{
+		d.cta && (
+			<p class="rs-cta not-content">
+				<a class="sh-btn sh-btn--fg" href={withBase(d.cta.href.startsWith('/shadow') ? d.cta.href : `/shadow${d.cta.href}`)}>
+					{d.cta.label}
+				</a>
+				<a class="sh-btn sh-btn--surface" href={sitePath('/research/')}>All research</a>
+			</p>
+		)
+	}
+
+	{
+		related.length > 0 && (
+			<section class="rs-related not-content" aria-labelledby="more-research">
+				<h2 id="more-research">More research</h2>
+				<ResearchCards entries={related} columns={3} />
+			</section>
+		)
+	}
+</StarlightPage>

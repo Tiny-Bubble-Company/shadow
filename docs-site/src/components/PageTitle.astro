@@ -1,27 +1,74 @@
 ---
 // Page H1 (overrides Starlight's PageTitle). Docs pages keep a plain H1. Splash pages without
-// a home hero (Hub, Pricing, Trust, 404) get the marketing hero: hero wash, eyebrow and a
-// large tight-tracked heading, matching the home page.
+// a home hero (Hub, Pricing, Trust, Research, 404) get the marketing hero: hero wash, eyebrow
+// and a large tight-tracked heading, matching the home page. Research articles (frontmatter
+// `article`, set by src/pages/research/[...slug].astro) add a breadcrumb, the dek, byline and
+// topic links under a smaller heading sized for long titles.
+import { sitePath } from '../nav/site-nav';
+import { formatDate } from '../data/research';
+
 const { entry, id } = Astro.locals.starlightRoute;
-const isSplash = entry.data.template === 'splash';
+const data = entry.data as typeof entry.data & {
+	article?: {
+		published: Date;
+		modified?: Date;
+		author: string;
+		readingTime?: number;
+		series?: string;
+		topics: { label: string; href: string }[];
+	};
+};
+const isSplash = data.template === 'splash';
+const article = data.article;
 const EYEBROWS: Record<string, string> = {
 	hub: 'Shadow Hub',
 	connect: 'Shadow Connect',
 	pricing: 'Pricing',
 	trust: 'Trust and data',
+	research: 'Shadow Research',
 };
 const eyebrow = EYEBROWS[id.replace(/\/$/, '')];
 ---
 
 {
-	isSplash ? (
+	article ? (
+		<header class="rs-hero">
+			<div class="mk-hero__wash" aria-hidden="true" />
+			<nav class="rs-crumbs" aria-label="Breadcrumb">
+				<ol>
+					<li><a href={sitePath('/')}>Shadow</a></li>
+					<li><a href={sitePath('/research/')}>Research</a></li>
+				</ol>
+			</nav>
+			{article.series && <p class="mk-hero__eyebrow"><span class="hp-pill__dot" />{article.series}</p>}
+			<h1 id="_top" class="mk-hero__title rs-hero__title text-fade">{data.title}</h1>
+			<p class="rs-hero__dek">{data.description}</p>
+			<p class="rs-hero__meta">
+				<span>{article.author}</span>
+				<time datetime={article.published.toISOString()}>{formatDate(article.published)}</time>
+				{article.modified && article.modified > article.published && (
+					<span>
+						Updated <time datetime={article.modified.toISOString()}>{formatDate(article.modified)}</time>
+					</span>
+				)}
+				{article.readingTime && <span>{article.readingTime} min read</span>}
+			</p>
+			{article.topics.length > 0 && (
+				<ul class="rs-tags rs-tags--center" aria-label="Topics">
+					{article.topics.map((t) => (
+						<li><a href={t.href}>{t.label}</a></li>
+					))}
+				</ul>
+			)}
+		</header>
+	) : isSplash ? (
 		<header class="mk-hero">
 			<div class="mk-hero__wash" aria-hidden="true" />
 			{eyebrow && <p class="mk-hero__eyebrow"><span class="hp-pill__dot" />{eyebrow}</p>}
-			<h1 id="_top" class="mk-hero__title text-fade">{entry.data.title}</h1>
+			<h1 id="_top" class="mk-hero__title text-fade">{data.title}</h1>
 		</header>
 	) : (
-		<h1 id="_top">{entry.data.title}</h1>
+		<h1 id="_top">{data.title}</h1>
 	)
 }
 

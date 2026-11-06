@@ -1,7 +1,7 @@
 ---
 title: "Private ChatGPT: How to Use AI Without Sharing Your Data"
 seoTitle: "Private ChatGPT: How to Use AI Without Sharing Your Data"
-description: "A private ChatGPT keeps your prompts out of training data and away from the provider. Compare your options: settings, enterprise plans, self-hosted models, and privacy proxies."
+description: "A private ChatGPT keeps prompts out of training data and away from the provider. Compare settings, enterprise plans, self-hosted models and privacy proxies."
 publishedDate: 2026-09-20
 updatedDate: 2026-11-06
 topics:
@@ -33,6 +33,11 @@ faq:
 cta:
   label: "Try Shadow free"
   href: /getting-started/quick-start/
+related:
+  - is-chatgpt-safe-for-company-data
+  - does-cursor-train-on-my-code
+  - what-is-an-llm-proxy
+  - what-is-shadow-ai
 ---
 
 **A private ChatGPT is any setup that lets you use a powerful AI assistant without your prompts being stored, trained on, or seen by the provider.** There is no single product with that name: you achieve it by combining the right plan, settings, architecture, or tools. The safest approach is to keep sensitive data out of the prompt entirely, or mask it before it leaves your machine.
@@ -66,7 +71,7 @@ Business plans from OpenAI and Anthropic come with zero-data-retention (ZDR) agr
 
 **Pros:** Prompts are not used for training by default, retention is admin-controlled, and you have a contract and a DPA.
 
-**Cons:** Prompts still reach the provider and may be reviewed by staff for abuse, safety or legal reasons. You pay per seat or per token, and you must trust the provider's terms and infrastructure. See [Is ChatGPT safe for company data?](/research/is-chatgpt-safe-for-company-data/) for plan-by-plan retention details.
+**Cons:** Prompts still reach the provider and may be reviewed by staff for abuse, safety or legal reasons. You pay per seat or per token, and you must trust the provider's terms and infrastructure. See [Is ChatGPT safe for company data?](/shadow/research/is-chatgpt-safe-for-company-data/) for plan-by-plan retention details.
 
 ### 3. Self-hosted open-weight models (Ollama, vLLM)
 
@@ -84,7 +89,7 @@ A privacy proxy sits between your apps and the AI provider, detects personal dat
 
 **Cons:** Detection is best effort: unusual names or formats can be missed. The proxy adds a small amount of latency. You need to install and configure it.
 
-[Shadow](/) is an open-source (Apache-2.0) privacy proxy that does exactly this. It runs on `127.0.0.1:8877`, masks prompts to [288 AI services](/reference/providers/), and restores the real values in answers, including streamed text and tool calls.
+[Shadow](/shadow/) is an open-source (Apache-2.0) privacy proxy that does exactly this. It runs on `127.0.0.1:8877`, masks prompts to [288 AI services](/shadow/reference/providers/), and restores the real values in answers, including streamed text and tool calls.
 
 ## Comparison table
 
@@ -103,14 +108,14 @@ Decide which AI tools your team may use. Options include:
 
 - ChatGPT Business or Enterprise (prompts reach OpenAI under a DPA)
 - The OpenAI or Anthropic API via an internal chat UI
-- ChatGPT, Claude.ai or Gemini in a browser, with Shadow's [system proxy](/integrate/proxy-mode/#system-wide-with-the-system-proxy) masking prompts
+- ChatGPT, Claude.ai or Gemini in a browser, with Shadow's [system proxy](/shadow/integrate/proxy-mode/#system-wide-with-the-system-proxy) masking prompts
 - A self-hosted model for the most sensitive work
 
 Most teams pick a hosted option for quality and convenience, then mask the prompts.
 
 ### Step 2: Write a one-page acceptable use policy
 
-Tell people what tools are approved, what data may never be shared (customer PII, credentials, unreleased financials), and what happens if they use unapproved tools. Start from our [free AI acceptable use policy template](/research/ai-acceptable-use-policy-template/).
+Tell people what tools are approved, what data may never be shared (customer PII, credentials, unreleased financials), and what happens if they use unapproved tools. Start from our [free AI acceptable use policy template](/shadow/research/ai-acceptable-use-policy-template/).
 
 ### Step 3: Route traffic through Shadow
 
@@ -128,11 +133,11 @@ For ChatGPT, Claude.ai and other browser-based chat, turn on the system proxy:
 shadow install --system-proxy --apply
 ```
 
-For API-based tools, point them at Shadow's [gateway](/integrate/gateway-mode/) or set `HTTPS_PROXY=http://127.0.0.1:8877`. See the [quick-start guide](/getting-started/quick-start/) and [proxy mode](/integrate/proxy-mode/) for detailed setup.
+For API-based tools, point them at Shadow's [gateway](/shadow/integrate/gateway-mode/) or set `HTTPS_PROXY=http://127.0.0.1:8877`. See the [quick-start guide](/shadow/getting-started/quick-start/) and [proxy mode](/shadow/integrate/proxy-mode/) for detailed setup.
 
 ### Step 4: Get visibility with Shadow Hub
 
-[Shadow Hub](/hub/) shows which AI tools your team uses and what Shadow masked or blocked, per user and per tool, without collecting prompt text by default. It is free for up to 3 users, then $3 per user per month up to 500 users. See [Pricing](/pricing/).
+[Shadow Hub](/shadow/hub/) shows which AI tools your team uses and what Shadow masked or blocked, per user and per tool, without collecting prompt text by default. It is free for up to 3 users, then $3 per user per month up to 500 users. See [Pricing](/shadow/pricing/).
 
 Connect a laptop to Hub with one command from your invite link:
 
@@ -158,7 +163,7 @@ her order #A-29104 that shipped to 12 Sakura-dori. She says Kenji from
 support promised a refund.
 ```
 
-ChatGPT writes a polite reply about Yuki Tanaka. Shadow restores the real names and details in the answer you see, so the reply addresses Jane Doe at her real address. The order number passed through because it is not a detected format; add such references as [terms](/concepts/detection/#custom-terms) if they matter.
+ChatGPT writes a polite reply about Yuki Tanaka. Shadow restores the real names and details in the answer you see, so the reply addresses Jane Doe at her real address. The order number passed through because it is not a detected format; add such references as [terms](/shadow/concepts/detection/#custom-terms) if they matter.
 
 ## Limits to be honest about
 
@@ -170,10 +175,3 @@ ChatGPT writes a polite reply about Yuki Tanaka. Shadow restores the real names 
 ---
 
 **Disclaimer**: This guide describes risks and technical controls. It does not make your AI use compliant with any law or standard. Involve your security, privacy and legal teams.
-
-## Related research
-
-- [Is ChatGPT safe for company data?](/research/is-chatgpt-safe-for-company-data/)
-- [Does Cursor train on my code?](/research/does-cursor-train-on-my-code/)
-- [What is an LLM proxy?](/research/what-is-an-llm-proxy/)
-- [What is shadow AI?](/research/what-is-shadow-ai/)

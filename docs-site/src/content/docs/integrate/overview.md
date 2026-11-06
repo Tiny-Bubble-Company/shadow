@@ -50,4 +50,4 @@ Whatever the mode, a request goes through the same steps:
 4. **Scrub** identifying fields and headers (proxy and gateway only).
 5. **Restore** the response: JSON, server-sent events, NDJSON streams and tool-call arguments.
 
-See [How it works](/shadow/concepts/how-it-works/) for the full lifecycle, or read [What is an LLM proxy?](/shadow/guides/what-is-an-llm-proxy/) for background on how proxies and gateways fit into your stack.
+See [How it works](/shadow/concepts/how-it-works/) for the full lifecycle, or read [What is an LLM proxy?](/shadow/research/what-is-an-llm-proxy/) for background on how proxies and gateways fit into your stack.

@@ -1,7 +1,7 @@
 ---
 title: "What is an LLM Proxy? How It Works and When You Need One"
 seoTitle: "What is an LLM proxy?"
-description: "An LLM proxy sits between your apps and AI providers to route, log, limit or protect requests. Learn the types (gateway, forward proxy, privacy proxy), how they differ, and how to pick one."
+description: "An LLM proxy sits between your apps and AI providers to route, log, limit or protect requests. The types, how they differ, and how to pick one."
 publishedDate: 2026-07-15
 updatedDate: 2026-11-06
 topics:
@@ -28,6 +28,10 @@ faq:
 cta:
   label: "Try Shadow free"
   href: /getting-started/quick-start/
+related:
+  - private-chatgpt
+  - does-cursor-train-on-my-code
+  - what-is-shadow-ai
 ---
 
 **An LLM proxy is a service that sits between an application and one or more large language model APIs (OpenAI, Anthropic, Google and others).** Every request passes through it, so it can route traffic between providers, enforce keys and rate limits, log usage and cost, cache responses, or inspect and change the content, for example masking personal data before it reaches the model. Apps usually use it by changing one setting: the API base URL or the HTTPS proxy.
@@ -54,7 +58,7 @@ Many products combine these. A gateway can add guardrails; a privacy proxy can a
 
 ## How an LLM proxy works, step by step
 
-Using a privacy proxy as the example ([Shadow's request lifecycle](/concepts/how-it-works/)):
+Using a privacy proxy as the example ([Shadow's request lifecycle](/shadow/concepts/how-it-works/)):
 
 1. **Intercept:** the app sends its request to the proxy, either to a local gateway route such as `/gw/openai/v1/chat/completions` or through `HTTPS_PROXY`.
 2. **Inspect:** the proxy parses the JSON body and scans each text field with detectors for emails, phone numbers, card numbers, IBANs, secrets, names, addresses and custom terms.
@@ -84,7 +88,7 @@ A managed gateway is quick to set up, but every prompt passes through one more t
 
 ## Shadow: an open-source privacy proxy for LLMs
 
-[Shadow](/) runs locally on `127.0.0.1:8877`, written in Rust and licensed Apache-2.0. It works as a gateway (change the base URL) or as a forward proxy (set `HTTPS_PROXY`), so it covers SDKs, Claude Code, Cursor and the ChatGPT app. It masks personal data and secrets with reversible fakes and restores them in responses, streams and tool calls included. For hosts that are not AI providers it only tunnels bytes and never sees the content ([proxy mode](/integrate/proxy-mode/)).
+[Shadow](/shadow/) runs locally on `127.0.0.1:8877`, written in Rust and licensed Apache-2.0. It works as a gateway (change the base URL) or as a forward proxy (set `HTTPS_PROXY`), so it covers SDKs, Claude Code, Cursor and the ChatGPT app. It masks personal data and secrets with reversible fakes and restores them in responses, streams and tool calls included. For hosts that are not AI providers it only tunnels bytes and never sees the content ([proxy mode](/shadow/integrate/proxy-mode/)).
 
 On a Mac or Linux laptop:
 
@@ -92,10 +96,4 @@ On a Mac or Linux laptop:
 curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
 ```
 
-Running it across a team? [Shadow Hub](/hub/) shows what was masked or blocked per user and tool. Hub is free for up to 3 users, then $3 per user per month up to 500 users. See [Pricing](/pricing/).
-
-## Related research
-
-- [Private ChatGPT: how to use AI without sharing your data](/research/private-chatgpt/)
-- [Does Cursor train on my code?](/research/does-cursor-train-on-my-code/)
-- [What is shadow AI?](/research/what-is-shadow-ai/)
+Running it across a team? [Shadow Hub](/shadow/hub/) shows what was masked or blocked per user and tool. Hub is free for up to 3 users, then $3 per user per month up to 500 users. See [Pricing](/shadow/pricing/).

@@ -1,692 +1,93 @@
 ---
-// Research index page: crawlable list of all research articles with topic filtering.
-// Designed for AEO (Answer Engine Optimization) with FAQ headings and crawlable internal links.
-import { HOME_URL, SITE_NAME, TAGLINE, SITE_DESCRIPTION, ORG_NAME, SUPPORT_EMAIL } from '../../site.mjs';
+// Research index at /research/: every article as a card, then one section per topic (the
+// targets of the topic links on articles), then the FAQ. Same Starlight shell and marketing
+// hero as Hub, Pricing and Trust; JSON-LD (CollectionPage, BreadcrumbList, FAQPage) comes from
+// src/seo/middleware.ts.
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { getResearch, researchPath } from '../../data/research';
+import { PRIMARY_TOPICS } from '../../data/research-topics';
 import { sitePath } from '../../nav/site-nav';
-import SiteFooter from '../../components/SiteFooter.astro';
-import { PRIMARY_TOPICS, type ResearchTopic } from '../../data/research-topics';
+import ResearchCards from '../../components/research/ResearchCards.astro';
 
-// Use import.meta.glob to read research articles directly
-const allPosts = import.meta.glob('../../content/research/*.md', { eager: true });
-const allResearch = Object.entries(allPosts)
-	.filter(([_, post]: [string, any]) => !post.frontmatter?.draft)
-	.map(([path, post]: [string, any]) => ({
-		slug: path.split('/').pop()?.replace('.md', '') || '',
-		data: {
-			...post.frontmatter,
-			publishedDate: new Date(post.frontmatter.publishedDate),
-			updatedDate: post.frontmatter.updatedDate ? new Date(post.frontmatter.updatedDate) : undefined,
-			topics: post.frontmatter.topics || [],
-			keyFindings: post.frontmatter.keyFindings || [],
-		},
-		Content: post.Content,
-	}));
-const articles = allResearch.sort((a, b) => b.data.publishedDate.valueOf() - a.data.publishedDate.valueOf());
+const articles = await getResearch();
+const topics = PRIMARY_TOPICS.map((t) => ({ ...t, articles: articles.filter((a) => a.data.topics.includes(t.label)) })).filter(
+	(t) => t.articles.length > 0,
+);
 
-// Collect all unique topics from articles and map to topic objects
-const articleTopics = [...new Set(articles.flatMap((a) => a.data.topics))];
-const activeTopics = PRIMARY_TOPICS.filter((t) => articleTopics.includes(t.label));
-
-// Group articles by primary topic for the topic hub sections
-const articlesByTopic = new Map<string, typeof articles>();
-for (const topic of activeTopics) {
-	const topicArticles = articles.filter((a) => a.data.topics.includes(topic.label));
-	if (topicArticles.length > 0) {
-		articlesByTopic.set(topic.slug, topicArticles);
-	}
-}
-
-const formatDate = (date: Date) =>
-	date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-
-const canonicalUrl = `${HOME_URL}research/`;
-const pageTitle = `Research · ${SITE_NAME}`;
-const description = `Research and analysis on AI data privacy, security risks, and developer tool exposure from the ${SITE_NAME} team. Evidence-based insights on what AI coding assistants can leak and how to protect sensitive data.`;
-
-const orgId = `${HOME_URL}#organization`;
-
-// FAQ data for the index page (common questions about AI privacy research)
-const indexFaq = [
+const faq = [
 	{
 		q: 'What does Shadow Research cover?',
-		a: 'Shadow Research publishes evidence-based analysis on AI data privacy: what AI tools like ChatGPT, Cursor, and Claude can expose, how to protect sensitive data in prompts, and practical guidance for developers and security teams.',
+		a: 'Evidence-based analysis of AI data privacy: what tools such as ChatGPT, Cursor and Claude Code send to model providers, what their privacy settings do and do not control, and practical ways to keep sensitive data out of prompts.',
 	},
 	{
 		q: 'How can I protect my data when using AI coding assistants?',
-		a: 'Keep secrets out of your workspace, use privacy modes where available, and consider a masking proxy like Shadow that replaces sensitive values before prompts leave your machine. See our research on Cursor, Claude Code, and other tools.',
+		a: 'Keep secrets out of the workspace, turn on privacy modes where they exist, and route traffic through a masking proxy such as [Shadow](/shadow/getting-started/introduction/), which replaces sensitive values before a prompt leaves your machine. See [Does Cursor train on my code?](/shadow/research/does-cursor-train-on-my-code/).',
 	},
 	{
 		q: 'Does ChatGPT train on my company data?',
-		a: 'On personal accounts, ChatGPT can use your data for training by default unless you opt out. Business and Enterprise plans do not train on your data. See our full analysis of ChatGPT data handling.',
+		a: 'Free, Plus and Pro chats can be used for training unless you opt out; Business, Enterprise and the API are not used for training by default. See [Is ChatGPT safe for company data?](/shadow/research/is-chatgpt-safe-for-company-data/).',
 	},
 	{
 		q: 'What is shadow AI and why does it matter?',
-		a: 'Shadow AI is the use of AI tools at work without IT knowledge—personal ChatGPT accounts, browser extensions, coding agents with personal keys. It matters because company and customer data can reach providers without any contract or visibility.',
+		a: 'Shadow AI is AI use at work that IT does not know about: personal ChatGPT accounts, browser extensions, coding agents with personal keys. Company and customer data can reach providers with no contract or visibility. See [What is shadow AI?](/shadow/research/what-is-shadow-ai/).',
 	},
 ];
-
-const structuredData = {
-	'@context': 'https://schema.org',
-	'@graph': [
-		{
-			'@type': 'Organization',
-			'@id': orgId,
-			name: ORG_NAME,
-			url: HOME_URL,
-			logo: { '@type': 'ImageObject', url: `${HOME_URL}logo.png`, width: 512, height: 512 },
-			email: SUPPORT_EMAIL,
-		},
-		{
-			'@type': 'CollectionPage',
-			'@id': `${canonicalUrl}#collection`,
-			url: canonicalUrl,
-			name: `${SITE_NAME} Research`,
-			description,
-			publisher: { '@id': orgId },
-			mainEntity: {
-				'@type': 'ItemList',
-				itemListElement: articles.map((article, i) => ({
-					'@type': 'ListItem',
-					position: i + 1,
-					url: `${HOME_URL}research/${article.slug}/`,
-					name: article.data.title,
-				})),
-			},
-		},
-		{
-			'@type': 'BreadcrumbList',
-			'@id': `${canonicalUrl}#breadcrumb`,
-			itemListElement: [
-				{ '@type': 'ListItem', position: 1, name: SITE_NAME, item: HOME_URL },
-				{ '@type': 'ListItem', position: 2, name: 'Research', item: canonicalUrl },
-			],
-		},
-		{
-			'@type': 'FAQPage',
-			'@id': `${canonicalUrl}#faq`,
-			mainEntity: indexFaq.map(({ q, a }) => ({
-				'@type': 'Question',
-				name: q,
-				acceptedAnswer: { '@type': 'Answer', text: a },
-			})),
-		},
-	],
-};
 ---
 
-<!doctype html>
-<html lang="en" data-theme="dark">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="generator" content={Astro.generator} />
+<StarlightPage
+	frontmatter={{
+		title: 'AI privacy research',
+		seoTitle: 'AI privacy research: what AI tools expose · Shadow',
+		description:
+			'Evidence-based research on AI data privacy: what ChatGPT, Cursor and coding agents send to model providers, and how to keep sensitive data out of prompts.',
+		template: 'splash',
+		editUrl: false,
+		faq,
+	}}
+>
+	<p>
+		<strong>What AI coding assistants and chat tools can expose, measured and documented.</strong> Analysis and practical
+		guidance from the Shadow team, with sources and caveats.
+	</p>
 
-		<title>{pageTitle}</title>
-		<meta name="description" content={description} />
-		<link rel="canonical" href={canonicalUrl} />
-
-		<meta property="og:type" content="website" />
-		<meta property="og:title" content={pageTitle} />
-		<meta property="og:description" content={description} />
-		<meta property="og:url" content={canonicalUrl} />
-		<meta property="og:image" content={`${HOME_URL}og/research.png`} />
-		<meta property="og:site_name" content={SITE_NAME} />
-
-		<meta name="twitter:card" content="summary_large_image" />
-		<meta name="twitter:title" content={pageTitle} />
-		<meta name="twitter:description" content={description} />
-		<meta name="twitter:image" content={`${HOME_URL}og/research.png`} />
-
-		<link rel="icon" type="image/svg+xml" href={sitePath('/favicon.svg')} />
-		<meta name="theme-color" content="#7C6CFF" />
-
-		<style is:global>
-			@import '@fontsource-variable/geist';
-			@import '@fontsource-variable/geist-mono';
-		</style>
-
-		<script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
-
-		<link rel="alternate" type="application/rss+xml" title={`${SITE_NAME} Research RSS`} href={sitePath('/research/rss.xml')} />
-		<link rel="alternate" type="text/plain" title="llms.txt" href={sitePath('/llms.txt')} />
-	</head>
-
-	<body>
-		<a href="#main" class="skip-link">Skip to content</a>
-
-		<header class="research-header">
-			<nav class="research-header__inner" aria-label="Research navigation">
-				<a class="research-header__logo" href={sitePath('/')}>
-					<img src={sitePath('/favicon.svg')} alt="" width="24" height="24" />
-					<span>Shadow</span>
-				</a>
-				<a class="research-header__link research-header__link--active" href={sitePath('/research/')}>Research</a>
-				<a class="research-header__link" href={sitePath('/getting-started/introduction/')}>Docs</a>
-				<a class="research-header__link" href={sitePath('/hub/')}>Hub</a>
-				<a class="research-header__link" href="https://github.com/Tiny-Bubble-Company/shadow" rel="noopener">GitHub</a>
-			</nav>
-		</header>
-
-		<main id="main" class="research-index">
-			<header class="research-index__header">
-				<nav class="research-breadcrumb" aria-label="Breadcrumb">
-					<ol>
-						<li><a href={sitePath('/')}>Shadow</a></li>
-						<li><span aria-current="page">Research</span></li>
-					</ol>
-				</nav>
-				<h1 class="research-index__title">Research</h1>
-				<p class="research-index__lead">
-					Evidence-based analysis on what AI coding assistants and chat tools can expose, and practical
-					ways to protect sensitive data. From the Shadow team.
-				</p>
-			</header>
-
-			<!-- Topic navigation with crawlable links -->
-			{
-				activeTopics.length > 0 && (
-					<nav class="research-topics-nav" aria-label="Browse by topic">
-						<h2 class="research-topics-heading">Topics</h2>
-						<ul class="research-topics-list">
-							{activeTopics.map((topic) => (
-								<li>
-									<a href={`#${topic.slug}`} class="research-topic-link">
-										{topic.label}
-										<span class="research-topic-count">
-											({articlesByTopic.get(topic.slug)?.length || 0})
-										</span>
-									</a>
-								</li>
-							))}
-						</ul>
-					</nav>
-				)
-			}
-
-			<!-- All articles section -->
-			<section class="research-list" aria-label="All research articles">
-				<h2 class="research-section-title">Latest Research</h2>
-				{
-					articles.map((article) => (
-						<article class="research-card">
-							<a href={sitePath(`/research/${article.slug}/`)} class="research-card__link">
-								<div class="research-card__meta">
-									{article.data.series && (
-										<span class="research-card__series">
-											{article.data.series}
-											{article.data.seriesNumber && `#${article.data.seriesNumber}`}
-										</span>
-									)}
-									<time datetime={article.data.publishedDate.toISOString()}>
-										{formatDate(article.data.publishedDate)}
-									</time>
-									{article.data.readingTime && <span>{article.data.readingTime} min read</span>}
-								</div>
-								<h3 class="research-card__title">{article.data.title}</h3>
-								<p class="research-card__dek">{article.data.description}</p>
-								{article.data.topics.length > 0 && (
-									<ul class="research-card__topics">
-										{article.data.topics.slice(0, 3).map((topic) => (
-											<li>{topic}</li>
-										))}
-									</ul>
-								)}
-							</a>
-						</article>
-					))
-				}
-			</section>
-
-			{
-				articles.length === 0 && (
-					<p class="research-empty">No research articles published yet. Check back soon.</p>
-				)
-			}
-
-			<!-- Topic hub sections with internal links (for SEO/AEO) -->
-			{
-				activeTopics.map((topic) => {
-					const topicArticles = articlesByTopic.get(topic.slug) || [];
-					if (topicArticles.length === 0) return null;
-					return (
-						<section id={topic.slug} class="research-topic-section" aria-labelledby={`${topic.slug}-heading`}>
-							<h2 id={`${topic.slug}-heading`} class="research-section-title">
-								{topic.label}
-							</h2>
-							<p class="research-section-desc">{topic.description}</p>
-							<ul class="research-topic-articles">
-								{topicArticles.map((article) => (
-									<li>
-										<a href={sitePath(`/research/${article.slug}/`)}>
-											<strong>{article.data.title}</strong>
-											<span class="research-topic-article-desc">{article.data.description}</span>
-										</a>
-									</li>
-								))}
-							</ul>
-						</section>
-					);
-				})
-			}
-
-			<!-- FAQ section for AEO (Answer Engine Optimization) -->
-			<section class="research-faq" aria-labelledby="faq-heading">
-				<h2 id="faq-heading" class="research-section-title">Frequently Asked Questions</h2>
-				<div class="research-faq-list">
-					{
-						indexFaq.map(({ q, a }) => (
-							<div class="research-faq-item">
-								<h3>{q}</h3>
-								<p>{a}</p>
-							</div>
-						))
-					}
-				</div>
-			</section>
-		</main>
-
-		<SiteFooter />
-	</body>
-</html>
-
-<style is:global>
-	@import '../../styles/custom.css';
-</style>
-
-<style>
-	:root {
-		--research-max-width: 50rem;
-	}
-
-	/* Ensure Geist font is applied (matches homepage) */
-	body {
-		font-family: var(--sl-font);
-		-webkit-font-smoothing: antialiased;
-		-moz-osx-font-smoothing: grayscale;
-	}
-
-	.skip-link {
-		position: absolute;
-		top: -100%;
-		left: 1rem;
-		z-index: 1000;
-		padding: 0.5rem 1rem;
-		background: var(--sh-accent);
-		color: var(--sh-on-accent);
-		border-radius: 4px;
-	}
-	.skip-link:focus {
-		top: 1rem;
-	}
-
-	.research-header {
-		position: sticky;
-		top: 0;
-		z-index: 100;
-		backdrop-filter: blur(24px);
-		-webkit-backdrop-filter: blur(24px);
-		border-bottom: 1px solid var(--sh-border);
-		background: var(--sl-color-bg-nav);
-	}
-
-	.research-header__inner {
-		display: flex;
-		align-items: center;
-		gap: 1.5rem;
-		max-width: var(--research-max-width);
-		margin: 0 auto;
-		padding: 0.875rem 1.5rem;
-	}
-
-	.research-header__logo {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		font-weight: 500;
-		font-size: 0.9375rem;
-		color: var(--sh-text);
-		text-decoration: none;
-	}
-
-	.research-header__logo:hover {
-		color: var(--sh-accent-text);
-	}
-
-	.research-header__link {
-		font-size: 0.875rem;
-		color: var(--sh-muted);
-		text-decoration: none;
-		transition: color var(--sh-ease);
-	}
-
-	.research-header__link:hover,
-	.research-header__link--active {
-		color: var(--sh-text);
-	}
-
-	.research-index {
-		min-height: 100vh;
-		max-width: var(--research-max-width);
-		margin: 0 auto;
-		padding: 0 1.5rem 4rem;
-		background: var(--sh-bg);
-	}
-
-	.research-index__header {
-		padding: 4rem 0 2rem;
-		border-bottom: 1px solid var(--sh-border);
-	}
-
-	@media (min-width: 50rem) {
-		.research-index__header {
-			padding: 5rem 0 2.5rem;
+	<ul class="rs-tags rs-tags--center not-content" aria-label="Topics">
+		{
+			topics.map((t) => (
+				<li>
+					<a href={`#${t.slug}`}>
+						{t.label} <span class="rs-tags__count">{t.articles.length}</span>
+					</a>
+				</li>
+			))
 		}
+	</ul>
+
+	<div class="sl-heading-wrapper level-h2"><h2 id="latest">Latest research</h2></div>
+	<ResearchCards entries={articles} />
+
+	{
+		topics.map((t) => (
+			<>
+				<div class="sl-heading-wrapper level-h2"><h2 id={t.slug}>{t.label}</h2></div>
+				<p>{t.description}</p>
+				<ul class="rs-list not-content">
+					{t.articles.map((a) => (
+						<li>
+							<a href={researchPath(a.id)}>{a.data.title}</a>
+						</li>
+					))}
+				</ul>
+			</>
+		))
 	}
 
-	.research-breadcrumb ol {
-		display: flex;
-		gap: 0.5rem;
-		list-style: none;
-		padding: 0;
-		margin: 0 0 1.5rem;
-		font-size: 0.8125rem;
-		color: var(--sh-muted);
-	}
-
-	.research-breadcrumb li:not(:last-child)::after {
-		content: '/';
-		margin-left: 0.5rem;
-		color: var(--sh-faint);
-	}
-
-	.research-breadcrumb a {
-		color: inherit;
-		text-decoration: none;
-	}
-
-	.research-breadcrumb a:hover {
-		color: var(--sh-text);
-	}
-
-	.research-index__title {
-		margin: 0 0 1rem;
-		font-size: clamp(2rem, 5vw, 2.75rem);
-		font-weight: 500;
-		line-height: 1.1;
-		letter-spacing: -0.035em;
-		color: var(--sh-text);
-	}
-
-	.research-index__lead {
-		margin: 0;
-		font-size: 1.125rem;
-		line-height: 1.6;
-		color: var(--sh-muted);
-		max-width: 36rem;
-	}
-
-	.research-topics-nav {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 1.5rem 0;
-		border-bottom: 1px solid var(--sh-border);
-	}
-
-	.research-topics-label {
-		font-size: 0.8125rem;
-		font-weight: 500;
-		color: var(--sh-muted);
-	}
-
-	.research-topics-list {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		list-style: none;
-		padding: 0;
-		margin: 0;
-	}
-
-	.research-topic-link {
-		display: block;
-		padding: 0.25rem 0.625rem;
-		background: var(--sh-raised);
-		border: 1px solid var(--sh-border);
-		border-radius: 4px;
-		font-size: 0.75rem;
-		font-weight: 500;
-		color: var(--sh-muted);
-		text-decoration: none;
-		transition:
-			background-color var(--sh-ease),
-			border-color var(--sh-ease),
-			color var(--sh-ease);
-	}
-
-	.research-topic-link:hover {
-		background: var(--sh-hover);
-		border-color: var(--sh-border-strong);
-		color: var(--sh-text);
-	}
-
-	.research-topic-link--active {
-		background: var(--sh-accent-soft);
-		border-color: var(--sh-accent);
-		color: var(--sh-accent-text);
-	}
-
-	.research-list {
-		display: grid;
-		gap: 0;
-	}
-
-	.research-card {
-		border-bottom: 1px solid var(--sh-border);
-	}
-
-	.research-card__link {
-		display: block;
-		padding: 2rem 0;
-		text-decoration: none;
-		transition: background-color var(--sh-ease);
-	}
-
-	.research-card__link:hover {
-		background: var(--sh-hover);
-		margin: 0 -1rem;
-		padding: 2rem 1rem;
-		border-radius: var(--sh-radius);
-	}
-
-	.research-card__meta {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.75rem;
-		margin-bottom: 0.75rem;
-		font-size: 0.8125rem;
-		color: var(--sh-muted);
-	}
-
-	.research-card__series {
-		padding: 0.15rem 0.5rem;
-		background: var(--sh-accent-soft);
-		border-radius: 4px;
-		font-weight: 500;
-		color: var(--sh-accent-text);
-	}
-
-	.research-card__title {
-		margin: 0 0 0.5rem;
-		font-size: 1.375rem;
-		font-weight: 500;
-		line-height: 1.25;
-		letter-spacing: -0.02em;
-		color: var(--sh-text);
-	}
-
-	.research-card__link:hover .research-card__title {
-		color: var(--sh-accent-text);
-	}
-
-	.research-card__dek {
-		margin: 0;
-		font-size: 0.9375rem;
-		line-height: 1.55;
-		color: var(--sl-color-gray-2);
-	}
-
-	.research-card__topics {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		list-style: none;
-		padding: 0;
-		margin: 1rem 0 0;
-	}
-
-	.research-card__topics li {
-		padding: 0.2rem 0.5rem;
-		background: var(--sh-raised);
-		border-radius: 4px;
-		font-size: 0.6875rem;
-		font-weight: 500;
-		color: var(--sh-muted);
-	}
-
-	.research-empty {
-		padding: 3rem 0;
-		text-align: center;
-		font-size: 1rem;
-		color: var(--sh-muted);
-	}
-
-	.research-topics-heading {
-		margin: 0 0 0.75rem;
-		font-size: 0.75rem;
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		color: var(--sh-muted);
-	}
-
-	.research-topic-count {
-		margin-left: 0.25rem;
-		color: var(--sh-faint);
-	}
-
-	.research-section-title {
-		margin: 3rem 0 1rem;
-		padding-top: 2rem;
-		border-top: 1px solid var(--sh-border);
-		font-size: 1.5rem;
-		font-weight: 500;
-		letter-spacing: -0.02em;
-		color: var(--sh-text);
-	}
-
-	.research-section-title:first-of-type {
-		margin-top: 0;
-		padding-top: 1.5rem;
-		border-top: none;
-	}
-
-	.research-section-desc {
-		margin: 0 0 1.5rem;
-		font-size: 0.9375rem;
-		color: var(--sh-muted);
-		max-width: 40rem;
-	}
-
-	.research-topic-section {
-		scroll-margin-top: 5rem;
-	}
-
-	.research-topic-articles {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-		display: grid;
-		gap: 0;
-	}
-
-	.research-topic-articles li {
-		border-bottom: 1px solid var(--sh-border);
-	}
-
-	.research-topic-articles li:last-child {
-		border-bottom: none;
-	}
-
-	.research-topic-articles a {
-		display: block;
-		padding: 1rem 0;
-		text-decoration: none;
-		transition: background-color var(--sh-ease);
-	}
-
-	.research-topic-articles a:hover {
-		background: var(--sh-hover);
-		margin: 0 -1rem;
-		padding: 1rem;
-		border-radius: var(--sh-radius);
-	}
-
-	.research-topic-articles strong {
-		display: block;
-		font-size: 1rem;
-		font-weight: 500;
-		color: var(--sh-text);
-		margin-bottom: 0.25rem;
-	}
-
-	.research-topic-articles a:hover strong {
-		color: var(--sh-accent-text);
-	}
-
-	.research-topic-article-desc {
-		display: block;
-		font-size: 0.875rem;
-		color: var(--sh-muted);
-		line-height: 1.5;
-	}
-
-	.research-faq {
-		margin-top: 3rem;
-	}
-
-	.research-faq-list {
-		display: grid;
-		gap: 0;
-		border: 1px solid var(--sh-border);
-		border-radius: var(--sh-radius);
-		background: var(--sh-panel);
-		overflow: hidden;
-	}
-
-	.research-faq-item {
-		padding: 1.25rem 1.5rem;
-		border-bottom: 1px solid var(--sh-border);
-	}
-
-	.research-faq-item:last-child {
-		border-bottom: none;
-	}
-
-	.research-faq-item h3 {
-		margin: 0 0 0.5rem;
-		font-size: 1rem;
-		font-weight: 600;
-		line-height: 1.4;
-		color: var(--sh-text);
-	}
-
-	.research-faq-item p {
-		margin: 0;
-		font-size: 0.9375rem;
-		line-height: 1.6;
-		color: var(--sh-muted);
-	}
-</style>
+	<div class="sl-heading-wrapper level-h2"><h2 id="guides">Guides and use cases</h2></div>
+	<p>Step-by-step setups for the risks the research describes.</p>
+	<ul class="rs-list not-content">
+		<li><a href={sitePath('/use-cases/protect-secrets-from-ai-coding-assistants/')}>Protect secrets from AI coding assistants</a></li>
+		<li><a href={sitePath('/use-cases/stop-pii-leaks-to-chatgpt/')}>Stop PII leaks to ChatGPT</a></li>
+		<li><a href={sitePath('/use-cases/anonymize-prompts-for-claude/')}>Anonymize prompts for Claude</a></li>
+		<li><a href={sitePath('/concepts/how-it-works/')}>How Shadow masks and restores data</a></li>
+		<li><a href={sitePath('/compare/')}>Compare AI data-leak tools</a></li>
+	</ul>
+</StarlightPage>

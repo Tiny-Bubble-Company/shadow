@@ -1,7 +1,7 @@
 ---
 title: "Does Cursor Train on My Code? Privacy, Data Retention and Residual Risks"
 seoTitle: "Does Cursor train on my code?"
-description: "Cursor does not train on your code by default and offers a privacy mode. But prompts, file context and terminal output still reach model providers. Here is what leaves your machine, what the settings control, and how to mask sensitive data before it goes anywhere."
+description: "Cursor does not train on your code by default, but prompts, file context and terminal output still reach model providers. What leaves, and how to mask it."
 publishedDate: 2026-10-15
 updatedDate: 2026-11-06
 topics:
@@ -35,6 +35,10 @@ faq:
 cta:
   label: "Try Shadow free"
   href: /getting-started/quick-start/
+related:
+  - is-chatgpt-safe-for-company-data
+  - private-chatgpt
+  - what-is-an-llm-proxy
 ---
 
 **Cursor does not train models on your code by default.** Enabling Privacy Mode adds a contractual guarantee that prompts and codebase snippets are never used for training and are retained only as long as needed for the service. Enterprise customers can negotiate zero-data-retention (ZDR) terms with the underlying providers. None of these settings stop your code from leaving your machine: prompts, file context, terminal output and anything the agent reads are still sent over the internet to model providers such as OpenAI and Anthropic.
@@ -74,7 +78,7 @@ AI coding assistants read files to build context. If your `.env`, `config/produc
 | Default Cursor (no Privacy Mode) | Low (Cursor says no training) | Yes | No | None |
 | Privacy Mode on | Contractually zero | Yes | No | One toggle |
 | Enterprise ZDR agreement | Contractually zero, auditable | Yes | No | Procurement |
-| Local masking proxy ([Shadow](/)) | Contractually zero + values replaced | Yes, but with fakes | Yes | Install and configure |
+| Local masking proxy ([Shadow](/shadow/)) | Contractually zero + values replaced | Yes, but with fakes | Yes | Install and configure |
 | Local model (Ollama, vLLM) | Zero (nothing leaves) | No | Yes | Host your own model |
 
 A masking proxy like Shadow sits between Cursor and the provider API. It detects names, emails, phone numbers, card numbers, secrets, internal hostnames and your own terms in the request, replaces them with realistic fakes, and restores the real values in the response. The provider never sees the originals. You keep frontier model quality and add a technical control instead of relying solely on contracts.
@@ -103,7 +107,7 @@ test/fixtures/customer_exports/
 
 ### 4. Point Cursor at a local masking proxy
 
-[Shadow](/) intercepts requests to OpenAI, Anthropic and other providers and masks sensitive values before they leave. Install it on your laptop:
+[Shadow](/shadow/) intercepts requests to OpenAI, Anthropic and other providers and masks sensitive values before they leave. Install it on your laptop:
 
 ```sh
 curl -fsSL https://hub.getshadow.dev/core/install.sh | sh
@@ -126,7 +130,7 @@ Start Shadow and configure Cursor to route traffic through the proxy:
 shadow install --apply
 ```
 
-Then set Cursor's HTTP proxy to `http://127.0.0.1:8877` in your IDE settings, or export `HTTPS_PROXY` for terminal-based agent commands. See the [protect secrets from AI coding assistants](/use-cases/protect-secrets-from-ai-coding-assistants/) guide for detailed setup.
+Then set Cursor's HTTP proxy to `http://127.0.0.1:8877` in your IDE settings, or export `HTTPS_PROXY` for terminal-based agent commands. See the [protect secrets from AI coding assistants](/shadow/use-cases/protect-secrets-from-ai-coding-assistants/) guide for detailed setup.
 
 ### 5. Alternatively: use a local model
 
@@ -139,20 +143,14 @@ You get full air-gap privacy but accept weaker model quality for complex reasoni
 
 ## What about GitHub Copilot?
 
-GitHub Copilot has similar dynamics: prompts reach GitHub/OpenAI servers, and settings control training opt-out and telemetry but not transmission. Shadow does not intercept Copilot's proprietary backend today (see [which assistants are covered](/use-cases/protect-secrets-from-ai-coding-assistants/#which-assistants-are-covered)). For Copilot privacy, rely on the business plan's telemetry controls and keep secrets out of the workspace.
+GitHub Copilot has similar dynamics: prompts reach GitHub/OpenAI servers, and settings control training opt-out and telemetry but not transmission. Shadow does not intercept Copilot's proprietary backend today (see [which assistants are covered](/shadow/use-cases/protect-secrets-from-ai-coding-assistants/#which-assistants-are-covered)). For Copilot privacy, rely on the business plan's telemetry controls and keep secrets out of the workspace.
 
 ## About Shadow
 
-[Shadow](/) is an open-source (Apache-2.0) privacy proxy for AI, developed by the [Tiny Bubble Company](https://github.com/Tiny-Bubble-Company). It runs locally, masks PII and secrets in prompts to ChatGPT, Claude, Cursor (when using provider APIs) and other LLMs, and restores the real values in responses. Nothing is sent to a third-party service; the real-to-fake mapping stays in an encrypted vault on your machine.
+[Shadow](/shadow/) is an open-source (Apache-2.0) privacy proxy for AI, developed by the [Tiny Bubble Company](https://github.com/Tiny-Bubble-Company). It runs locally, masks PII and secrets in prompts to ChatGPT, Claude, Cursor (when using provider APIs) and other LLMs, and restores the real values in responses. Nothing is sent to a third-party service; the real-to-fake mapping stays in an encrypted vault on your machine.
 
-For teams, [Shadow Hub](/hub/) shows which AI tools your people use and what was masked or blocked, per user and per tool, without collecting prompt text. Hub is free for up to 3 users, then $3 per user per month up to 500 users. See [Pricing](/pricing/).
+For teams, [Shadow Hub](/shadow/hub/) shows which AI tools your people use and what was masked or blocked, per user and per tool, without collecting prompt text. Hub is free for up to 3 users, then $3 per user per month up to 500 users. See [Pricing](/shadow/pricing/).
 
 ---
 
 **Disclaimer**: This guide describes technical controls and publicly stated policies. It does not constitute legal advice or guarantee compliance with any regulation. Involve your security, legal and privacy teams before using AI coding assistants on sensitive codebases.
-
-## Related research
-
-- [Is ChatGPT safe for company data?](/research/is-chatgpt-safe-for-company-data/)
-- [Private ChatGPT: how to use AI without sharing your data](/research/private-chatgpt/)
-- [What is an LLM proxy?](/research/what-is-an-llm-proxy/)

@@ -93,5 +93,5 @@ See the [security model](/shadow/reference/security/) for the full list of limit
 
 ## Related
 
-- [What is an LLM proxy?](/shadow/guides/what-is-an-llm-proxy/): gateway, forward proxy, privacy proxy and how to choose
+- [What is an LLM proxy?](/shadow/research/what-is-an-llm-proxy/): gateway, forward proxy, privacy proxy and how to choose
 - [Integration modes](/shadow/integrate/overview/): proxy, gateway or Rust library
