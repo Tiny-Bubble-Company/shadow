@@ -454,7 +454,7 @@
 }
 @media (min-width: 48rem) {
 	.sh-footer__top {
-		grid-template-columns: 1.2fr 3fr;
+		grid-template-columns: minmax(0, 1.2fr) minmax(0, 3fr);
 	}
 }
 .sh-footer__logo {
@@ -500,19 +500,11 @@
 .sh-footer__support a:hover {
 	text-decoration: underline;
 }
+/* Up to four columns of at least 9rem: the count follows the space left beside the docs
+   sidebar, not the viewport, so the footer never overflows on docs pages. */
 .sh-footer__grid {
-	columns: 2;
+	columns: 9rem 4;
 	column-gap: 2rem;
-}
-@media (min-width: 40rem) {
-	.sh-footer__grid {
-		columns: 3;
-	}
-}
-@media (min-width: 64rem) {
-	.sh-footer__grid {
-		columns: 4;
-	}
 }
 .sh-footer__col {
 	break-inside: avoid;
