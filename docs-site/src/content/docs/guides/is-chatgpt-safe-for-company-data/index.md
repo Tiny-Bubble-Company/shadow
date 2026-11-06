@@ -85,6 +85,7 @@ This guide describes risks and technical controls. It does not make your AI use 
 ## Related
 
 - [Private ChatGPT: how to use AI without sharing your data](/shadow/guides/private-chatgpt/)
+- [Does Cursor train on my code?](/shadow/guides/does-cursor-train-on-my-code/)
 - [What is shadow AI?](/shadow/guides/what-is-shadow-ai/)
 - [Free AI acceptable use policy template](/shadow/guides/ai-acceptable-use-policy-template/)
 - [How to stop employees pasting customer data into ChatGPT](/shadow/use-cases/stop-pii-leaks-to-chatgpt/)

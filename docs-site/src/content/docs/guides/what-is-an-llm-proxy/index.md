@@ -87,6 +87,7 @@ Running it across a team? [Shadow Hub](/shadow/hub/) shows what was masked or bl
 ## Related
 
 - [Private ChatGPT: how to use AI without sharing your data](/shadow/guides/private-chatgpt/)
+- [Does Cursor train on my code?](/shadow/guides/does-cursor-train-on-my-code/)
 - [How Shadow works](/shadow/concepts/how-it-works/)
 - [Proxy mode](/shadow/integrate/proxy-mode/)
 - [Gateway mode](/shadow/integrate/gateway-mode/)
