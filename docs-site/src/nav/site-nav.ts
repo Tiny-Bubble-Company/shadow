@@ -213,5 +213,21 @@ export async function mainNav() {
 	};
 	const industries = pick('industries');
 	const compare = pick('compare');
-	return { product, hub, connect, products, docs, solutions, industries, compare };
+
+	// Research section: editorial articles outside the docs sidebar
+	// Static links since Astro.glob doesn't work in regular TS modules
+	const research: NavGroup = {
+		id: 'research',
+		label: 'Research',
+		href: sitePath('/research/'),
+		links: [
+			{ label: 'AI Leak Report #1', href: sitePath('/research/ai-leak-report-1/'), description: '122k+ values protected on one laptop' },
+			{ label: 'Does Cursor train on my code?', href: sitePath('/research/does-cursor-train-on-my-code/'), description: 'Privacy controls and residual risks' },
+			{ label: 'Private ChatGPT', href: sitePath('/research/private-chatgpt/'), description: 'Use AI without sharing your data' },
+			{ label: 'Is ChatGPT safe for company data?', href: sitePath('/research/is-chatgpt-safe-for-company-data/'), description: 'What happens to your prompts' },
+			{ label: 'Browse all research', href: sitePath('/research/'), description: 'AI privacy research and analysis' },
+		],
+	};
+
+	return { product, hub, connect, products, docs, solutions, industries, compare, research };
 }

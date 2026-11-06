@@ -1,0 +1,117 @@
+---
+// Responsive data table for research articles with stat/comparison data.
+interface Props {
+	headers: string[];
+	rows: string[][];
+	caption?: string;
+	footer?: string;
+}
+
+const { headers, rows, caption, footer } = Astro.props;
+---
+
+<figure class="research-table-wrap">
+	{caption && <figcaption class="research-table-caption">{caption}</figcaption>}
+	<div class="research-table-scroll">
+		<table class="research-table">
+			<thead>
+				<tr>
+					{headers.map((h) => <th set:html={h} />)}
+				</tr>
+			</thead>
+			<tbody>
+				{
+					rows.map((row) => (
+						<tr>
+							{row.map((cell, i) => (i === 0 ? <th scope="row" set:html={cell} /> : <td set:html={cell} />))}
+						</tr>
+					))
+				}
+			</tbody>
+		</table>
+	</div>
+	{footer && <p class="research-table-footer">{footer}</p>}
+</figure>
+
+<style>
+	.research-table-wrap {
+		margin: 2rem 0;
+		max-width: 100%;
+	}
+
+	.research-table-caption {
+		margin-bottom: 0.75rem;
+		font-size: 0.9375rem;
+		font-weight: 500;
+		color: var(--sh-text);
+	}
+
+	.research-table-scroll {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		border: 1px solid var(--sh-border);
+		border-radius: var(--sh-radius);
+		background: var(--sh-panel);
+	}
+
+	.research-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.9375rem;
+		line-height: 1.5;
+	}
+
+	.research-table th,
+	.research-table td {
+		padding: 0.75rem 1rem;
+		text-align: left;
+		vertical-align: top;
+		border-bottom: 1px solid var(--sh-border);
+	}
+
+	.research-table thead th {
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--sh-muted);
+		letter-spacing: -0.003em;
+		background: transparent;
+	}
+
+	.research-table tbody th {
+		font-weight: 500;
+		color: var(--sh-text);
+	}
+
+	.research-table tbody td {
+		color: var(--sl-color-gray-2);
+	}
+
+	.research-table tbody tr:last-child th,
+	.research-table tbody tr:last-child td {
+		border-bottom: 0;
+	}
+
+	.research-table tbody tr:hover th,
+	.research-table tbody tr:hover td {
+		background: var(--sh-hover);
+	}
+
+	.research-table :global(strong) {
+		font-weight: 600;
+		color: var(--sh-text);
+	}
+
+	.research-table-footer {
+		margin: 0.75rem 0 0;
+		font-size: 0.8125rem;
+		color: var(--sh-muted);
+	}
+
+	@media (max-width: 40rem) {
+		.research-table th,
+		.research-table td {
+			padding: 0.625rem 0.75rem;
+			font-size: 0.875rem;
+		}
+	}
+</style>

@@ -65,4 +65,10 @@ export const OG_CARDS = [
 		headline: 'Open source under Apache-2.0',
 		alt: 'the Shadow roadmap, changelog and contribution guide',
 	},
+	{
+		dir: 'research',
+		label: 'Research',
+		headline: 'AI privacy research and analysis',
+		alt: 'evidence-based research on AI data privacy and what developer tools can expose',
+	},
 ];

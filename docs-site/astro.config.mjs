@@ -10,7 +10,11 @@ import { SITE, BASE, REPO_URL, SITE_DESCRIPTION, CF_BEACON_TOKEN } from './src/s
 // (see src/site.mjs). Default: served at the domain root (BASE=""); GitHub Pages uses BASE=/shadow.
 
 // Guides that are written and indexed; the rest are noindex stubs.
+// Note: Guides are being migrated to /research/ with 301 redirects.
 const PUBLISHED_GUIDES = ['what-is-shadow-ai', 'ai-acceptable-use-policy-template', 'is-chatgpt-safe-for-company-data', 'what-is-an-llm-proxy', 'private-chatgpt', 'does-cursor-train-on-my-code'];
+
+// Research articles are always indexed (unless draft: true in frontmatter).
+const RESEARCH_SECTION = '/research/';
 
 // https://astro.build/config
 export default defineConfig({
@@ -26,10 +30,11 @@ export default defineConfig({
 		sitemap({
 			// noindex pages stay out too: case studies until a customer approves, guide stubs
 			// until written, and the Hub connect page (it may carry an invite token). Written
-			// guides are listed in PUBLISHED_GUIDES.
+			// guides are listed in PUBLISHED_GUIDES. Research articles are always included.
 			filter: (page) =>
 				!/\/404\/?$/.test(page) &&
-				(PUBLISHED_GUIDES.some((g) => page.includes(`/guides/${g}/`)) ||
+				(page.includes(RESEARCH_SECTION) ||
+					PUBLISHED_GUIDES.some((g) => page.includes(`/guides/${g}/`)) ||
 					!/\/(customers|guides|docs\/hub)\/|\/hub\/connect\//.test(page)),
 		}),
 		starlight({

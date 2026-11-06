@@ -1,0 +1,48 @@
+---
+// Large statistic callout for research articles.
+interface Props {
+	value: string | number;
+	label: string;
+	description?: string;
+}
+
+const { value, label, description } = Astro.props;
+---
+
+<div class="research-stat">
+	<p class="research-stat__value">{value}</p>
+	<p class="research-stat__label">{label}</p>
+	{description && <p class="research-stat__desc">{description}</p>}
+</div>
+
+<style>
+	.research-stat {
+		padding: 1.5rem;
+		background: var(--sh-panel);
+		border: 1px solid var(--sh-border);
+		border-radius: var(--sh-radius);
+		text-align: center;
+	}
+
+	.research-stat__value {
+		margin: 0;
+		font-size: 2.5rem;
+		font-weight: 500;
+		letter-spacing: -0.03em;
+		line-height: 1.1;
+		color: var(--sh-accent-text);
+	}
+
+	.research-stat__label {
+		margin: 0.5rem 0 0;
+		font-size: 0.9375rem;
+		font-weight: 500;
+		color: var(--sh-text);
+	}
+
+	.research-stat__desc {
+		margin: 0.5rem 0 0;
+		font-size: 0.8125rem;
+		color: var(--sh-muted);
+	}
+</style>

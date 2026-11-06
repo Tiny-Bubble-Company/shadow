@@ -1,0 +1,35 @@
+---
+// Dynamic route for individual research articles.
+import ResearchLayout from '../../layouts/ResearchLayout.astro';
+
+export async function getStaticPaths() {
+	const allPosts = await import.meta.glob('../../content/research/*.md', { eager: true });
+	const paths = Object.entries(allPosts)
+		.filter(([_, post]: [string, any]) => !post.frontmatter?.draft)
+		.map(([path, post]: [string, any]) => {
+			const slug = path.split('/').pop()?.replace('.md', '') || '';
+			return {
+				params: { slug },
+				props: {
+					frontmatter: {
+						...post.frontmatter,
+						publishedDate: new Date(post.frontmatter.publishedDate),
+						updatedDate: post.frontmatter.updatedDate ? new Date(post.frontmatter.updatedDate) : undefined,
+						topics: post.frontmatter.topics || [],
+						keyFindings: post.frontmatter.keyFindings || [],
+						faq: post.frontmatter.faq || [],
+					},
+					Content: post.Content,
+					slug,
+				},
+			};
+		});
+	return paths;
+}
+
+const { frontmatter, Content, slug } = Astro.props;
+---
+
+<ResearchLayout frontmatter={frontmatter} slug={slug}>
+	<Content />
+</ResearchLayout>
